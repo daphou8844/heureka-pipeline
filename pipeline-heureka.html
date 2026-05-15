@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pipeline Heuréka</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ─── Reset & Variables ─────────────────────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0A0A0A; --bg2:#111111; --bg3:#161616; --surface:#1C1C1C;
+  --border:#2A2A2A; --border2:#333;
+  --gold:#C9922A; --gold2:#F2C96E; --gold-dim:rgba(201,146,42,.13);
+  --text:#FFFFFF; --muted:#888; --muted2:#555;
+  --red:#EF4444; --orange:#F59E0B; --green:#22C55E; --blue:#3B82F6;
+  --purple:#8B5CF6; --teal:#14B8A6;
+  --rad:10px; --rad2:14px; --tr:all .18s ease;
+  --shadow:0 4px 24px rgba(0,0,0,.5);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:5px;height:5px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+input,select,textarea,button{font-family:inherit}
+a{color:inherit;text-decoration:none}
+
+/* ─── Layout ────────────────────────────────────────────────────────────────── */
+#app{display:flex;height:100vh;overflow:hidden}
+#sidebar{width:214px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:10}
+#main{flex:1;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+#topbar{padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--bg2)}
+#content{flex:1;overflow:auto;padding:22px 24px;position:relative}
+
+/* ─── Sidebar ───────────────────────────────────────────────────────────────── */
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
+.sb-logo-inner{display:flex;align-items:center;gap:10px}
+.sb-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.sb-title{font-size:12.5px;font-weight:800;color:var(--gold2);line-height:1.3}
+.sb-nav{padding:10px 8px;flex:1}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:8px;margin-bottom:2px;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--muted);border:1px solid transparent;transition:var(--tr);user-select:none}
+.nav-item:hover{color:#ddd;background:rgba(255,255,255,.04)}
+.nav-item.active{color:var(--gold2);background:var(--gold-dim);border-color:rgba(201,146,42,.25);font-weight:700}
+.nav-item .nav-ico{font-size:15px;width:18px;text-align:center}
+.sb-footer{padding:12px;border-top:1px solid var(--border)}
+.sb-sync-btn{width:100%;padding:8px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:center;transition:var(--tr)}
+.sb-sync-btn:hover{border-color:var(--gold);color:var(--gold)}
+.sb-config{padding:8px;font-size:11px;color:var(--muted2);text-align:center;margin-top:6px;cursor:pointer}
+.sb-config:hover{color:var(--muted)}
+
+/* ─── Topbar ────────────────────────────────────────────────────────────────── */
+.tb-title{font-size:17px;font-weight:800;color:var(--gold2)}
+.tb-sub{font-size:12px;color:var(--muted);margin-top:1px}
+.tb-actions{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 15px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:var(--tr);border:none}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000}
+.btn-gold:hover{opacity:.9}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn-danger{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:var(--red)}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
+
+/* ─── Pipeline Kanban ───────────────────────────────────────────────────────── */
+#view-pipeline{display:flex;flex-direction:column;height:100%}
+.pipeline-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-shrink:0}
+.pipeline-filters{display:flex;gap:6px}
+.filter-btn{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:var(--tr)}
+.filter-btn.active{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
+.kanban-scroll{flex:1;overflow-x:auto;overflow-y:hidden;display:flex;gap:13px;align-items:flex-start;padding-bottom:12px}
+.kanban-col{flex-shrink:0;width:232px;display:flex;flex-direction:column;max-height:100%}
+.col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 2px}
+.col-title{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.5px}
+.col-dot{width:7px;height:7px;border-radius:50%}
+.col-count{font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px}
+.col-body{flex:1;overflow-y:auto;padding:4px;border-radius:10px;border:2px dashed transparent;min-height:60px;transition:var(--tr)}
+.col-body.drag-over{border-color:var(--gold);background:var(--gold-dim)}
+.col-empty{text-align:center;padding:20px 0;color:var(--border2);font-size:12px}
+/* Cards */
+.proj-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:7px;cursor:pointer;transition:var(--tr);border-left:3px solid transparent;position:relative;user-select:none}
+.proj-card:hover{border-color:var(--gold);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.proj-card.dragging{opacity:.4}
+.card-client{font-size:11px;color:var(--muted);margin-bottom:3px;font-weight:500}
+.card-name{font-size:13px;font-weight:700;color:#fff;margin-bottom:7px;line-height:1.3}
+.card-footer{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.card-type{font-size:10px;color:var(--muted);background:var(--bg3);padding:2px 7px;border-radius:4px}
+.card-alert{display:flex;align-items:center;gap:3px;font-size:11px;font-weight:700}
+.card-rdv{font-size:11px;color:var(--teal)}
+.card-prix{font-size:11px;color:var(--gold);font-weight:600}
+
+/* ─── Modal System ──────────────────────────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal-overlay.hidden{display:none}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rad2);width:100%;max-width:880px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.modal-full{max-width:1100px;max-height:95vh}
+.modal-sm{max-width:480px}
+.modal-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0}
+.modal-title{font-size:16px;font-weight:800;color:var(--gold2)}
+.modal-subtitle{font-size:12px;color:var(--muted);margin-top:2px}
+.modal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;padding:2px 6px;border-radius:6px;transition:var(--tr)}
+.modal-close:hover{color:#fff;background:var(--border)}
+.modal-body{flex:1;overflow-y:auto;padding:20px 22px}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
+
+/* ─── Projet Detail Layout ──────────────────────────────────────────────────── */
+.proj-detail-grid{display:grid;grid-template-columns:1fr 320px;gap:20px;height:100%}
+.proj-info-panel{display:flex;flex-direction:column;gap:16px}
+.proj-activity-panel{border-left:1px solid var(--border);padding-left:18px;display:flex;flex-direction:column;gap:0;overflow:hidden}
+.section-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.info-block{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rad);padding:14px 16px}
+.info-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.info-row:last-child{border-bottom:none;padding-bottom:0}
+.info-label{color:var(--muted);font-size:12px;width:130px;flex-shrink:0}
+.info-value{color:#fff;font-weight:500;flex:1}
+.info-value a{color:var(--gold);text-decoration:underline}
+
+/* ─── Activités ─────────────────────────────────────────────────────────────── */
+.acti-scroll{flex:1;overflow-y:auto;margin-bottom:12px}
+.acti-item{display:flex;gap:10px;padding:9px 10px;border-radius:8px;border:1px solid var(--border);margin-bottom:7px;transition:var(--tr)}
+.acti-item.status-late{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.05)}
+.acti-item.status-today{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.05)}
+.acti-item.status-future{border-color:var(--border)}
+.acti-item.status-done{opacity:.55}
+.acti-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.acti-content{flex:1;min-width:0}
+.acti-type{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.acti-desc{font-size:12px;color:#ccc;margin-top:2px;line-height:1.4}
+.acti-date{font-size:11px;color:var(--muted);margin-top:4px}
+.acti-add-form{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rad);padding:12px}
+.acti-add-title{font-size:12px;font-weight:700;color:var(--gold2);margin-bottom:10px}
+
+/* ─── Forms ─────────────────────────────────────────────────────────────────── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.form-control{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 11px;color:#fff;font-size:13px;width:100%;transition:var(--tr);outline:none}
+.form-control:focus{border-color:var(--gold)}
+.form-control option{background:var(--bg3)}
+textarea.form-control{resize:vertical;min-height:72px}
+.form-row{display:flex;gap:10px}
+
+/* ─── Chantiers ─────────────────────────────────────────────────────────────── */
+.chantiers-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.chantier-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);padding:13px 15px;border-top:2px solid transparent}
+.stat-num{font-size:22px;font-weight:800}
+.stat-label{font-size:11px;color:var(--muted);margin-top:2px}
+.chantier-filters{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.chantiers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.chantier-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad2);padding:16px;cursor:pointer;transition:var(--tr);border-left:3px solid var(--border)}
+.chantier-card:hover{border-color:var(--gold);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.chantier-proj-name{font-size:14px;font-weight:800;color:#fff;margin-bottom:3px}
+.chantier-client{font-size:12px;color:var(--muted);margin-bottom:10px}
+.progress-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px}
+.progress-fill{height:100%;border-radius:3px;transition:width .4s}
+.chantier-meta{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--muted)}
+.status-badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:5px;font-size:11px;font-weight:700}
+
+/* ─── Chantier Detail (full) ─────────────────────────────────────────────────── */
+.chantier-detail-header{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start;margin-bottom:20px}
+.chantier-tabs{display:flex;gap:3px;border-bottom:1px solid var(--border);margin-bottom:18px}
+.tab-btn{padding:9px 16px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:var(--tr);margin-bottom:-1px}
+.tab-btn.active{color:var(--gold2);border-bottom-color:var(--gold)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* ─── Timeline ──────────────────────────────────────────────────────────────── */
+.timeline-container{overflow-x:auto;padding:10px 0}
+.timeline-header{display:flex;gap:0;padding-left:160px;margin-bottom:4px;min-width:700px}
+.timeline-month{font-size:10px;color:var(--muted);font-weight:600;text-align:center;border-left:1px solid var(--border)}
+.timeline-rows{min-width:700px}
+.timeline-row{display:flex;align-items:center;margin-bottom:8px;min-height:32px}
+.timeline-label{width:155px;flex-shrink:0;font-size:12px;color:#ccc;font-weight:600;padding-right:10px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.timeline-track{flex:1;height:24px;background:var(--bg3);border-radius:4px;position:relative;overflow:hidden}
+.timeline-bar{position:absolute;height:100%;border-radius:4px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;color:#000;white-space:nowrap;overflow:hidden}
+.timeline-today{position:absolute;top:0;bottom:0;width:2px;background:var(--red);opacity:.8;z-index:1}
+.etape-form{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:10px}
+
+/* ─── Tasks ─────────────────────────────────────────────────────────────────── */
+.task-list{display:flex;flex-direction:column;gap:6px}
+.task-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;transition:var(--tr)}
+.task-item:hover{border-color:var(--border2)}
+.task-check{width:18px;height:18px;border-radius:4px;border:2px solid var(--border2);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.task-check.done{background:var(--green);border-color:var(--green)}
+.task-title{flex:1;font-size:13px;color:#fff}
+.task-title.done{text-decoration:line-through;color:var(--muted)}
+.task-assignee{font-size:11px;color:var(--muted);background:var(--surface);padding:2px 7px;border-radius:4px}
+.task-date{font-size:11px;color:var(--muted)}
+.task-add-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;margin-top:10px}
+
+/* ─── Clients View ──────────────────────────────────────────────────────────── */
+.clients-layout{display:grid;grid-template-columns:300px 1fr;gap:0;height:100%;overflow:hidden}
+.clients-list{border-right:1px solid var(--border);overflow-y:auto;padding:0}
+.client-list-header{padding:14px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:1}
+.client-list-item{padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:var(--tr)}
+.client-list-item:hover{background:rgba(255,255,255,.03)}
+.client-list-item.active{background:var(--gold-dim);border-right:2px solid var(--gold)}
+.client-nom{font-size:13px;font-weight:700;color:#fff;margin-bottom:2px}
+.client-tel{font-size:11px;color:var(--muted)}
+.client-detail{padding:22px;overflow-y:auto}
+.client-contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.contact-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rad);padding:12px 14px;display:flex;align-items:center;gap:10px}
+.contact-ico{font-size:18px;width:36px;height:36px;background:var(--gold-dim);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.contact-label{font-size:11px;color:var(--muted)}
+.contact-value{font-size:13px;color:#fff;font-weight:600;margin-top:1px}
+
+/* ─── Config Panel ──────────────────────────────────────────────────────────── */
+.config-panel{padding:20px}
+.config-section{margin-bottom:24px}
+.config-title{font-size:13px;font-weight:700;color:var(--gold2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.config-info{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px}
+.config-url-saved{font-size:11px;color:var(--green);margin-top:4px}
+
+/* ─── Inactivity alerts ─────────────────────────────────────────────────────── */
+.alert-red{color:var(--red)!important}
+.alert-orange{color:var(--orange)!important}
+
+/* ─── Misc ──────────────────────────────────────────────────────────────────── */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:var(--muted);text-align:center;gap:10px}
+.empty-ico{font-size:40px;opacity:.4}
+.empty-text{font-size:14px}
+.divider{height:1px;background:var(--border);margin:14px 0}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.gold-text{color:var(--gold2)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--gold);border-radius:10px;padding:10px 20px;font-size:13px;font-weight:600;color:var(--gold2);z-index:999;animation:fadeUp .3s ease;box-shadow:var(--shadow)}
+@keyframes fadeUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ APP SHELL ═════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-inner">
+        <div class="sb-icon">🏗</div>
+        <div class="sb-title">Gestions<br>Heuréka</div>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="nav-item active" onclick="showView('pipeline')" id="nav-pipeline">
+        <span class="nav-ico">🎯</span> Pipeline
+      </div>
+      <div class="nav-item" onclick="showView('chantiers')" id="nav-chantiers">
+        <span class="nav-ico">🏗</span> Chantiers
+      </div>
+      <div class="nav-item" onclick="showView('clients')" id="nav-clients">
+        <span class="nav-ico">👥</span> Clients
+      </div>
+    </nav>
+    <div class="sb-footer">
+      <button class="sb-sync-btn" onclick="syncSheets()">⟳ Sync Google Sheets</button>
+      <div class="sb-config" onclick="showView('config')">⚙ Configuration</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div id="main">
+    <div id="topbar">
+      <div>
+        <div class="tb-title" id="topbar-title">Pipeline</div>
+        <div class="tb-sub" id="topbar-sub"></div>
+      </div>
+      <div class="tb-actions" id="topbar-actions"></div>
+    </div>
+    <div id="content">
+
+      <!-- VIEW: PIPELINE -->
+      <div id="view-pipeline" class="hidden">
+        <div class="pipeline-header">
+          <div class="pipeline-filters">
+            <button class="filter-btn active" id="filter-actif" onclick="togglePerdu(false)">Actifs</button>
+            <button class="filter-btn" id="filter-perdu" onclick="togglePerdu(true)">Perdus <span id="perdu-count" style="margin-left:4px"></span></button>
+          </div>
+        </div>
+        <div class="kanban-scroll" id="kanban-scroll"></div>
+      </div>
+
+      <!-- VIEW: CHANTIERS -->
+      <div id="view-chantiers" class="hidden">
+        <div class="chantiers-header">
+          <div><div class="tb-title">Chantiers</div></div>
+        </div>
+        <div class="chantier-stats" id="chantier-stats"></div>
+        <div class="chantier-filters" id="chantier-filters"></div>
+        <div class="chantiers-grid" id="chantiers-grid"></div>
+      </div>
+
+      <!-- VIEW: CLIENTS -->
+      <div id="view-clients" class="hidden">
+        <div class="clients-layout" style="height:calc(100vh - 120px)">
+          <div class="clients-list">
+            <div class="client-list-header">
+              <input class="form-control" id="client-search" placeholder="🔍 Rechercher..." oninput="renderClientList()">
+              <button class="btn btn-gold btn-sm" style="width:100%;margin-top:8px" onclick="openModalNewClient()">+ Nouveau client</button>
+            </div>
+            <div id="client-list-items"></div>
+          </div>
+          <div class="client-detail" id="client-detail">
+            <div class="empty-state"><div class="empty-ico">👥</div><div class="empty-text">Sélectionne un client</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: CONFIG -->
+      <div id="view-config" class="hidden">
+        <div class="config-panel" style="max-width:600px">
+          <div class="config-section">
+            <div class="config-title">🔗 Google Apps Script</div>
+            <div class="config-info">
+              Déploie le fichier <strong>sheets-script.gs</strong> dans ton Google Sheet "Gestions Heuréka - Base de données".<br>
+              Extensions → Apps Script → Déployer → Nouvelle déployment → Web App → Tout le monde.
+            </div>
+            <div class="form-group">
+              <label class="form-label">URL du Apps Script (/exec)</label>
+              <input class="form-control" id="cfg-url" placeholder="https://script.google.com/macros/s/.../exec" oninput="saveCfgUrl()">
+              <div class="config-url-saved hidden" id="cfg-url-saved">✓ URL sauvegardée</div>
+            </div>
+          </div>
+          <div class="config-section">
+            <div class="config-title">📊 Google Sheets ID</div>
+            <div class="form-group">
+              <label class="form-label">Spreadsheet ID</label>
+              <input class="form-control" id="cfg-sheet-id" value="1kxWL4TJNj5JG0vKDCpbS2XhUodfyVow9lxHM8lYSwwo" readonly>
+            </div>
+          </div>
+          <div class="config-section">
+            <div class="config-title">🗑 Réinitialiser</div>
+            <button class="btn btn-danger" onclick="if(confirm('Effacer toutes les données locales?')){localStorage.clear();location.reload()}">Effacer les données locales</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ═══════════════════ MODAL: NOUVEAU PROJET ════════════════════════════════ -->
+<div class="modal-overlay hidden" id="modal-new-projet">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div><div class="modal-title" id="new-proj-title">Nouveau projet</div></div>
+      <button class="modal-close" onclick="closeModal('modal-new-projet')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">Client *</label>
+          <select class="form-control" id="np-client-sel" onchange="onClientSelChange()">
+            <option value="">— Sélectionner un client —</option>
+            <option value="__new__">+ Nouveau client</option>
+          </select>
+        </div>
+        <div id="new-client-fields" class="form-group full hidden">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Nom client *</label>
+              <input class="form-control" id="np-client-nom" placeholder="Jean Tremblay">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Téléphone</label>
+              <input class="form-control" id="np-client-tel" placeholder="514-555-0000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Courriel</label>
+              <input class="form-control" id="np-client-email" type="email">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Adresse</label>
+              <input class="form-control" id="np-client-adresse">
+            </div>
+          </div>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Nom du projet *</label>
+          <input class="form-control" id="np-nom" placeholder="Rénovation cuisine">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type de projet</label>
+          <select class="form-control" id="np-type">
+            <option value="residential">Résidentiel</option>
+            <option value="commercial">Commercial</option>
+            <option value="industriel">Industriel</option>
+            <option value="renovation">Rénovation</option>
+            <option value="construction">Construction neuve</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Source lead</label>
+          <select class="form-control" id="np-source">
+            <option value="reference">Référence</option>
+            <option value="web">Web</option>
+            <option value="social">Réseaux sociaux</option>
+            <option value="appel">Appel entrant</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Priorité</label>
+          <select class="form-control" id="np-priorite">
+            <option value="normale">Normale</option>
+            <option value="haute">Haute</option>
+            <option value="urgente">Urgente</option>
+            <option value="basse">Basse</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prix estimé ($)</label>
+          <input class="form-control" id="np-prix" type="number" placeholder="15000">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Notes</label>
+          <textarea class="form-control" id="np-notes" rows="2" placeholder="Contexte, remarques..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-new-projet')">Annuler</button>
+      <button class="btn btn-gold" onclick="saveNewProjet()">Créer le projet</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MODAL: DÉTAIL PROJET ════════════════════════════════ -->
+<div class="modal-overlay hidden" id="modal-projet">
+  <div class="modal" style="max-width:940px">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="mpj-title"></div>
+        <div class="modal-subtitle" id="mpj-subtitle"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-outline btn-sm" onclick="openEditProjet()">✏ Modifier</button>
+        <button class="modal-close" onclick="closeModal('modal-projet')">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" style="height:calc(92vh - 120px)">
+      <div class="proj-detail-grid">
+        <div class="proj-info-panel" id="mpj-info"></div>
+        <div class="proj-activity-panel" id="mpj-activities"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MODAL: ÉDITION PROJET ════════════════════════════════ -->
+<div class="modal-overlay hidden" id="modal-edit-projet">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">Modifier le projet</div>
+      <button class="modal-close" onclick="closeModal('modal-edit-projet')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ep-id">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">Nom du projet</label>
+          <input class="form-control" id="ep-nom">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Statut</label>
+          <select class="form-control" id="ep-statut"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Priorité</label>
+          <select class="form-control" id="ep-priorite">
+            <option value="basse">Basse</option>
+            <option value="normale">Normale</option>
+            <option value="haute">Haute</option>
+            <option value="urgente">Urgente</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type de projet</label>
+          <select class="form-control" id="ep-type">
+            <option value="residential">Résidentiel</option>
+            <option value="commercial">Commercial</option>
+            <option value="industriel">Industriel</option>
+            <option value="renovation">Rénovation</option>
+            <option value="construction">Construction neuve</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Source lead</label>
+          <select class="form-control" id="ep-source">
+            <option value="reference">Référence</option>
+            <option value="web">Web</option>
+            <option value="social">Réseaux sociaux</option>
+            <option value="appel">Appel entrant</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prix estimé ($)</label>
+          <input class="form-control" id="ep-prix" type="number">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date prochain RDV</label>
+          <input class="form-control" id="ep-rdv" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lien soumission</label>
+          <input class="form-control" id="ep-soumission" placeholder="URL Drive ou nom fichier">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Notes</label>
+          <textarea class="form-control" id="ep-notes" rows="3"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="deleteProjet()">Supprimer</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-edit-projet')">Annuler</button>
+      <button class="btn btn-gold" onclick="saveEditProjet()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MODAL: DÉTAIL CHANTIER ══════════════════════════════ -->
+<div class="modal-overlay hidden" id="modal-chantier">
+  <div class="modal modal-full">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="mch-title"></div>
+        <div class="modal-subtitle" id="mch-subtitle"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select class="form-control btn-sm" id="mch-statut" style="width:150px" onchange="updateChantierStatut()"></select>
+        <button class="modal-close" onclick="closeModal('modal-chantier')">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" style="height:calc(95vh - 140px)">
+      <div class="chantier-detail-header">
+        <div id="mch-info-header"></div>
+        <div id="mch-progress-block"></div>
+      </div>
+      <div class="chantier-tabs">
+        <button class="tab-btn active" onclick="switchTab('overview')" id="tab-overview">📊 Vue d'ensemble</button>
+        <button class="tab-btn" onclick="switchTab('echeancier')" id="tab-echeancier">📅 Échéancier</button>
+        <button class="tab-btn" onclick="switchTab('taches')" id="tab-taches">✅ Tâches</button>
+        <button class="tab-btn" onclick="switchTab('activites')" id="tab-activites">📋 Activités</button>
+      </div>
+      <div id="tab-content-overview" class="tab-content active" style="overflow-y:auto;height:calc(95vh - 300px)">
+        <div id="mch-overview"></div>
+      </div>
+      <div id="tab-content-echeancier" class="tab-content" style="overflow-y:auto;height:calc(95vh - 300px)">
+        <div id="mch-echeancier"></div>
+      </div>
+      <div id="tab-content-taches" class="tab-content" style="overflow-y:auto;height:calc(95vh - 300px)">
+        <div id="mch-taches"></div>
+      </div>
+      <div id="tab-content-activites" class="tab-content" style="overflow-y:auto;height:calc(95vh - 300px)">
+        <div id="mch-activites"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MODAL: NOUVEAU CLIENT ════════════════════════════════ -->
+<div class="modal-overlay hidden" id="modal-new-client">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title" id="nc-modal-title">Nouveau client</div>
+      <button class="modal-close" onclick="closeModal('modal-new-client')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="nc-id">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">Nom complet *</label>
+          <input class="form-control" id="nc-nom">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Téléphone</label>
+          <input class="form-control" id="nc-tel">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Courriel</label>
+          <input class="form-control" id="nc-email" type="email">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Adresse</label>
+          <input class="form-control" id="nc-adresse">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ville</label>
+          <input class="form-control" id="nc-ville">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Notes</label>
+          <textarea class="form-control" id="nc-notes" rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-new-client')">Annuler</button>
+      <button class="btn btn-gold" onclick="saveClient()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SCRIPTS ══════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONFIG & CONSTANTS
+═══════════════════════════════════════════════════════════════════════════ */
+const SPREADSHEET_ID = '1kxWL4TJNj5JG0vKDCpbS2XhUodfyVow9lxHM8lYSwwo';
+
+const COLUMNS = [
+  { id:'pas_repondu', label:'Pas répondu', color:'#6B7280' },
+  { id:'a_contacter', label:'À contacter', color:'#3B82F6' },
+  { id:'rdv_pris', label:'RDV pris', color:'#8B5CF6' },
+  { id:'faire_soumission', label:'Faire soumission', color:'#F59E0B' },
+  { id:'soumission_envoyee', label:'Soumission envoyée', color:'#C9922A' },
+  { id:'gagne', label:'Gagné', color:'#22C55E' },
+  { id:'perdu', label:'Perdu', color:'#EF4444' },
+];
+
+const PRIORITES = {
+  basse:   { label:'Basse', color:'#6B7280' },
+  normale: { label:'Normale', color:'#6366F1' },
+  haute:   { label:'Haute', color:'#F59E0B' },
+  urgente: { label:'Urgente', color:'#EF4444' },
+};
+
+const TYPES_LABEL = {
+  residential:'Résidentiel', commercial:'Commercial', industriel:'Industriel',
+  renovation:'Rénovation', construction:'Construction neuve', autre:'Autre'
+};
+
+const SOURCES_LABEL = {
+  reference:'Référence', web:'Web', social:'Réseaux sociaux', appel:'Appel entrant', autre:'Autre'
+};
+
+const ACTI_TYPES = [
+  { id:'appel',             label:'Appel',            ico:'📞', color:'#3B82F6' },
+  { id:'rdv',               label:'RDV',              ico:'📅', color:'#8B5CF6' },
+  { id:'relance',           label:'Relance',          ico:'🔔', color:'#F59E0B' },
+  { id:'courriel',          label:'Courriel',         ico:'📧', color:'#14B8A6' },
+  { id:'faire_soumission',  label:'Faire soumission', ico:'📋', color:'#EAB308' },
+  { id:'envoyer_soumission',label:'Envoyer soumission',ico:'📤',color:'#C9922A' },
+  { id:'suivi',             label:'Suivi',            ico:'👁', color:'#22C55E' },
+  { id:'autre',             label:'Autre',            ico:'💬', color:'#6B7280' },
+];
+
+const CH_STATUTS = [
+  { id:'a_planifier', label:'À planifier', color:'#6366F1' },
+  { id:'en_cours',    label:'En cours',    color:'#22C55E' },
+  { id:'en_attente',  label:'En attente',  color:'#F59E0B' },
+  { id:'termine',     label:'Terminé',     color:'#6B7280' },
+];
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DB (localStorage)
+═══════════════════════════════════════════════════════════════════════════ */
+const DB = {
+  get:(k)=>JSON.parse(localStorage.getItem('ph_'+k)||'null')||[],
+  set:(k,v)=>localStorage.setItem('ph_'+k,JSON.stringify(v)),
+  getStr:(k)=>localStorage.getItem('ph_'+k)||'',
+  setStr:(k,v)=>localStorage.setItem('ph_'+k,v),
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════════════════════ */
+let currentView = 'pipeline';
+let showPerdu = false;
+let chantiersFilter = 'all';
+let selectedClientId = null;
+let currentChantierId = null;
+let currentProjetId = null;
+let dragProjetId = null;
+let activeTab = 'overview';
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════════════════════════════════ */
+function uid(){ return crypto.randomUUID(); }
+function todayStr(){ return new Date().toISOString().split('T')[0]; }
+function daysSince(d){ if(!d) return 999; return Math.floor((Date.now()-new Date(d).getTime())/86400000); }
+function fmtDate(d){ if(!d||d==='') return '—'; try{ const p=d.split('T')[0].split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }catch(e){ return d; } }
+function fmtMoney(n){ if(!n||n===0||n==='') return '—'; return '$'+Number(n).toLocaleString('fr-CA'); }
+function actiStatus(dateStr){
+  if(!dateStr) return 'future';
+  const d=dateStr.split('T')[0], t=todayStr();
+  if(d<t) return 'late'; if(d===t) return 'today'; return 'future';
+}
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function getClient(id){ return DB.get('clients').find(c=>c.id===id)||null; }
+function getProjet(id){ return DB.get('projets').find(p=>p.id===id)||null; }
+function getChantier(id){ return DB.get('chantiers').find(c=>c.id===id)||null; }
+function showToast(msg,dur=2200){
+  const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
+  document.body.appendChild(t); setTimeout(()=>t.remove(),dur);
+}
+function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+function openModal(id){ document.getElementById(id).classList.remove('hidden'); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════════════════════════ */
+function showView(view){
+  currentView = view;
+  ['pipeline','chantiers','clients','config'].forEach(v=>{
+    document.getElementById('view-'+v).classList.toggle('hidden', v!==view);
+    const n=document.getElementById('nav-'+v);
+    if(n) n.classList.toggle('active', v===view);
+  });
+  const titles={
+    pipeline:'Pipeline', chantiers:'Chantiers', clients:'Clients', config:'Configuration'
+  };
+  document.getElementById('topbar-title').textContent = titles[view]||'';
+  const acts = document.getElementById('topbar-actions');
+  if(view==='pipeline'){
+    acts.innerHTML=`<button class="btn btn-gold" onclick="openModalNewProjet()">+ Nouveau projet</button>`;
+    renderPipeline();
+  } else if(view==='chantiers'){
+    acts.innerHTML='';
+    renderChantiers();
+  } else if(view==='clients'){
+    acts.innerHTML='';
+    renderClientList();
+  } else {
+    acts.innerHTML='';
+    initConfig();
+  }
+  document.getElementById('topbar-sub').textContent='';
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PIPELINE
+═══════════════════════════════════════════════════════════════════════════ */
+function togglePerdu(show){
+  showPerdu = show;
+  document.getElementById('filter-actif').classList.toggle('active',!show);
+  document.getElementById('filter-perdu').classList.toggle('active',show);
+  renderPipeline();
+}
+
+function renderPipeline(){
+  const projets = DB.get('projets');
+  const perdus = projets.filter(p=>p.statut==='perdu');
+  document.getElementById('perdu-count').textContent = perdus.length ? `(${perdus.length})` : '';
+
+  // Determine which columns to show
+  let cols = showPerdu
+    ? COLUMNS.filter(c=>c.id==='perdu')
+    : COLUMNS.filter(c=>c.id!=='perdu' && c.id!=='gagne');
+
+  const board = document.getElementById('kanban-scroll');
+  board.innerHTML = cols.map(col=>{
+    const cards = projets.filter(p=>p.statut===col.id);
+    return `<div class="kanban-col">
+      <div class="col-header">
+        <div class="col-title">
+          <div class="col-dot" style="background:${col.color}"></div>
+          ${escHtml(col.label)}
+        </div>
+        <span class="col-count" style="background:${col.color}22;color:${col.color}">${cards.length}</span>
+      </div>
+      <div class="col-body" id="col-${col.id}"
+        ondragover="e_over(event)" ondragleave="e_leave(event)" ondrop="e_drop(event,'${col.id}')">
+        ${cards.length===0?'<div class="col-empty">Vide</div>':''}
+        ${cards.map(p=>renderCard(p)).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Update sub
+  const actifs = projets.filter(p=>p.statut!=='perdu'&&p.statut!=='gagne');
+  document.getElementById('topbar-sub').textContent = `${actifs.length} projet${actifs.length!==1?'s':''} actifs`;
+}
+
+function renderCard(p){
+  const client = getClient(p.clientId);
+  const clientNom = client ? client.nom : '—';
+  const pri = PRIORITES[p.priorite]||PRIORITES.normale;
+  const days = daysSince(p.dateDernierContact);
+  let alertHtml = '';
+  if(days>=10) alertHtml=`<span class="card-alert alert-red">⚠ ${days}j sans suivi</span>`;
+  else if(days>=5) alertHtml=`<span class="card-alert alert-orange">⏰ ${days}j</span>`;
+
+  const rdvHtml = p.dateProchainRDV ? `<span class="card-rdv">📅 ${fmtDate(p.dateProchainRDV)}</span>` : '';
+  const prixHtml = p.prix ? `<span class="card-prix">${fmtMoney(p.prix)}</span>` : '';
+  const typeHtml = p.typeProjet ? `<span class="card-type">${TYPES_LABEL[p.typeProjet]||p.typeProjet}</span>` : '';
+
+  return `<div class="proj-card" id="card-${p.id}"
+    style="border-left-color:${pri.color}"
+    draggable="true"
+    ondragstart="e_start(event,'${p.id}')"
+    ondragend="e_end(event)"
+    onclick="openProjetDetail('${p.id}')">
+    <div class="card-client">${escHtml(clientNom)}</div>
+    <div class="card-name">${escHtml(p.nom)}</div>
+    <div class="card-footer">
+      ${typeHtml}
+      ${alertHtml}
+      ${rdvHtml}
+      ${prixHtml}
+    </div>
+  </div>`;
+}
+
+/* ─── Drag & Drop ──────────────────────────────────────────────────────────── */
+function e_start(e,id){ dragProjetId=id; setTimeout(()=>{ const c=document.getElementById('card-'+id); if(c) c.classList.add('dragging'); },0); e.dataTransfer.effectAllowed='move'; }
+function e_end(e){ document.querySelectorAll('.proj-card.dragging').forEach(c=>c.classList.remove('dragging')); dragProjetId=null; }
+function e_over(e){ e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function e_leave(e){ e.currentTarget.classList.remove('drag-over'); }
+function e_drop(e,newStatut){
+  e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+  if(!dragProjetId) return;
+  moveProjet(dragProjetId, newStatut);
+}
+
+function moveProjet(projetId, newStatut){
+  const projets = DB.get('projets');
+  const idx = projets.findIndex(p=>p.id===projetId);
+  if(idx===-1) return;
+  const old = projets[idx].statut;
+  if(old===newStatut) return;
+  projets[idx].statut = newStatut;
+  projets[idx].dateMiseAJour = new Date().toISOString();
+  if(newStatut==='gagne' && old!=='gagne') createChantierFromProjet(projets[idx]);
+  DB.set('projets',projets);
+  renderPipeline();
+  syncProjetToSheets(projets[idx]);
+  if(newStatut==='gagne') showToast('🏗 Projet gagné ! Chantier créé automatiquement.');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODAL: NOUVEAU PROJET
+═══════════════════════════════════════════════════════════════════════════ */
+function openModalNewProjet(){
+  // Populate client dropdown
+  const clients = DB.get('clients');
+  const sel = document.getElementById('np-client-sel');
+  sel.innerHTML = '<option value="">— Sélectionner un client —</option><option value="__new__">+ Nouveau client</option>';
+  clients.forEach(c=>{ sel.innerHTML+=`<option value="${c.id}">${escHtml(c.nom)}</option>`; });
+  document.getElementById('new-client-fields').classList.add('hidden');
+  document.getElementById('np-nom').value='';
+  document.getElementById('np-prix').value='';
+  document.getElementById('np-notes').value='';
+  openModal('modal-new-projet');
+}
+
+function onClientSelChange(){
+  const v = document.getElementById('np-client-sel').value;
+  document.getElementById('new-client-fields').classList.toggle('hidden', v!=='__new__');
+}
+
+function saveNewProjet(){
+  const clientSel = document.getElementById('np-client-sel').value;
+  const nom = document.getElementById('np-nom').value.trim();
+  if(!nom){ alert('Nom du projet requis.'); return; }
+
+  let clientId = clientSel;
+  if(clientSel==='__new__'){
+    const cNom = document.getElementById('np-client-nom').value.trim();
+    if(!cNom){ alert('Nom du client requis.'); return; }
+    const newClient = {
+      id:uid(), nom:cNom,
+      telephone: document.getElementById('np-client-tel').value.trim(),
+      email: document.getElementById('np-client-email').value.trim(),
+      adresse: document.getElementById('np-client-adresse').value.trim(),
+      ville:'', notes:'', dateCreation: new Date().toISOString()
+    };
+    const clients = DB.get('clients'); clients.push(newClient); DB.set('clients',clients);
+    clientId = newClient.id;
+    syncClientToSheets(newClient);
+  } else if(!clientSel){ alert('Sélectionne un client.'); return; }
+
+  const p = {
+    id:uid(), clientId,
+    nom, statut:'pas_repondu',
+    typeProjet: document.getElementById('np-type').value,
+    source: document.getElementById('np-source').value,
+    priorite: document.getElementById('np-priorite').value,
+    prix: document.getElementById('np-prix').value,
+    notes: document.getElementById('np-notes').value.trim(),
+    dateDernierContact: todayStr(),
+    dateProchainRDV:'', soumissionUrl:'', soumissionNom:'',
+    dateCreation: new Date().toISOString(),
+    dateMiseAJour: new Date().toISOString(),
+  };
+  const projets = DB.get('projets'); projets.push(p); DB.set('projets',projets);
+  closeModal('modal-new-projet');
+  renderPipeline();
+  syncProjetToSheets(p);
+  showToast('Projet créé ✓');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODAL: DÉTAIL PROJET
+═══════════════════════════════════════════════════════════════════════════ */
+function openProjetDetail(id){
+  currentProjetId = id;
+  renderProjetDetail();
+  openModal('modal-projet');
+}
+
+function renderProjetDetail(){
+  const p = getProjet(currentProjetId); if(!p) return;
+  const client = getClient(p.clientId);
+  const pri = PRIORITES[p.priorite]||PRIORITES.normale;
+  const col = COLUMNS.find(c=>c.id===p.statut);
+
+  document.getElementById('mpj-title').textContent = p.nom;
+  document.getElementById('mpj-subtitle').textContent = client ? client.nom : '—';
+
+  // Left panel: info
+  const days = daysSince(p.dateDernierContact);
+  const alertStyle = days>=10?'color:var(--red);font-weight:700':days>=5?'color:var(--orange);font-weight:700':'';
+  document.getElementById('mpj-info').innerHTML = `
+    <div>
+      <div class="section-title">Informations</div>
+      <div class="info-block">
+        ${infoRow('Client', client?`<strong>${escHtml(client.nom)}</strong>${client.telephone?` · <a href="tel:${escHtml(client.telephone)}">${escHtml(client.telephone)}</a>`:''}${client.email?` · <a href="mailto:${escHtml(client.email)}">${escHtml(client.email)}</a>`:''}`:'—')}
+        ${infoRow('Statut', `<span class="status-badge" style="background:${col?col.color+'22':'#333'};color:${col?col.color:'#ccc'}">${col?col.label:p.statut}</span>`)}
+        ${infoRow('Priorité', `<span class="chip" style="background:${pri.color}22;color:${pri.color}">${pri.label}</span>`)}
+        ${infoRow('Type', TYPES_LABEL[p.typeProjet]||'—')}
+        ${infoRow('Source', SOURCES_LABEL[p.source]||'—')}
+        ${infoRow('Prix estimé', fmtMoney(p.prix))}
+        ${infoRow('Dernier contact', `<span style="${alertStyle}">${fmtDate(p.dateDernierContact)}${days>0?` (${days}j)`:''}</span>`)}
+        ${infoRow('Prochain RDV', p.dateProchainRDV?`<span style="color:var(--teal)">${fmtDate(p.dateProchainRDV)}</span>`:'—')}
+        ${p.soumissionUrl?infoRow('Soumission', `<a href="${escHtml(p.soumissionUrl)}" target="_blank">📎 ${escHtml(p.soumissionNom||'Voir le document')}</a>`):''}
+      </div>
+    </div>
+    ${p.notes?`<div><div class="section-title">Notes</div><div class="info-block" style="white-space:pre-wrap;font-size:13px;color:#ccc;line-height:1.6">${escHtml(p.notes)}</div></div>`:''}
+    <div>
+      <div class="section-title">Changer le statut</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${COLUMNS.map(c=>`<button class="btn btn-sm" style="background:${c.color}22;border:1px solid ${c.color}44;color:${c.color};font-size:11px" onclick="moveProjet('${p.id}','${c.id}');renderProjetDetail()">${c.label}</button>`).join('')}
+      </div>
+    </div>
+  `;
+
+  // Right panel: activities
+  renderProjetActivities(p.id);
+}
+
+function infoRow(label, value){
+  return `<div class="info-row"><span class="info-label">${label}</span><span class="info-value">${value}</span></div>`;
+}
+
+function renderProjetActivities(projetId){
+  const activites = DB.get('activites').filter(a=>a.projetId===projetId);
+  activites.sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  const panel = document.getElementById('mpj-activities');
+  panel.innerHTML = `
+    <div class="section-title" style="margin-bottom:12px">Activités (${activites.length})</div>
+    <div class="acti-scroll" id="acti-list-proj">${activites.length===0?'<div class="empty-state" style="padding:30px 0"><div class="empty-text">Aucune activité</div></div>':activites.map(a=>renderActiItem(a,'proj')).join('')}</div>
+    <div class="acti-add-form">
+      <div class="acti-add-title">+ Ajouter une activité</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <select class="form-control" id="acti-type-proj" style="font-size:12px">
+          ${ACTI_TYPES.map(t=>`<option value="${t.id}">${t.ico} ${t.label}</option>`).join('')}
+        </select>
+        <input class="form-control" type="date" id="acti-date-proj" value="${todayStr()}" style="font-size:12px">
+      </div>
+      <textarea class="form-control" id="acti-desc-proj" rows="2" placeholder="Description..." style="font-size:12px;margin-bottom:8px"></textarea>
+      <button class="btn btn-gold btn-sm" style="width:100%" onclick="addActivite('proj','${projetId}')">Ajouter</button>
+    </div>
+  `;
+}
+
+function renderActiItem(a, ctx){
+  const t = ACTI_TYPES.find(x=>x.id===a.type)||ACTI_TYPES[ACTI_TYPES.length-1];
+  const s = actiStatus(a.date);
+  const sLabel = s==='late'?'⬤ En retard':s==='today'?'⬤ Aujourd\'hui':'⬤ À venir';
+  const sColor = s==='late'?'var(--red)':s==='today'?'var(--green)':'var(--muted2)';
+  return `<div class="acti-item status-${s}">
+    <div class="acti-icon" style="background:${t.color}22">${t.ico}</div>
+    <div class="acti-content">
+      <div class="acti-type" style="color:${t.color}">${t.label}</div>
+      ${a.description?`<div class="acti-desc">${escHtml(a.description)}</div>`:''}
+      <div class="acti-date">${fmtDate(a.date)} &nbsp;<span style="color:${sColor};font-size:10px">${sLabel}</span></div>
+    </div>
+    <button onclick="deleteActivite('${a.id}','${ctx}')" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:14px;padding:2px 5px" title="Supprimer">✕</button>
+  </div>`;
+}
+
+function addActivite(ctx, refId){
+  const typeId = `acti-type-${ctx}`, dateId=`acti-date-${ctx}`, descId=`acti-desc-${ctx}`;
+  const type = document.getElementById(typeId).value;
+  const date = document.getElementById(dateId).value;
+  const desc = document.getElementById(descId).value.trim();
+  const a = {
+    id:uid(),
+    projetId: ctx==='proj' ? refId : (getChantier(refId)||{}).projetId||'',
+    chantierId: ctx==='ch' ? refId : '',
+    type, date, description:desc,
+    userId:'', dateCreation: new Date().toISOString()
+  };
+  const activites = DB.get('activites'); activites.push(a); DB.set('activites',activites);
+
+  // Update dernier contact for project
+  if(ctx==='proj'){
+    const projets = DB.get('projets');
+    const idx = projets.findIndex(p=>p.id===refId);
+    if(idx!==-1){ projets[idx].dateDernierContact=date; DB.set('projets',projets); }
+    renderProjetActivities(refId);
+    if(currentView==='pipeline') renderPipeline();
+  } else {
+    renderChantierActivites(refId);
+  }
+  document.getElementById(descId).value='';
+  syncActiviteToSheets(a);
+}
+
+function deleteActivite(id, ctx){
+  const activites = DB.get('activites').filter(a=>a.id!==id);
+  DB.set('activites',activites);
+  if(ctx==='proj') renderProjetActivities(currentProjetId);
+  else renderChantierActivites(currentChantierId);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODAL: ÉDITION PROJET
+═══════════════════════════════════════════════════════════════════════════ */
+function openEditProjet(){
+  const p = getProjet(currentProjetId); if(!p) return;
+  document.getElementById('ep-id').value=p.id;
+  document.getElementById('ep-nom').value=p.nom;
+  document.getElementById('ep-prix').value=p.prix||'';
+  document.getElementById('ep-rdv').value=p.dateProchainRDV||'';
+  document.getElementById('ep-notes').value=p.notes||'';
+  document.getElementById('ep-soumission').value=p.soumissionUrl||'';
+  const sel = document.getElementById('ep-statut');
+  sel.innerHTML = COLUMNS.map(c=>`<option value="${c.id}" ${p.statut===c.id?'selected':''}>${c.label}</option>`).join('');
+  ['ep-priorite','ep-type','ep-source'].forEach(id=>{
+    const el=document.getElementById(id);
+    const key=id.replace('ep-','');
+    const map={priorite:'priorite',type:'typeProjet',source:'source'};
+    if(el) [...el.options].forEach(o=>{ o.selected=o.value===p[map[key]]; });
+  });
+  openModal('modal-edit-projet');
+}
+
+function saveEditProjet(){
+  const id = document.getElementById('ep-id').value;
+  const projets = DB.get('projets');
+  const idx = projets.findIndex(p=>p.id===id);
+  if(idx===-1) return;
+  const p = projets[idx];
+  const oldStatut = p.statut;
+  p.nom = document.getElementById('ep-nom').value.trim()||p.nom;
+  p.statut = document.getElementById('ep-statut').value;
+  p.priorite = document.getElementById('ep-priorite').value;
+  p.typeProjet = document.getElementById('ep-type').value;
+  p.source = document.getElementById('ep-source').value;
+  p.prix = document.getElementById('ep-prix').value;
+  p.dateProchainRDV = document.getElementById('ep-rdv').value;
+  p.notes = document.getElementById('ep-notes').value.trim();
+  p.soumissionUrl = document.getElementById('ep-soumission').value.trim();
+  p.dateMiseAJour = new Date().toISOString();
+  if(p.statut==='gagne' && oldStatut!=='gagne') createChantierFromProjet(p);
+  DB.set('projets',projets);
+  closeModal('modal-edit-projet');
+  renderProjetDetail();
+  if(currentView==='pipeline') renderPipeline();
+  syncProjetToSheets(p);
+  showToast('Projet mis à jour ✓');
+}
+
+function deleteProjet(){
+  if(!confirm('Supprimer ce projet définitivement ?')) return;
+  const projets = DB.get('projets').filter(p=>p.id!==currentProjetId);
+  DB.set('projets',projets);
+  closeModal('modal-edit-projet');
+  closeModal('modal-projet');
+  renderPipeline();
+  showToast('Projet supprimé.');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CHANTIERS
+═══════════════════════════════════════════════════════════════════════════ */
+function createChantierFromProjet(projet){
+  const chantiers = DB.get('chantiers');
+  if(chantiers.find(c=>c.projetId===projet.id)) return; // already exists
+  const ch = {
+    id:uid(), projetId:projet.id, clientId:projet.clientId,
+    statut:'a_planifier', adresse:'', notes:'',
+    dateDebut:'', dateFin:'', progression:0,
+    etapes:[], taches:[],
+    dateCreation: new Date().toISOString()
+  };
+  chantiers.push(ch); DB.set('chantiers',chantiers);
+  syncChantierToSheets(ch);
+}
+
+function renderChantiers(){
+  const chantiers = DB.get('chantiers');
+  const projets = DB.get('projets');
+  const projetMap = Object.fromEntries(projets.map(p=>[p.id,p]));
+  const clientMap = Object.fromEntries(DB.get('clients').map(c=>[c.id,c]));
+
+  // Stats
+  const statsEl = document.getElementById('chantier-stats');
+  statsEl.innerHTML = CH_STATUTS.map(s=>{
+    const n = chantiers.filter(c=>c.statut===s.id).length;
+    return `<div class="stat-card" style="border-top-color:${s.color}">
+      <div class="stat-num" style="color:${s.color}">${n}</div>
+      <div class="stat-label">${s.label}</div>
+    </div>`;
+  }).join('');
+
+  // Filters
+  const filtersEl = document.getElementById('chantier-filters');
+  filtersEl.innerHTML = `<button class="filter-btn ${chantiersFilter==='all'?'active':''}" onclick="setChantiersFilter('all')">Tous (${chantiers.length})</button>`
+    + CH_STATUTS.map(s=>{
+        const n=chantiers.filter(c=>c.statut===s.id).length;
+        return `<button class="filter-btn ${chantiersFilter===s.id?'active':''}" onclick="setChantiersFilter('${s.id}')"
+          style="${chantiersFilter===s.id?`border-color:${s.color};color:${s.color};background:${s.color}22`:''}"
+          >${s.label} (${n})</button>`;
+      }).join('');
+
+  // Grid
+  const filtered = chantiersFilter==='all' ? chantiers : chantiers.filter(c=>c.statut===chantiersFilter);
+  const grid = document.getElementById('chantiers-grid');
+  if(filtered.length===0){
+    grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-ico">🏗</div><div class="empty-text">Aucun chantier</div></div>';
+    return;
+  }
+  grid.innerHTML = filtered.map(ch=>{
+    const proj = projetMap[ch.projetId]||{};
+    const client = clientMap[ch.clientId]||{};
+    const st = CH_STATUTS.find(s=>s.id===ch.statut)||CH_STATUTS[0];
+    const prog = ch.progression||0;
+    const taches = (ch.taches||[]);
+    const done = taches.filter(t=>t.statut==='done').length;
+    return `<div class="chantier-card" style="border-left-color:${st.color}" onclick="openChantierDetail('${ch.id}')">
+      <div class="chantier-proj-name">${escHtml(proj.nom||'Projet sans nom')}</div>
+      <div class="chantier-client">${escHtml(client.nom||'—')}</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${prog}%;background:${st.color}"></div></div>
+      <div class="chantier-meta">
+        <span class="status-badge" style="background:${st.color}22;color:${st.color}">${st.label}</span>
+        <span>${prog}%</span>
+        ${ch.dateDebut?`<span>${fmtDate(ch.dateDebut)}</span>`:''}
+        ${taches.length>0?`<span>✓ ${done}/${taches.length}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setChantiersFilter(f){ chantiersFilter=f; renderChantiers(); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODAL: DÉTAIL CHANTIER
+═══════════════════════════════════════════════════════════════════════════ */
+function openChantierDetail(id){
+  currentChantierId=id; activeTab='overview';
+  const ch=getChantier(id); if(!ch) return;
+  const proj=getProjet(ch.projetId)||{};
+  const client=getClient(ch.clientId)||{};
+  const st=CH_STATUTS.find(s=>s.id===ch.statut)||CH_STATUTS[0];
+
+  document.getElementById('mch-title').textContent=proj.nom||'Chantier';
+  document.getElementById('mch-subtitle').textContent=client.nom||'';
+
+  const sel=document.getElementById('mch-statut');
+  sel.innerHTML=CH_STATUTS.map(s=>`<option value="${s.id}" ${ch.statut===s.id?'selected':''}>${s.label}</option>`).join('');
+
+  switchTab('overview');
+  renderChantierOverview(ch);
+  openModal('modal-chantier');
+}
+
+function updateChantierStatut(){
+  const chantiers=DB.get('chantiers');
+  const idx=chantiers.findIndex(c=>c.id===currentChantierId);
+  if(idx===-1) return;
+  chantiers[idx].statut=document.getElementById('mch-statut').value;
+  DB.set('chantiers',chantiers);
+  renderChantiers();
+  syncChantierToSheets(chantiers[idx]);
+  showToast('Statut mis à jour ✓');
+}
+
+function switchTab(tab){
+  activeTab=tab;
+  ['overview','echeancier','taches','activites'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+    document.getElementById('tab-content-'+t).classList.toggle('active',t===tab);
+  });
+  const ch=getChantier(currentChantierId); if(!ch) return;
+  if(tab==='overview') renderChantierOverview(ch);
+  else if(tab==='echeancier') renderEcheancier(ch);
+  else if(tab==='taches') renderTaches(ch);
+  else if(tab==='activites') renderChantierActivites(currentChantierId);
+}
+
+function renderChantierOverview(ch){
+  const proj=getProjet(ch.projetId)||{};
+  const client=getClient(ch.clientId)||{};
+  const pri=PRIORITES[proj.priorite]||PRIORITES.normale;
+  const prog=ch.progression||0;
+  const st=CH_STATUTS.find(s=>s.id===ch.statut)||CH_STATUTS[0];
+
+  // Header info
+  document.getElementById('mch-info-header').innerHTML=`
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px">
+      <span class="status-badge" style="background:${st.color}22;color:${st.color}">${st.label}</span>
+      <span class="chip" style="background:${pri.color}22;color:${pri.color}">${pri.label}</span>
+      ${ch.adresse?`<span style="font-size:12px;color:var(--muted)">📍 ${escHtml(ch.adresse)}</span>`:''}
+    </div>`;
+  document.getElementById('mch-progress-block').innerHTML=`
+    <div style="text-align:right;min-width:160px">
+      <div style="font-size:28px;font-weight:900;color:${st.color}">${prog}%</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Progression</div>
+      <input type="range" min="0" max="100" value="${prog}" style="width:100%;accent-color:var(--gold)"
+        oninput="updateProgression(this.value)" onchange="saveProgression(this.value)">
+    </div>`;
+
+  const taches=ch.taches||[]; const done=taches.filter(t=>t.statut==='done').length;
+  document.getElementById('mch-overview').innerHTML=`
+    <div class="form-grid" style="gap:12px;margin-bottom:20px">
+      <div class="info-block">
+        <div class="section-title" style="margin-bottom:10px">Projet lié</div>
+        ${infoRow('Nom',escHtml(proj.nom||'—'))}
+        ${infoRow('Client',escHtml(client.nom||'—'))}
+        ${client.telephone?infoRow('Tél.',`<a href="tel:${escHtml(client.telephone)}">${escHtml(client.telephone)}</a>`):''}
+        ${client.email?infoRow('Courriel',`<a href="mailto:${escHtml(client.email)}">${escHtml(client.email)}</a>`):''}
+        ${infoRow('Prix est.',fmtMoney(proj.prix))}
+      </div>
+      <div class="info-block">
+        <div class="section-title" style="margin-bottom:10px">Chantier</div>
+        ${infoRow('Adresse',`<input class="form-control" style="font-size:12px;padding:4px 8px" value="${escHtml(ch.adresse||'')}" onchange="updateChantierField('adresse',this.value)">`)}
+        ${infoRow('Début',`<input class="form-control" type="date" style="font-size:12px;padding:4px 8px" value="${ch.dateDebut||''}" onchange="updateChantierField('dateDebut',this.value)">`)}
+        ${infoRow('Fin',`<input class="form-control" type="date" style="font-size:12px;padding:4px 8px" value="${ch.dateFin||''}" onchange="updateChantierField('dateFin',this.value)">`)}
+        ${taches.length>0?infoRow('Tâches',`${done}/${taches.length} complétées`):''}
+      </div>
+    </div>
+    ${ch.notes?`<div class="info-block"><div class="section-title" style="margin-bottom:8px">Notes</div><div style="white-space:pre-wrap;font-size:13px;color:#ccc">${escHtml(ch.notes)}</div></div>`:''}
+    <div style="margin-top:14px">
+      <label class="form-label" style="display:block;margin-bottom:6px">Notes chantier</label>
+      <textarea class="form-control" rows="3" placeholder="Observations, remarques..." onchange="updateChantierField('notes',this.value)">${escHtml(ch.notes||'')}</textarea>
+    </div>`;
+}
+
+function updateProgression(v){
+  document.querySelector('#mch-progress-block div').textContent=v+'%';
+}
+function saveProgression(v){
+  updateChantierField('progression',parseInt(v));
+  renderChantiers();
+}
+function updateChantierField(field,value){
+  const chantiers=DB.get('chantiers');
+  const idx=chantiers.findIndex(c=>c.id===currentChantierId);
+  if(idx===-1) return;
+  chantiers[idx][field]=value;
+  DB.set('chantiers',chantiers);
+  syncChantierToSheets(chantiers[idx]);
+}
+
+/* ─── Échéancier ─────────────────────────────────────────────────────────── */
+function renderEcheancier(ch){
+  const etapes=ch.etapes||[];
+  const allDates=[...etapes.map(e=>e.dateDebut),...etapes.map(e=>e.dateFin)].filter(Boolean).sort();
+  const minDate=allDates[0]||todayStr();
+  const maxDate=allDates[allDates.length-1]||todayStr();
+  const msSpan=Math.max(new Date(maxDate)-new Date(minDate),1);
+
+  let timelineHTML='';
+  if(etapes.length===0){
+    timelineHTML='<div class="empty-state"><div class="empty-ico">📅</div><div class="empty-text">Aucune étape. Ajoutes-en ci-dessous.</div></div>';
+  } else {
+    const todayMs=new Date(todayStr()).getTime();
+    const todayPct=Math.max(0,Math.min(100,((todayMs-new Date(minDate).getTime())/msSpan)*100));
+    const colors=['#C9922A','#3B82F6','#22C55E','#8B5CF6','#F59E0B','#EF4444','#14B8A6','#EC4899'];
+    timelineHTML=`<div class="timeline-container">
+      <div class="timeline-rows">
+        ${etapes.map((e,i)=>{
+          const s=new Date(e.dateDebut||minDate).getTime();
+          const f=new Date(e.dateFin||maxDate).getTime();
+          const left=((s-new Date(minDate).getTime())/msSpan)*100;
+          const width=Math.max(2,((f-s)/msSpan)*100);
+          const stColor=e.statut==='done'?'#6B7280':e.statut==='in_progress'?colors[i%colors.length]:colors[i%colors.length];
+          return `<div class="timeline-row">
+            <div class="timeline-label" title="${escHtml(e.titre)}">${escHtml(e.titre)}</div>
+            <div class="timeline-track">
+              <div class="timeline-today" style="left:${todayPct}%"></div>
+              <div class="timeline-bar" style="left:${left}%;width:${width}%;background:${stColor}">
+                ${fmtDate(e.dateDebut)} → ${fmtDate(e.dateFin)}
+              </div>
+            </div>
+            <button onclick="deleteEtape('${ch.id}',${i})" style="background:none;border:none;color:var(--muted2);cursor:pointer;padding:0 6px;font-size:13px" title="Supprimer">✕</button>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('mch-echeancier').innerHTML=`
+    ${timelineHTML}
+    <div class="divider"></div>
+    <div class="section-title">Ajouter une étape</div>
+    <div class="etape-form">
+      <div class="form-group">
+        <label class="form-label">Titre</label>
+        <input class="form-control" id="etape-titre" placeholder="Ex: Démolition">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Début</label>
+        <input class="form-control" type="date" id="etape-debut">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fin</label>
+        <input class="form-control" type="date" id="etape-fin">
+      </div>
+      <div class="form-group">
+        <label class="form-label">&nbsp;</label>
+        <button class="btn btn-gold" onclick="addEtape('${ch.id}')">Ajouter</button>
+      </div>
+    </div>`;
+}
+
+function addEtape(chantierId){
+  const titre=document.getElementById('etape-titre').value.trim();
+  if(!titre){ alert('Titre requis.'); return; }
+  const chantiers=DB.get('chantiers');
+  const idx=chantiers.findIndex(c=>c.id===chantierId);
+  if(idx===-1) return;
+  if(!chantiers[idx].etapes) chantiers[idx].etapes=[];
+  chantiers[idx].etapes.push({
+    titre, statut:'todo',
+    dateDebut:document.getElementById('etape-debut').value,
+    dateFin:document.getElementById('etape-fin').value
+  });
+  DB.set('chantiers',chantiers);
+  renderEcheancier(chantiers[idx]);
+}
+
+function deleteEtape(chantierId,index){
+  const chantiers=DB.get('chantiers');
+  const idx=chantiers.findIndex(c=>c.id===chantierId);
+  if(idx===-1) return;
+  chantiers[idx].etapes.splice(index,1);
+  DB.set('chantiers',chantiers);
+  renderEcheancier(chantiers[idx]);
+}
+
+/* ─── Tâches ─────────────────────────────────────────────────────────────── */
+function renderTaches(ch){
+  const taches=ch.taches||[];
+  const done=taches.filter(t=>t.statut==='done').length;
+  document.getElementById('mch-taches').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <span style="font-size:13px;color:var(--muted)">${done}/${taches.length} tâche${taches.length!==1?'s':''} complétées</span>
+    </div>
+    <div class="task-list">
+      ${taches.length===0?'<div class="empty-state"><div class="empty-ico">✅</div><div class="empty-text">Aucune tâche</div></div>':
+        taches.map((t,i)=>`<div class="task-item">
+          <div class="task-check ${t.statut==='done'?'done':''}" onclick="toggleTache('${ch.id}',${i})">${t.statut==='done'?'✓':''}</div>
+          <div class="task-title ${t.statut==='done'?'done':''}">${escHtml(t.titre)}</div>
+          ${t.assigneA?`<span class="task-assignee">👤 ${escHtml(t.assigneA)}</span>`:''}
+          ${t.dateEcheance?`<span class="task-date">${fmtDate(t.dateEcheance)}</span>`:''}
+          <button onclick="deleteTache('${ch.id}',${i})" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px">✕</button>
+        </div>`).join('')}
+    </div>
+    <div class="divider"></div>
+    <div class="section-title">Ajouter une tâche</div>
+    <div class="task-add-row">
+      <div class="form-group">
+        <label class="form-label">Titre *</label>
+        <input class="form-control" id="task-titre" placeholder="Description de la tâche">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Assigné à</label>
+        <input class="form-control" id="task-assign" placeholder="Nom employé">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Échéance</label>
+        <input class="form-control" type="date" id="task-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">&nbsp;</label>
+        <button class="btn btn-gold" onclick="addTache('${ch.id}')">Ajouter</button>
+      </div>
+    </div>`;
+}
+
+function addTache(chantierId){
+  const titre=document.getElementById('task-titre').value.trim();
+  if(!titre){ alert('Titre requis.'); return; }
+  const chantiers=DB.get('chantiers');
+  const idx=chantiers.findIndex(c=>c.id===chantierId);
+  if(idx===-1) return;
+  if(!chantiers[idx].taches) chantiers[idx].taches=[];
+  chantiers[idx].taches.push({
+    id:uid(), titre, statut:'todo',
+    assigneA:document.getElementById('task-assign').value.trim(),
+    dateEcheance:document.getElementById('task-date').value
+  });
+  DB.set('chantiers',chantiers);
+  updateProgression_calc(chantiers[idx]);
+  renderTaches(chantiers[idx]);
+  document.getElementById('task-titre').value='';
+}
+
+function toggleTache(chantierId,index){
+  const chantiers=DB.get('chantiers');
+  const idx=chantiers.findIndex(c=>c.id===chantierId);
+  if(idx===-1) return;
+  const t=chantiers[idx].taches[index];
+  t.statut=t.statut==='done'?'todo':'done';
+  updateProgression_calc(chantiers[idx]);
+  DB.set('chantiers',chantiers);
+  renderTaches(chantiers[idx]);
+  renderChantiers();
+}
+
+function deleteTache(chantierId,index){
+  const chantiers=DB.get('chantiers');
+  const idx=chantiers.findIndex(c=>c.id===chantierId);
+  if(idx===-1) return;
+  chantiers[idx].taches.splice(index,1);
+  updateProgression_calc(chantiers[idx]);
+  DB.set('chantiers',chantiers);
+  renderTaches(chantiers[idx]);
+}
+
+function updateProgression_calc(ch){
+  const t=ch.taches||[];
+  ch.progression=t.length===0?0:Math.round((t.filter(x=>x.statut==='done').length/t.length)*100);
+}
+
+/* ─── Activités chantier ─────────────────────────────────────────────────── */
+function renderChantierActivites(chantierId){
+  const activites=DB.get('activites').filter(a=>a.chantierId===chantierId);
+  activites.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  document.getElementById('mch-activites').innerHTML=`
+    <div style="margin-bottom:14px">
+      ${activites.length===0?'<div class="empty-state"><div class="empty-ico">📋</div><div class="empty-text">Aucune activité</div></div>':
+        activites.map(a=>renderActiItem(a,'ch')).join('')}
+    </div>
+    <div class="acti-add-form">
+      <div class="acti-add-title">+ Ajouter une activité</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <select class="form-control" id="acti-type-ch">${ACTI_TYPES.map(t=>`<option value="${t.id}">${t.ico} ${t.label}</option>`).join('')}</select>
+        <input class="form-control" type="date" id="acti-date-ch" value="${todayStr()}">
+      </div>
+      <textarea class="form-control" id="acti-desc-ch" rows="2" placeholder="Description..." style="margin-bottom:8px"></textarea>
+      <button class="btn btn-gold btn-sm" style="width:100%" onclick="addActivite('ch','${chantierId}')">Ajouter</button>
+    </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CLIENTS
+═══════════════════════════════════════════════════════════════════════════ */
+function renderClientList(){
+  const search=(document.getElementById('client-search')||{}).value||'';
+  const clients=DB.get('clients').filter(c=>!search||c.nom.toLowerCase().includes(search.toLowerCase())||
+    (c.telephone||'').includes(search)||(c.email||'').toLowerCase().includes(search.toLowerCase()));
+  const container=document.getElementById('client-list-items');
+  if(clients.length===0){
+    container.innerHTML='<div class="empty-state" style="padding:30px 20px"><div class="empty-text">Aucun client</div></div>'; return;
+  }
+  const projets=DB.get('projets');
+  container.innerHTML=clients.map(c=>{
+    const nb=projets.filter(p=>p.clientId===c.id).length;
+    return `<div class="client-list-item ${selectedClientId===c.id?'active':''}" onclick="selectClient('${c.id}')">
+      <div class="client-nom">${escHtml(c.nom)}</div>
+      <div class="client-tel">${escHtml(c.telephone||'')}${nb>0?` · <span style="color:var(--gold)">${nb} projet${nb>1?'s':''}</span>`:''}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectClient(id){
+  selectedClientId=id; renderClientList(); renderClientDetail(id);
+}
+
+function renderClientDetail(id){
+  const c=getClient(id); if(!c){ document.getElementById('client-detail').innerHTML=''; return; }
+  const projets=DB.get('projets').filter(p=>p.clientId===id);
+  const chantiers=DB.get('chantiers');
+  document.getElementById('client-detail').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+      <div>
+        <h2 style="font-size:20px;font-weight:800;color:var(--gold2);margin-bottom:4px">${escHtml(c.nom)}</h2>
+        <div style="font-size:12px;color:var(--muted)">Client depuis ${fmtDate(c.dateCreation)}</div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="openEditClient('${c.id}')">✏ Modifier</button>
+    </div>
+    <div class="client-contact-grid">
+      ${c.telephone?`<div class="contact-card"><div class="contact-ico">📞</div><div><div class="contact-label">Téléphone</div><div class="contact-value"><a href="tel:${escHtml(c.telephone)}">${escHtml(c.telephone)}</a></div></div></div>`:''}
+      ${c.email?`<div class="contact-card"><div class="contact-ico">📧</div><div><div class="contact-label">Courriel</div><div class="contact-value"><a href="mailto:${escHtml(c.email)}">${escHtml(c.email)}</a></div></div></div>`:''}
+      ${c.adresse?`<div class="contact-card"><div class="contact-ico">📍</div><div><div class="contact-label">Adresse</div><div class="contact-value">${escHtml(c.adresse)}${c.ville?', '+escHtml(c.ville):''}</div></div></div>`:''}
+    </div>
+    ${c.notes?`<div class="info-block" style="margin-bottom:18px"><div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:700">NOTES</div><div style="font-size:13px;color:#ccc;white-space:pre-wrap">${escHtml(c.notes)}</div></div>`:''}
+    <div class="section-title">Historique projets (${projets.length})</div>
+    ${projets.length===0?'<div style="color:var(--muted);font-size:13px;padding:10px 0">Aucun projet.</div>':
+      projets.map(p=>{
+        const col=COLUMNS.find(c=>c.id===p.statut)||{};
+        const pri=PRIORITES[p.priorite]||PRIORITES.normale;
+        const ch=chantiers.find(c=>c.projetId===p.id);
+        return `<div class="proj-card" style="border-left-color:${pri.color};margin-bottom:8px" onclick="openProjetDetail('${p.id}')">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <div>
+              <div class="card-name" style="margin-bottom:3px">${escHtml(p.nom)}</div>
+              <div style="font-size:11px;color:var(--muted)">${fmtDate(p.dateCreation)} · ${fmtMoney(p.prix)}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+              <span class="status-badge" style="background:${col.color?col.color+'22':'#333'};color:${col.color||'#ccc'}">${col.label||p.statut}</span>
+              ${ch?`<span style="font-size:11px;color:var(--teal)">🏗 Chantier ${ch.progression||0}%</span>`:''}
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+  `;
+}
+
+function openModalNewClient(){ openEditClient(null); }
+
+function openEditClient(id){
+  const c=id?getClient(id):null;
+  document.getElementById('nc-id').value=id||'';
+  document.getElementById('nc-modal-title').textContent=id?'Modifier le client':'Nouveau client';
+  document.getElementById('nc-nom').value=c?c.nom:'';
+  document.getElementById('nc-tel').value=c?c.telephone||'':'';
+  document.getElementById('nc-email').value=c?c.email||'':'';
+  document.getElementById('nc-adresse').value=c?c.adresse||'':'';
+  document.getElementById('nc-ville').value=c?c.ville||'':'';
+  document.getElementById('nc-notes').value=c?c.notes||'':'';
+  openModal('modal-new-client');
+}
+
+function saveClient(){
+  const id=document.getElementById('nc-id').value;
+  const nom=document.getElementById('nc-nom').value.trim();
+  if(!nom){ alert('Nom requis.'); return; }
+  const clients=DB.get('clients');
+  if(id){
+    const idx=clients.findIndex(c=>c.id===id);
+    if(idx===-1) return;
+    Object.assign(clients[idx],{nom,telephone:document.getElementById('nc-tel').value.trim(),email:document.getElementById('nc-email').value.trim(),adresse:document.getElementById('nc-adresse').value.trim(),ville:document.getElementById('nc-ville').value.trim(),notes:document.getElementById('nc-notes').value.trim()});
+    DB.set('clients',clients);
+    syncClientToSheets(clients[idx]);
+    renderClientDetail(id);
+  } else {
+    const c={id:uid(),nom,telephone:document.getElementById('nc-tel').value.trim(),email:document.getElementById('nc-email').value.trim(),adresse:document.getElementById('nc-adresse').value.trim(),ville:document.getElementById('nc-ville').value.trim(),notes:document.getElementById('nc-notes').value.trim(),dateCreation:new Date().toISOString()};
+    clients.push(c); DB.set('clients',clients);
+    syncClientToSheets(c);
+    selectedClientId=c.id;
+    renderClientDetail(c.id);
+  }
+  closeModal('modal-new-client');
+  renderClientList();
+  showToast('Client enregistré ✓');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════════════════════════════════════════ */
+function initConfig(){
+  const url=DB.getStr('appsScriptUrl');
+  const el=document.getElementById('cfg-url');
+  if(el) el.value=url;
+  if(url) document.getElementById('cfg-url-saved').classList.remove('hidden');
+}
+function saveCfgUrl(){
+  const v=document.getElementById('cfg-url').value.trim();
+  DB.setStr('appsScriptUrl',v);
+  document.getElementById('cfg-url-saved').classList.toggle('hidden',!v);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GOOGLE SHEETS SYNC
+═══════════════════════════════════════════════════════════════════════════ */
+function getScriptUrl(){ return DB.getStr('appsScriptUrl'); }
+
+async function scriptPost(body){
+  const url=getScriptUrl(); if(!url) return null;
+  try{
+    const r=await fetch(url,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)});
+    return await r.json();
+  }catch(e){ console.warn('Sync error:',e); return null; }
+}
+
+async function syncClientToSheets(c){ await scriptPost({action:'createClient',...c}); }
+async function syncProjetToSheets(p){ await scriptPost({action:'createProjet',...p}); }
+async function syncChantierToSheets(ch){ await scriptPost({action:'createChantier',...ch}); }
+async function syncActiviteToSheets(a){ await scriptPost({action:'createActivite',...a}); }
+
+async function syncSheets(){
+  const url=getScriptUrl();
+  if(!url){ alert('Configure d\'abord l\'URL Apps Script dans ⚙ Configuration.'); return; }
+  showToast('Synchronisation...');
+  try {
+    // Pull data from Sheets
+    const actions=['getClients','getProjets','getChantiers'];
+    const keys=['clients','projets','chantiers'];
+    for(let i=0;i<actions.length;i++){
+      const r=await fetch(url+'?action='+actions[i],{redirect:'follow'});
+      const d=await r.json();
+      if(d[keys[i]] && d[keys[i]].length>0) DB.set(keys[i],d[keys[i]]);
+    }
+    showToast('✓ Synchronisation réussie');
+    if(currentView==='pipeline') renderPipeline();
+    else if(currentView==='chantiers') renderChantiers();
+    else if(currentView==='clients') renderClientList();
+  }catch(e){ showToast('⚠ Erreur sync: '+e.message); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DEMO DATA
+═══════════════════════════════════════════════════════════════════════════ */
+function seedDemo(){
+  if(DB.get('clients').length>0) return;
+  const clients=[
+    {id:'c1',nom:'Jean-François Tremblay',telephone:'514-555-0101',email:'jf.tremblay@gmail.com',adresse:'123 Rue Principale',ville:'Montréal',notes:'Client fidèle depuis 2022',dateCreation:new Date('2024-01-15').toISOString()},
+    {id:'c2',nom:'Marie-Hélène Gagnon',telephone:'438-555-0202',email:'mh.gagnon@outlook.com',adresse:'456 Boul. des Sources',ville:'Laval',notes:'Référée par Tremblay',dateCreation:new Date('2024-03-10').toISOString()},
+    {id:'c3',nom:'Construction Boivin Inc.',telephone:'450-555-0303',email:'info@boivin.ca',adresse:'789 Av. Industrielle',ville:'Longueuil',notes:'Client commercial - bon payeur',dateCreation:new Date('2024-06-01').toISOString()},
+  ];
+  DB.set('clients',clients);
+
+  const projets=[
+    {id:'p1',clientId:'c1',nom:'Rénovation cuisine complète',statut:'rdv_pris',typeProjet:'renovation',source:'reference',priorite:'haute',prix:'28000',notes:'Cuisine avec îlot, comptoir granit',dateDernierContact:new Date(Date.now()-3*86400000).toISOString().split('T')[0],dateProchainRDV:new Date(Date.now()+4*86400000).toISOString().split('T')[0],soumissionUrl:'',soumissionNom:'',dateCreation:new Date('2024-11-01').toISOString(),dateMiseAJour:new Date().toISOString()},
+    {id:'p2',clientId:'c2',nom:'Addition garage double',statut:'faire_soumission',typeProjet:'construction',source:'web',priorite:'normale',prix:'45000',notes:'Garage 24x24 avec loft',dateDernierContact:new Date(Date.now()-12*86400000).toISOString().split('T')[0],dateProchainRDV:'',soumissionUrl:'',soumissionNom:'',dateCreation:new Date('2024-11-15').toISOString(),dateMiseAJour:new Date().toISOString()},
+    {id:'p3',clientId:'c3',nom:'Entrepôt commercial phase 2',statut:'soumission_envoyee',typeProjet:'commercial',source:'appel',priorite:'urgente',prix:'180000',notes:'Extension 5000 pi² avec bureaux',dateDernierContact:new Date(Date.now()-1*86400000).toISOString().split('T')[0],dateProchainRDV:new Date(Date.now()+2*86400000).toISOString().split('T')[0],soumissionUrl:'https://drive.google.com',soumissionNom:'Soumission_Boivin_Phase2.pdf',dateCreation:new Date('2024-12-01').toISOString(),dateMiseAJour:new Date().toISOString()},
+    {id:'p4',clientId:'c1',nom:'Salle de bain principale',statut:'gagne',typeProjet:'renovation',source:'reference',priorite:'normale',prix:'15000',notes:'Douche italienne, bain autoportant',dateDernierContact:new Date('2024-10-01').toISOString().split('T')[0],dateProchainRDV:'',soumissionUrl:'',soumissionNom:'',dateCreation:new Date('2024-09-15').toISOString(),dateMiseAJour:new Date().toISOString()},
+    {id:'p5',clientId:'c2',nom:'Patio arrière bois traité',statut:'a_contacter',typeProjet:'residential',source:'social',priorite:'basse',prix:'8500',notes:'',dateDernierContact:new Date(Date.now()-7*86400000).toISOString().split('T')[0],dateProchainRDV:'',soumissionUrl:'',soumissionNom:'',dateCreation:new Date('2024-12-10').toISOString(),dateMiseAJour:new Date().toISOString()},
+    {id:'p6',clientId:'c3',nom:'Réfection toiture usine',statut:'perdu',typeProjet:'commercial',source:'web',priorite:'normale',prix:'55000',notes:'Client a choisi concurrent moins cher',dateDernierContact:new Date('2024-11-20').toISOString().split('T')[0],dateProchainRDV:'',soumissionUrl:'',soumissionNom:'',dateCreation:new Date('2024-10-01').toISOString(),dateMiseAJour:new Date().toISOString()},
+  ];
+  DB.set('projets',projets);
+
+  const chantiers=[{
+    id:'ch1',projetId:'p4',clientId:'c1',statut:'en_cours',adresse:'123 Rue Principale, Montréal',
+    dateDebut:'2025-01-06',dateFin:'2025-01-31',progression:45,notes:'Chantier en cours — plomberie terminée',
+    etapes:[
+      {titre:'Démolition',statut:'done',dateDebut:'2025-01-06',dateFin:'2025-01-08'},
+      {titre:'Plomberie',statut:'done',dateDebut:'2025-01-08',dateFin:'2025-01-13'},
+      {titre:'Carrelage',statut:'in_progress',dateDebut:'2025-01-13',dateFin:'2025-01-20'},
+      {titre:'Peinture & finition',statut:'todo',dateDebut:'2025-01-20',dateFin:'2025-01-28'},
+      {titre:'Nettoyage',statut:'todo',dateDebut:'2025-01-28',dateFin:'2025-01-31'},
+    ],
+    taches:[
+      {id:uid(),titre:'Commander robinetterie Kohler',statut:'done',assigneA:'Maxime',dateEcheance:'2025-01-05'},
+      {id:uid(),titre:'Vérifier état sous-plancher',statut:'done',assigneA:'Maxime',dateEcheance:'2025-01-07'},
+      {id:uid(),titre:'Installer douche italienne',statut:'todo',assigneA:'Jean',dateEcheance:'2025-01-15'},
+      {id:uid(),titre:'Inspection finale client',statut:'todo',assigneA:'Maxime',dateEcheance:'2025-01-31'},
+    ],
+    dateCreation:new Date().toISOString()
+  }];
+  DB.set('chantiers',chantiers);
+
+  const activites=[
+    {id:uid(),projetId:'p1',chantierId:'',type:'rdv',description:'Visite du chantier, prise de mesures',date:new Date(Date.now()-3*86400000).toISOString().split('T')[0],userId:'maxime',dateCreation:new Date().toISOString()},
+    {id:uid(),projetId:'p2',chantierId:'',type:'appel',description:'Premier contact, intéressé pour garage',date:new Date(Date.now()-12*86400000).toISOString().split('T')[0],userId:'maxime',dateCreation:new Date().toISOString()},
+    {id:uid(),projetId:'p3',chantierId:'',type:'envoyer_soumission',description:'Soumission envoyée par courriel',date:new Date(Date.now()-1*86400000).toISOString().split('T')[0],userId:'maxime',dateCreation:new Date().toISOString()},
+    {id:uid(),projetId:'p3',chantierId:'',type:'rdv',description:'RDV de suivi prévu',date:new Date(Date.now()+2*86400000).toISOString().split('T')[0],userId:'maxime',dateCreation:new Date().toISOString()},
+    {id:uid(),projetId:'p1',chantierId:'',type:'rdv',description:'RDV de finalisation plans',date:new Date(Date.now()+4*86400000).toISOString().split('T')[0],userId:'maxime',dateCreation:new Date().toISOString()},
+    {id:uid(),projetId:'',chantierId:'ch1',type:'suivi',description:'Travaux carrelage débutés, bon rythme',date:todayStr(),userId:'maxime',dateCreation:new Date().toISOString()},
+  ];
+  DB.set('activites',activites);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════════════════════ */
+function init(){
+  seedDemo();
+  showView('pipeline');
+}
+document.addEventListener('DOMContentLoaded', init);
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click', e=>{ if(e.target===o) o.classList.add('hidden'); });
+});
+// Keyboard close
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape') document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(o=>o.classList.add('hidden'));
+});
+</script>
+</body>
+</html>
