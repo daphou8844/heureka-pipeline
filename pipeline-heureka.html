@@ -73,19 +73,19 @@ a{color:inherit;text-decoration:none}
 .col-title{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.5px}
 .col-dot{width:7px;height:7px;border-radius:50%}
 .col-count{font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px}
-.col-body{flex:1;overflow:visible;border-radius:10px;border:2px dashed transparent;min-height:80px;transition:var(--tr)}
+.col-body{flex:1;overflow-y:auto;border-radius:10px;border:2px dashed transparent;min-height:80px;transition:var(--tr);padding:6px;max-height:calc(100vh - 235px)}
 .col-body.drag-over{border-color:var(--gold) !important;background:var(--gold-dim)}
-.col-inner{overflow-y:auto;overflow-x:visible;padding:6px 22px 6px 6px;max-height:calc(100vh - 235px)}
 .col-empty{text-align:center;padding:30px 0;color:var(--border2);font-size:12px}
 /* Cards */
 .proj-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 46px 14px 16px;margin-bottom:10px;cursor:pointer;transition:var(--tr);border-left:4px solid transparent;position:relative;user-select:none;min-height:72px}
 .proj-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.5)}
 .proj-card.dragging{opacity:.35}
-.card-del{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:11px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:var(--tr);z-index:4;line-height:1}
+.card-del{position:absolute;bottom:8px;right:8px;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:11px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:var(--tr);z-index:4;line-height:1}
 .proj-card:hover .card-del{opacity:1}
 .card-del:hover{color:var(--red)!important;background:rgba(239,68,68,.2)}
-/* Activity status icon — always visible, centered on right edge */
-.card-status-ico{position:absolute;right:-12px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.6);pointer-events:none;flex-shrink:0;border:2px solid var(--bg2)}
+/* Activity status icon — top-right inside card, clickable */
+.card-status-ico{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:3;box-shadow:0 2px 8px rgba(0,0,0,.4);cursor:pointer;pointer-events:auto;transition:transform .15s ease;flex-shrink:0}
+.card-status-ico:hover{transform:scale(1.12)}
 .card-client{font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:500}
 .card-name{font-size:14px;font-weight:700;color:#fff;margin-bottom:10px;line-height:1.35}
 .card-footer{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -261,6 +261,34 @@ textarea.form-control{resize:vertical;min-height:72px}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--gold);border-radius:10px;padding:10px 20px;font-size:13px;font-weight:600;color:var(--gold2);z-index:999;animation:fadeUp .3s ease;box-shadow:var(--shadow)}
 @keyframes fadeUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 .hidden{display:none!important}
+
+/* ─── Activity Mini Panel ───────────────────────────────────────────────────── */
+.act-mini-panel{position:fixed;z-index:500;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.7);width:270px;overflow:hidden;display:flex;flex-direction:column;animation:panelIn .14s ease}
+@keyframes panelIn{from{opacity:0;transform:scale(.94) translateY(-4px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.act-mini-header{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.act-mini-title{font-size:12px;font-weight:700;color:var(--gold2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:210px}
+.act-mini-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:2px 5px;border-radius:4px;flex-shrink:0}
+.act-mini-close:hover{color:#fff;background:var(--border)}
+.act-mini-list{overflow-y:auto;max-height:190px;padding:7px 8px}
+.act-mini-empty{text-align:center;padding:14px 0;color:var(--muted);font-size:12px}
+.act-mini-item{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:7px;border:1px solid var(--border);margin-bottom:5px;font-size:12px}
+.act-mini-item.done{opacity:.5}
+.act-mini-item.late{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.05)}
+.act-mini-item.today{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.05)}
+.act-mini-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.act-mini-text{flex:1;min-width:0}
+.act-mini-type{font-weight:700;color:#ccc;font-size:11px}
+.act-mini-date{font-size:10px;color:var(--muted);margin-top:1px}
+.act-mini-check{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:var(--green);padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;transition:var(--tr)}
+.act-mini-check:hover{background:rgba(34,197,94,.28)}
+.act-mini-done-lbl{font-size:10px;color:var(--muted)}
+.act-mini-add{padding:9px 10px;border-top:1px solid var(--border);flex-shrink:0}
+.act-mini-add-title{font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:7px}
+.act-mini-row{display:flex;gap:5px;margin-bottom:5px}
+.act-mini-sel,.act-mini-inp{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 7px;color:#fff;font-size:11px;outline:none;width:100%;font-family:inherit}
+.act-mini-sel:focus,.act-mini-inp:focus{border-color:var(--gold)}
+.act-mini-submit{width:100%;padding:6px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;font-size:11px;font-weight:700;border:none;border-radius:6px;cursor:pointer;margin-top:4px;font-family:inherit}
+.act-mini-submit:hover{opacity:.9}
 </style>
 </head>
 <body>
@@ -877,10 +905,8 @@ function renderPipeline(){
       </div>
       <div class="col-body" id="col-${col.id}"
         ondragover="e_over(event)" ondragleave="e_leave(event)" ondrop="e_drop(event,'${col.id}')">
-        <div class="col-inner">
-          ${cards.length===0?'<div class="col-empty">Aucun projet</div>':''}
-          ${cards.map(p=>renderCard(p)).join('')}
-        </div>
+        ${cards.length===0?'<div class="col-empty">Aucun projet</div>':''}
+        ${cards.map(p=>renderCard(p)).join('')}
       </div>
     </div>`;
   }).join('');
@@ -925,10 +951,10 @@ function getProjetActivityStatus(projetId){
   return 'future';
 }
 
-function actStatusIco(status){
-  const SVG_CLOCK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>';
-  const SVG_CHECK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-  const SVG_EXCL = '<svg width="10" height="13" viewBox="0 0 10 18" fill="#fff"><rect x="3" y="0" width="4" height="10" rx="2"/><circle cx="5" cy="16" r="2"/></svg>';
+function actStatusIco(status, projetId){
+  const SVG_CLOCK = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>';
+  const SVG_CHECK = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  const SVG_EXCL = '<svg width="9" height="12" viewBox="0 0 10 18" fill="#fff"><rect x="3" y="0" width="4" height="10" rx="2"/><circle cx="5" cy="16" r="2"/></svg>';
   const SVG_WARN = '<svg width="13" height="12" viewBox="0 0 26 24"><path d="M13 2 L24 22 L2 22 Z" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><rect x="11.5" y="9" width="3" height="6" rx="1.5" fill="#fff"/><circle cx="13" cy="19.5" r="1.5" fill="#fff"/></svg>';
   const cfg = {
     future: { bg:'#4B5563', ico:SVG_CLOCK, title:'Activité planifiée (à venir)' },
@@ -937,7 +963,122 @@ function actStatusIco(status){
     none:   { bg:'#D97706', ico:SVG_WARN,  title:'Aucune activité planifiée' },
   };
   const c = cfg[status]||cfg.none;
-  return `<div class="card-status-ico" style="background:${c.bg}" title="${c.title}">${c.ico}</div>`;
+  const click = projetId ? `event.stopPropagation();openActivityPanel('${projetId}',this)` : '';
+  return `<div class="card-status-ico" style="background:${c.bg}" title="${c.title}" onclick="${click}">${c.ico}</div>`;
+}
+
+/* ─── Activity Mini Panel ──────────────────────────────────────────────────── */
+let _miniPanelListener = null;
+
+function openActivityPanel(projetId, el){
+  closeActivityPanel();
+  const rect = el.getBoundingClientRect();
+  const panel = document.createElement('div');
+  panel.className = 'act-mini-panel';
+  panel.id = 'act-mini-panel';
+  panel.innerHTML = buildActivityPanelHTML(projetId);
+  document.body.appendChild(panel);
+
+  const pw = 270, ph = panel.offsetHeight || 360;
+  let left = rect.right - pw;
+  let top = rect.bottom + 6;
+  if(left < 6) left = 6;
+  if(left + pw > window.innerWidth - 6) left = window.innerWidth - pw - 6;
+  if(top + ph > window.innerHeight - 6) top = rect.top - ph - 6;
+  if(top < 6) top = 6;
+  panel.style.left = left + 'px';
+  panel.style.top = top + 'px';
+
+  setTimeout(()=>{
+    _miniPanelListener = ev => {
+      const p = document.getElementById('act-mini-panel');
+      if(p && !p.contains(ev.target) && ev.target !== el && !el.contains(ev.target)) closeActivityPanel();
+    };
+    document.addEventListener('click', _miniPanelListener, true);
+  }, 0);
+}
+
+function closeActivityPanel(){
+  const p = document.getElementById('act-mini-panel');
+  if(p) p.remove();
+  if(_miniPanelListener){ document.removeEventListener('click', _miniPanelListener, true); _miniPanelListener = null; }
+}
+
+function buildActivityPanelHTML(projetId){
+  const projet = DB.get('projets').find(p=>p.id===projetId);
+  const acts = DB.get('activites').filter(a=>a.projetId===projetId);
+  const today = todayStr();
+  const projetNom = projet ? escHtml(projet.nom.substring(0,32)) : '—';
+
+  const actsHTML = acts.length === 0
+    ? `<div class="act-mini-empty">Aucune activité</div>`
+    : acts.slice(0,8).map(a=>{
+        let cls = 'future', dotColor = '#4B5563';
+        if(a.done){ cls='done'; dotColor='#555'; }
+        else if(a.date < today){ cls='late'; dotColor='#EF4444'; }
+        else if(a.date === today){ cls='today'; dotColor='#22C55E'; }
+        const btn = a.done
+          ? `<span class="act-mini-done-lbl">Fait</span>`
+          : `<button class="act-mini-check" onclick="markFromPanel('${a.id}','${projetId}')">✓</button>`;
+        return `<div class="act-mini-item ${cls}">
+          <div class="act-mini-dot" style="background:${dotColor}"></div>
+          <div class="act-mini-text">
+            <div class="act-mini-type">${escHtml(a.type||'Activité')}</div>
+            <div class="act-mini-date">${fmtDate(a.date)}${a.desc?' · '+escHtml(a.desc.substring(0,28)):''}</div>
+          </div>
+          ${btn}
+        </div>`;
+      }).join('');
+
+  return `<div class="act-mini-header">
+      <div class="act-mini-title">📋 ${projetNom}</div>
+      <button class="act-mini-close" onclick="closeActivityPanel()">✕</button>
+    </div>
+    <div class="act-mini-list">${actsHTML}</div>
+    <div class="act-mini-add">
+      <div class="act-mini-add-title">+ Nouvelle activité</div>
+      <div class="act-mini-row">
+        <select class="act-mini-sel" id="amp-type">
+          <option value="Appel">📞 Appel</option>
+          <option value="Courriel">📧 Courriel</option>
+          <option value="Visite">🏠 Visite</option>
+          <option value="Soumission">📋 Soumission</option>
+          <option value="Suivi">🔄 Suivi</option>
+          <option value="Autre">⚡ Autre</option>
+        </select>
+        <input type="date" class="act-mini-inp" id="amp-date" value="${todayStr()}" style="flex:0 0 110px">
+      </div>
+      <input type="text" class="act-mini-inp" id="amp-desc" placeholder="Description (optionnel)" style="margin-top:5px">
+      <button class="act-mini-submit" onclick="addActivityFromPanel('${projetId}')">Ajouter l'activité</button>
+    </div>`;
+}
+
+function markFromPanel(actId, projetId){
+  const acts = DB.get('activites');
+  const idx = acts.findIndex(a=>a.id===actId);
+  if(idx===-1) return;
+  acts[idx].done = true;
+  acts[idx].dateDone = todayStr();
+  DB.set('activites', acts);
+  closeActivityPanel();
+  renderPipeline();
+  setTimeout(()=>{ openFollowUpModal(acts[idx], 'proj'); }, 150);
+}
+
+function addActivityFromPanel(projetId){
+  const type = document.getElementById('amp-type')?.value;
+  const date = document.getElementById('amp-date')?.value;
+  const desc = (document.getElementById('amp-desc')?.value||'').trim();
+  if(!type||!date){ showToast('Choisissez un type et une date.'); return; }
+  const acts = DB.get('activites');
+  acts.push({ id:uid(), projetId, type, date, desc, done:false, createdAt:new Date().toISOString() });
+  DB.set('activites', acts);
+  const projets = DB.get('projets');
+  const pi = projets.findIndex(p=>p.id===projetId);
+  if(pi!==-1){ projets[pi].dateDernierContact=todayStr(); DB.set('projets',projets); }
+  closeActivityPanel();
+  renderPipeline();
+  showToast('Activité ajoutée.');
 }
 
 function renderCard(p){
@@ -961,7 +1102,7 @@ function renderCard(p){
     ondragend="e_end(event)"
     onclick="openProjetDetail('${p.id}')">
     <button class="card-del" onclick="event.stopPropagation();confirmDeleteFromCard('${p.id}')" title="Supprimer">✕</button>
-    ${actStatusIco(actStatus)}
+    ${actStatusIco(actStatus, p.id)}
     <div class="card-client">${escHtml(clientNom)}</div>
     <div class="card-name">${escHtml(p.nom)}</div>
     <div class="card-footer">
