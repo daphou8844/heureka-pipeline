@@ -40,7 +40,8 @@ a{color:inherit;text-decoration:none}
 .nav-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:8px;margin-bottom:2px;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--muted);border:1px solid transparent;transition:var(--tr);user-select:none}
 .nav-item:hover{color:#ddd;background:rgba(255,255,255,.04)}
 .nav-item.active{color:var(--gold2);background:var(--gold-dim);border-color:rgba(201,146,42,.25);font-weight:700}
-.nav-item .nav-ico{font-size:15px;width:18px;text-align:center}
+.nav-item .nav-ico{font-size:14px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.06);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--tr)}
+.nav-item.active .nav-ico{background:var(--gold-dim)}
 .sb-footer{padding:12px;border-top:1px solid var(--border)}
 .sb-sync-btn{width:100%;padding:8px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:center;transition:var(--tr)}
 .sb-sync-btn:hover{border-color:var(--gold);color:var(--gold)}
@@ -72,23 +73,33 @@ a{color:inherit;text-decoration:none}
 .col-title{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.5px}
 .col-dot{width:7px;height:7px;border-radius:50%}
 .col-count{font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px}
-.col-body{flex:1;overflow-y:auto;padding:6px;border-radius:10px;border:2px dashed transparent;min-height:80px;transition:var(--tr)}
-.col-body.drag-over{border-color:var(--gold);background:var(--gold-dim)}
+.col-body{flex:1;overflow:visible;border-radius:10px;border:2px dashed transparent;min-height:80px;transition:var(--tr)}
+.col-body.drag-over{border-color:var(--gold) !important;background:var(--gold-dim)}
+.col-inner{overflow-y:auto;overflow-x:visible;padding:6px 22px 6px 6px;max-height:calc(100vh - 235px)}
 .col-empty{text-align:center;padding:30px 0;color:var(--border2);font-size:12px}
 /* Cards */
-.proj-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px 16px;margin-bottom:10px;cursor:pointer;transition:var(--tr);border-left:4px solid transparent;position:relative;user-select:none}
+.proj-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 46px 14px 16px;margin-bottom:10px;cursor:pointer;transition:var(--tr);border-left:4px solid transparent;position:relative;user-select:none;min-height:72px}
 .proj-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.5)}
 .proj-card.dragging{opacity:.35}
-.card-del{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px;padding:2px 5px;border-radius:4px;opacity:0;transition:var(--tr)}
+.card-del{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:11px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:var(--tr);z-index:4;line-height:1}
 .proj-card:hover .card-del{opacity:1}
-.card-del:hover{color:var(--red)!important;background:rgba(239,68,68,.1)}
+.card-del:hover{color:var(--red)!important;background:rgba(239,68,68,.2)}
+/* Activity status icon — always visible, centered on right edge */
+.card-status-ico{position:absolute;right:-12px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.6);pointer-events:none;flex-shrink:0;border:2px solid var(--bg2)}
 .card-client{font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:500}
-.card-name{font-size:14px;font-weight:700;color:#fff;margin-bottom:10px;line-height:1.35;padding-right:20px}
-.card-footer{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.card-name{font-size:14px;font-weight:700;color:#fff;margin-bottom:10px;line-height:1.35}
+.card-footer{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .card-type{font-size:10px;color:var(--muted);background:var(--bg3);padding:3px 8px;border-radius:4px}
 .card-alert{display:flex;align-items:center;gap:3px;font-size:11px;font-weight:700}
 .card-rdv{font-size:11px;color:var(--teal)}
 .card-prix{font-size:12px;color:var(--gold);font-weight:700}
+/* Pipeline legend */
+.pipeline-legend{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;padding:7px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;flex-shrink:0}
+.legend-group{display:flex;align-items:center;gap:6px}
+.legend-sep{width:1px;height:14px;background:var(--border);margin:0 4px}
+.legend-lbl{font-size:10px;color:var(--muted2);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);font-weight:500}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 /* Pipeline totals */
 .pipeline-totals{flex-shrink:0;display:flex;gap:1px;background:var(--border);border-radius:10px;overflow:hidden;margin-top:10px}
 .total-cell{flex:1;background:var(--bg2);padding:12px 16px;text-align:center}
@@ -130,7 +141,7 @@ a{color:inherit;text-decoration:none}
 .acti-item.status-today{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.05)}
 .acti-item.status-future{border-color:var(--border)}
 .acti-item.status-done{opacity:.5;border-color:var(--border)}
-.acti-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.acti-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;border:1px solid rgba(255,255,255,.06)}
 /* Icon status colors */
 .acti-icon.ico-late{background:rgba(239,68,68,.25)}
 .acti-icon.ico-today{background:rgba(34,197,94,.25)}
@@ -204,7 +215,7 @@ textarea.form-control{resize:vertical;min-height:72px}
 .task-list{display:flex;flex-direction:column;gap:6px}
 .task-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;transition:var(--tr)}
 .task-item:hover{border-color:var(--border2)}
-.task-check{width:18px;height:18px;border-radius:4px;border:2px solid var(--border2);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.task-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--border2);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
 .task-check.done{background:var(--green);border-color:var(--green)}
 .task-title{flex:1;font-size:13px;color:#fff}
 .task-title.done{text-decoration:line-through;color:var(--muted)}
@@ -224,7 +235,7 @@ textarea.form-control{resize:vertical;min-height:72px}
 .client-detail{padding:22px;overflow-y:auto}
 .client-contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
 .contact-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rad);padding:12px 14px;display:flex;align-items:center;gap:10px}
-.contact-ico{font-size:18px;width:36px;height:36px;background:var(--gold-dim);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.contact-ico{font-size:18px;width:38px;height:38px;background:var(--gold-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(201,146,42,.25)}
 .contact-label{font-size:11px;color:var(--muted)}
 .contact-value{font-size:13px;color:#fff;font-weight:600;margin-top:1px}
 
@@ -298,6 +309,23 @@ textarea.form-control{resize:vertical;min-height:72px}
           <div class="pipeline-filters">
             <button class="filter-btn active" id="filter-actif" onclick="togglePerdu(false)">Actifs</button>
             <button class="filter-btn" id="filter-perdu" onclick="togglePerdu(true)">Perdus <span id="perdu-count" style="margin-left:4px"></span></button>
+          </div>
+        </div>
+        <div class="pipeline-legend">
+          <span class="legend-lbl">Priorité :</span>
+          <div class="legend-group">
+            <span class="legend-item"><span class="legend-dot" style="background:#EF4444"></span>Urgente</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#C9922A"></span>Haute</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#3B82F6"></span>Normale</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#6B7280"></span>Basse</span>
+          </div>
+          <div class="legend-sep"></div>
+          <span class="legend-lbl">Activité :</span>
+          <div class="legend-group">
+            <span class="legend-item"><span class="legend-dot" style="background:#EF4444"></span>En retard</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#22C55E"></span>Aujourd'hui</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#4B5563"></span>À venir</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#D97706"></span>Aucune planifiée</span>
           </div>
         </div>
         <div class="kanban-scroll" id="kanban-scroll"></div>
@@ -700,9 +728,9 @@ const COLUMNS = [
 ];
 
 const PRIORITES = {
-  basse:   { label:'Basse', color:'#6B7280' },
-  normale: { label:'Normale', color:'#6366F1' },
-  haute:   { label:'Haute', color:'#F59E0B' },
+  basse:   { label:'Basse',   color:'#6B7280' },
+  normale: { label:'Normale', color:'#3B82F6' },
+  haute:   { label:'Haute',   color:'#C9922A' },
   urgente: { label:'Urgente', color:'#EF4444' },
 };
 
@@ -849,8 +877,10 @@ function renderPipeline(){
       </div>
       <div class="col-body" id="col-${col.id}"
         ondragover="e_over(event)" ondragleave="e_leave(event)" ondrop="e_drop(event,'${col.id}')">
-        ${cards.length===0?'<div class="col-empty">Aucun projet</div>':''}
-        ${cards.map(p=>renderCard(p)).join('')}
+        <div class="col-inner">
+          ${cards.length===0?'<div class="col-empty">Aucun projet</div>':''}
+          ${cards.map(p=>renderCard(p)).join('')}
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -886,6 +916,30 @@ function renderPipelineTotals(projets){
     </div>`;
 }
 
+function getProjetActivityStatus(projetId){
+  const acts = DB.get('activites').filter(a=>a.projetId===projetId && !a.done);
+  if(acts.length===0) return 'none';
+  const today = todayStr();
+  if(acts.some(a=>a.date<today)) return 'late';
+  if(acts.some(a=>a.date===today)) return 'today';
+  return 'future';
+}
+
+function actStatusIco(status){
+  const SVG_CLOCK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>';
+  const SVG_CHECK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  const SVG_EXCL = '<svg width="10" height="13" viewBox="0 0 10 18" fill="#fff"><rect x="3" y="0" width="4" height="10" rx="2"/><circle cx="5" cy="16" r="2"/></svg>';
+  const SVG_WARN = '<svg width="13" height="12" viewBox="0 0 26 24"><path d="M13 2 L24 22 L2 22 Z" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><rect x="11.5" y="9" width="3" height="6" rx="1.5" fill="#fff"/><circle cx="13" cy="19.5" r="1.5" fill="#fff"/></svg>';
+  const cfg = {
+    future: { bg:'#4B5563', ico:SVG_CLOCK, title:'Activité planifiée (à venir)' },
+    today:  { bg:'#22C55E', ico:SVG_CHECK, title:"Activité prévue aujourd'hui" },
+    late:   { bg:'#EF4444', ico:SVG_EXCL,  title:'Activité en retard !' },
+    none:   { bg:'#D97706', ico:SVG_WARN,  title:'Aucune activité planifiée' },
+  };
+  const c = cfg[status]||cfg.none;
+  return `<div class="card-status-ico" style="background:${c.bg}" title="${c.title}">${c.ico}</div>`;
+}
+
 function renderCard(p){
   const client = getClient(p.clientId);
   const clientNom = client ? client.nom : '—';
@@ -899,6 +953,7 @@ function renderCard(p){
   const prixHtml = p.prix ? `<span class="card-prix">${fmtMoney(p.prix)}</span>` : '';
   const typeHtml = p.typeProjet ? `<span class="card-type">${TYPES_LABEL[p.typeProjet]||p.typeProjet}</span>` : '';
 
+  const actStatus = getProjetActivityStatus(p.id);
   return `<div class="proj-card" id="card-${p.id}"
     style="border-left-color:${pri.color}"
     draggable="true"
@@ -906,6 +961,7 @@ function renderCard(p){
     ondragend="e_end(event)"
     onclick="openProjetDetail('${p.id}')">
     <button class="card-del" onclick="event.stopPropagation();confirmDeleteFromCard('${p.id}')" title="Supprimer">✕</button>
+    ${actStatusIco(actStatus)}
     <div class="card-client">${escHtml(clientNom)}</div>
     <div class="card-name">${escHtml(p.nom)}</div>
     <div class="card-footer">
@@ -928,8 +984,8 @@ function confirmDeleteFromCard(projetId){
 /* ─── Drag & Drop ──────────────────────────────────────────────────────────── */
 function e_start(e,id){ dragProjetId=id; setTimeout(()=>{ const c=document.getElementById('card-'+id); if(c) c.classList.add('dragging'); },0); e.dataTransfer.effectAllowed='move'; }
 function e_end(e){ document.querySelectorAll('.proj-card.dragging').forEach(c=>c.classList.remove('dragging')); dragProjetId=null; }
-function e_over(e){ e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
-function e_leave(e){ e.currentTarget.classList.remove('drag-over'); }
+function e_over(e){ e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.add('drag-over'); }
+function e_leave(e){ if(!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('drag-over'); }
 function e_drop(e,newStatut){
   e.preventDefault(); e.currentTarget.classList.remove('drag-over');
   if(!dragProjetId) return;
