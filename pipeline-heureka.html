@@ -707,6 +707,7 @@ textarea.form-control{resize:vertical;min-height:72px}
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         <select class="form-control btn-sm" id="mch-statut" style="width:150px" onchange="updateChantierStatut()"></select>
+        <button class="btn btn-sm" style="background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer" onclick="deleteChantier()">🗑 Supprimer</button>
         <button class="modal-close" onclick="closeModal('modal-chantier')">✕</button>
       </div>
     </div>
@@ -1858,6 +1859,15 @@ function openChantierDetail(id){
   switchTab('overview');
   renderChantierOverview(ch);
   openModal('modal-chantier');
+}
+
+function deleteChantier(){
+  if(!confirm('Supprimer ce chantier définitivement ?')) return;
+  const chantiers = DB.get('chantiers').filter(c=>c.id!==currentChantierId);
+  DB.set('chantiers', chantiers);
+  closeModal('modal-chantier');
+  renderChantiers();
+  showToast('Chantier supprimé.');
 }
 
 function updateChantierStatut(){
