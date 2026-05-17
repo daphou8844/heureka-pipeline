@@ -1718,6 +1718,40 @@ function createChantierFromProjet(projet){
   };
   chantiers.push(ch); DB.set('chantiers',chantiers);
   syncChantierToSheets(ch);
+  syncToAdmin(projet);
+}
+
+const ADMIN_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwzhekI8CnQ0Erg_s2mM2G5n2gB-kzl2XnAeTtdjFGs2B-pyVX8yCGZISseIJsyvhNxaA/exec';
+
+async function syncToAdmin(projet){
+  try {
+    const clients = DB.get('clients');
+    const client = clients.find(c=>c.id===projet.clientId)||{};
+    const payload = {
+      action:      'createChantier',
+      id:          uid(),
+      projetNom:   projet.nom          || '',
+      clientNom:   client.nom          || '',
+      clientEmail: client.email        || '',
+      clientTel:   client.telephone    || '',
+      adresse:     client.adresse      || '',
+      ville:       client.ville        || '',
+      description: projet.notes        || '',
+      prix:        projet.prix         || '',
+      statut:      'a_planifier',
+      dateCreation: new Date().toISOString()
+    };
+    const resp = await fetch(ADMIN_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    const data = await resp.json().catch(()=>({}));
+    if(data.error) throw new Error(data.error);
+    showToast('✅ Chantier envoyé vers Admin.');
+  } catch(err) {
+    console.warn('syncToAdmin failed:', err);
+    showToast('⚠️ Synchro Admin échouée — données sauvegardées localement.');
+  }
 }
 
 function setChantiersViewTab(tab){
