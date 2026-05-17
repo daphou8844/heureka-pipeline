@@ -1721,7 +1721,7 @@ function createChantierFromProjet(projet){
   syncToAdmin(projet);
 }
 
-const ADMIN_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwzhekI8CnQ0Erg_s2mM2G5n2gB-kzl2XnAeTtdjFGs2B-pyVX8yCGZISseIJsyvhNxaA/exec';
+const ADMIN_GAS_URL = 'https://script.google.com/macros/s/AKfycbwzhekI8CnQ0Erg_s2mM2G5n2gB-kzl2XnAeTtdjFGs2B-pyVX8yCGZISseIJsyvhNxaA/exec';
 
 async function syncToAdmin(projet){
   try {
@@ -1740,17 +1740,17 @@ async function syncToAdmin(projet){
         end:     '',
         budget:  Number(projet.prix) || 0,
         foreman: '',
-        notes:   projet.notes || ''
+        notes:   (projet.notes ? projet.notes.substring(0,300)+' | ' : '') + `Prix: ${projet.prix||'N/D'}$ | Pipeline Heuréka`
       }
     };
-    const resp = await fetch(ADMIN_SCRIPT_URL, {
+    const resp = await fetch(ADMIN_GAS_URL, {
       method: 'POST',
       body: JSON.stringify(payload)
     });
     const data = await resp.json().catch(()=>({}));
     if(data.status === 'error') throw new Error(data.message);
     showToast('✅ Chantier envoyé vers Admin.');
-  } catch(err) {
+  } catch(err){
     console.warn('syncToAdmin failed:', err);
     showToast('⚠️ Synchro Admin échouée — données sauvegardées localement.');
   }
