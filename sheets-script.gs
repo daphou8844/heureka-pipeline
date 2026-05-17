@@ -62,6 +62,9 @@ function doPost(e) {
       case 'createProjet':   result = upsert_('Projets',   body, projetFields_);   break;
       case 'createChantier': result = upsert_('Chantiers', body, chantierFields_); break;
       case 'createActivite': result = upsert_('Activites', body, activiteFields_); break;
+      case 'deleteChantier': result = deleteRow_('Chantiers', body.id);            break;
+      case 'deleteProjet':   result = deleteRow_('Projets',   body.id);            break;
+      case 'deleteClient':   result = deleteRow_('Clients',   body.id);            break;
       default: result = { error: 'Action POST inconnue: ' + action };
     }
     return json_(result);
@@ -189,6 +192,19 @@ function getAllRows_(name) {
     rows.push(obj);
   }
   return rows;
+}
+
+function deleteRow_(name, id) {
+  if (!id) return { error: 'id manquant' };
+  var sheet = getSheet_(name);
+  var col = sheet.getRange('A:A').getValues();
+  for (var i = 1; i < col.length; i++) {
+    if (String(col[i][0]) === id) {
+      sheet.deleteRow(i + 1);
+      return { deleted: true, id: id };
+    }
+  }
+  return { deleted: false, id: id };
 }
 
 function findRow_(name, id) {

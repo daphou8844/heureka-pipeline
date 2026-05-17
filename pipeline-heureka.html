@@ -1867,6 +1867,7 @@ function deleteChantier(){
   DB.set('chantiers', chantiers);
   closeModal('modal-chantier');
   renderChantiers();
+  scriptPost({action:'deleteChantier', id:currentChantierId});
   showToast('Chantier supprimé.');
 }
 
