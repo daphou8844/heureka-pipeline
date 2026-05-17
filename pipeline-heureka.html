@@ -262,6 +262,54 @@ textarea.form-control{resize:vertical;min-height:72px}
 @keyframes fadeUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 .hidden{display:none!important}
 
+/* ─── Stats View ────────────────────────────────────────────────────────────── */
+#view-stats{height:100%;overflow-y:auto}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:20px}
+.stats-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad2);padding:16px;border-top:3px solid var(--gold)}
+.stats-card-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px}
+.stats-big{font-size:28px;font-weight:800;color:var(--gold2)}
+.stats-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.stats-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.stats-bar-label{font-size:11px;color:#ccc;width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stats-bar-track{flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.stats-bar-fill{height:100%;border-radius:4px;background:var(--gold);transition:width .4s}
+.stats-bar-val{font-size:10px;color:var(--muted);width:38px;text-align:right;flex-shrink:0}
+.stats-section-title{font-size:13px;font-weight:800;color:var(--gold2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+/* ─── Seasonality ────────────────────────────────────────────────────────────── */
+.season-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.season-col{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad2);padding:12px}
+.season-header{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.season-card{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:8px 10px;margin-bottom:6px;font-size:11px}
+.season-card-name{font-weight:700;color:#ccc;margin-bottom:2px}
+.season-card-meta{color:var(--muted)}
+/* ─── Margin Calculator ──────────────────────────────────────────────────────── */
+.marge-display{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-top:8px}
+.marge-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;color:#ccc}
+.marge-row.total{font-weight:800;font-size:14px;border-top:1px solid var(--border);padding-top:6px;margin-top:4px}
+.marge-positive{color:var(--green)}.marge-negative{color:var(--red)}.marge-neutral{color:var(--muted)}
+/* ─── Email System ───────────────────────────────────────────────────────────── */
+.email-list-item{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:7px;cursor:pointer;transition:var(--tr)}
+.email-list-item:hover{border-color:var(--gold-dim)}
+.email-li-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.email-li-subject{font-size:12px;font-weight:700;color:#eee}
+.email-li-date{font-size:10px;color:var(--muted)}
+.email-li-to{font-size:11px;color:var(--muted)}
+.email-li-preview{font-size:11px;color:var(--muted2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.template-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:#ccc;transition:var(--tr);text-align:left;width:100%;margin-bottom:5px}
+.template-btn:hover{border-color:var(--gold);color:var(--gold)}
+.email-preview-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:12px;color:#ccc;line-height:1.7;white-space:pre-wrap;max-height:280px;overflow-y:auto;margin-top:8px;font-family:monospace}
+/* ─── History Log ────────────────────────────────────────────────────────────── */
+.hist-item{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.hist-item:last-child{border-bottom:none}
+.hist-dot{width:8px;height:8px;border-radius:50%;background:var(--gold-dim);border:2px solid var(--gold);flex-shrink:0;margin-top:4px}
+.hist-time{font-size:10px;color:var(--muted2);flex-shrink:0;width:68px}
+.hist-text{flex:1;color:#ccc}
+.hist-type{font-weight:700;color:var(--gold);font-size:10px;text-transform:uppercase}
+/* ─── Inactivity Alert Banner ────────────────────────────────────────────────── */
+.inactivity-alert{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:8px 14px;margin-bottom:10px;font-size:12px;color:#fca5a5;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.inactivity-alert strong{color:var(--red)}
+/* ─── Referral Badge ─────────────────────────────────────────────────────────── */
+.ref-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);color:#a78bfa;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700}
 /* ─── Activity Mini Panel ───────────────────────────────────────────────────── */
 .act-mini-panel{position:fixed;z-index:500;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.7);width:270px;overflow:hidden;display:flex;flex-direction:column;animation:panelIn .14s ease}
 @keyframes panelIn{from{opacity:0;transform:scale(.94) translateY(-4px)}to{opacity:1;transform:scale(1) translateY(0)}}
@@ -313,6 +361,9 @@ textarea.form-control{resize:vertical;min-height:72px}
       <div class="nav-item" onclick="showView('clients')" id="nav-clients">
         <span class="nav-ico">👥</span> Clients
       </div>
+      <div class="nav-item" onclick="showView('stats')" id="nav-stats">
+        <span class="nav-ico">📊</span> Statistiques
+      </div>
     </nav>
     <div class="sb-footer">
       <button class="sb-sync-btn" onclick="syncSheets()">⟳ Sync Google Sheets</button>
@@ -356,6 +407,7 @@ textarea.form-control{resize:vertical;min-height:72px}
             <span class="legend-item"><span class="legend-dot" style="background:#D97706"></span>Aucune planifiée</span>
           </div>
         </div>
+        <div id="pipeline-alerts"></div>
         <div class="kanban-scroll" id="kanban-scroll"></div>
         <div class="pipeline-totals" id="pipeline-totals"></div>
       </div>
@@ -368,6 +420,7 @@ textarea.form-control{resize:vertical;min-height:72px}
         <div class="chantier-view-tabs">
           <button class="chantier-tab active" id="ch-tab-actifs" onclick="setChantiersViewTab('actifs')">⚡ Actifs</button>
           <button class="chantier-tab" id="ch-tab-termines" onclick="setChantiersViewTab('termines')">✅ Terminés</button>
+          <button class="chantier-tab" id="ch-tab-saison" onclick="setChantiersViewTab('saison')">🗓 Saisonnalité</button>
         </div>
         <div id="chantiers-actifs-section">
           <div class="chantier-stats" id="chantier-stats"></div>
@@ -392,6 +445,11 @@ textarea.form-control{resize:vertical;min-height:72px}
         </div>
       </div>
 
+      <!-- VIEW: STATS -->
+      <div id="view-stats" class="hidden">
+        <div id="stats-content" style="padding:4px 0"></div>
+      </div>
+
       <!-- VIEW: CONFIG -->
       <div id="view-config" class="hidden">
         <div class="config-panel" style="max-width:600px">
@@ -412,6 +470,14 @@ textarea.form-control{resize:vertical;min-height:72px}
             <div class="form-group">
               <label class="form-label">Spreadsheet ID</label>
               <input class="form-control" id="cfg-sheet-id" value="1kxWL4TJNj5JG0vKDCpbS2XhUodfyVow9lxHM8lYSwwo" readonly>
+            </div>
+          </div>
+          <div class="config-section">
+            <div class="config-title">⭐ Lien avis Google</div>
+            <div class="config-info">Utilisé dans le template "Fin de chantier".</div>
+            <div class="form-group">
+              <label class="form-label">URL Google Reviews</label>
+              <input class="form-control" id="cfg-google-review" placeholder="https://g.page/r/.../review" oninput="DB.setStr('googleReviewUrl',this.value)">
             </div>
           </div>
           <div class="config-section">
@@ -525,10 +591,24 @@ textarea.form-control{resize:vertical;min-height:72px}
         <button class="modal-close" onclick="closeModal('modal-projet')">✕</button>
       </div>
     </div>
-    <div class="modal-body" style="height:calc(92vh - 120px)">
-      <div class="proj-detail-grid">
-        <div class="proj-info-panel" id="mpj-info"></div>
-        <div class="proj-activity-panel" id="mpj-activities"></div>
+    <div class="modal-body" style="height:calc(92vh - 120px);display:flex;flex-direction:column">
+      <div class="chantier-tabs" style="flex-shrink:0">
+        <button class="tab-btn active" onclick="switchProjTab('info')" id="pjtab-info">📋 Info</button>
+        <button class="tab-btn" onclick="switchProjTab('activites')" id="pjtab-activites">📅 Activités</button>
+        <button class="tab-btn" onclick="switchProjTab('courriels')" id="pjtab-courriels">📧 Courriels</button>
+        <button class="tab-btn" onclick="switchProjTab('historique')" id="pjtab-historique">📜 Historique</button>
+      </div>
+      <div id="pjtab-content-info" class="tab-content active" style="flex:1;overflow-y:auto">
+        <div class="proj-detail-grid"><div class="proj-info-panel" id="mpj-info"></div><div class="proj-activity-panel" id="mpj-activities"></div></div>
+      </div>
+      <div id="pjtab-content-activites" class="tab-content" style="flex:1;overflow-y:auto;padding:4px 0">
+        <div id="mpj-activites-full"></div>
+      </div>
+      <div id="pjtab-content-courriels" class="tab-content" style="flex:1;overflow-y:auto;padding:4px 0">
+        <div id="mpj-courriels"></div>
+      </div>
+      <div id="pjtab-content-historique" class="tab-content" style="flex:1;overflow-y:auto;padding:4px 0">
+        <div id="mpj-historique"></div>
       </div>
     </div>
   </div>
@@ -594,6 +674,14 @@ textarea.form-control{resize:vertical;min-height:72px}
           <label class="form-label">Lien soumission</label>
           <input class="form-control" id="ep-soumission" placeholder="URL Drive ou nom fichier">
         </div>
+        <div class="form-group">
+          <label class="form-label">Coût matériaux ($)</label>
+          <input class="form-control" id="ep-cout-mat" type="number" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Coût main-d'œuvre ($)</label>
+          <input class="form-control" id="ep-cout-mo" type="number" placeholder="0">
+        </div>
         <div class="form-group full">
           <label class="form-label">Notes</label>
           <textarea class="form-control" id="ep-notes" rows="3"></textarea>
@@ -631,6 +719,8 @@ textarea.form-control{resize:vertical;min-height:72px}
         <button class="tab-btn" onclick="switchTab('echeancier')" id="tab-echeancier">📅 Échéancier</button>
         <button class="tab-btn" onclick="switchTab('taches')" id="tab-taches">✅ Tâches</button>
         <button class="tab-btn" onclick="switchTab('activites')" id="tab-activites">📋 Activités</button>
+        <button class="tab-btn" onclick="switchTab('courriels')" id="tab-courriels">📧 Courriels</button>
+        <button class="tab-btn" onclick="switchTab('historique')" id="tab-historique">📜 Historique</button>
       </div>
       <div id="tab-content-overview" class="tab-content active" style="overflow-y:auto;height:calc(95vh - 300px)">
         <div id="mch-overview"></div>
@@ -643,6 +733,12 @@ textarea.form-control{resize:vertical;min-height:72px}
       </div>
       <div id="tab-content-activites" class="tab-content" style="overflow-y:auto;height:calc(95vh - 300px)">
         <div id="mch-activites"></div>
+      </div>
+      <div id="tab-content-courriels" class="tab-content" style="overflow-y:auto;height:calc(95vh - 300px)">
+        <div id="mch-courriels"></div>
+      </div>
+      <div id="tab-content-historique" class="tab-content" style="overflow-y:auto;height:calc(95vh - 300px)">
+        <div id="mch-historique"></div>
       </div>
     </div>
   </div>
@@ -677,6 +773,10 @@ textarea.form-control{resize:vertical;min-height:72px}
         <div class="form-group">
           <label class="form-label">Ville</label>
           <input class="form-control" id="nc-ville">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Référé par (client)</label>
+          <select class="form-control" id="nc-refby"><option value="">— Aucun —</option></select>
         </div>
         <div class="form-group full">
           <label class="form-label">Notes</label>
@@ -736,6 +836,52 @@ textarea.form-control{resize:vertical;min-height:72px}
   </div>
 </div>
 
+<!-- ═══════════════════ MODAL: COMPOSER COURRIEL ════════════════════════════ -->
+<div class="modal-overlay hidden" id="modal-email">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-header">
+      <div><div class="modal-title">📧 Nouveau courriel</div><div class="modal-subtitle" id="email-modal-subtitle"></div></div>
+      <button class="modal-close" onclick="closeModal('modal-email')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="em-proj-id">
+      <input type="hidden" id="em-ch-id">
+      <div style="margin-bottom:12px">
+        <div class="stats-section-title" style="margin-bottom:8px">Templates prédéfinis</div>
+        <div id="em-templates-list"></div>
+      </div>
+      <div class="divider"></div>
+      <div class="form-grid" style="margin-top:12px">
+        <div class="form-group">
+          <label class="form-label">Destinataire</label>
+          <input class="form-control" id="em-to" type="email" placeholder="client@exemple.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sujet</label>
+          <input class="form-control" id="em-subject" placeholder="Objet du courriel">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Message</label>
+          <textarea class="form-control" id="em-body" rows="8" placeholder="Corps du courriel..." oninput="updateEmailPreview()"></textarea>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Pièce jointe (lien Google Drive)</label>
+          <input class="form-control" id="em-attach" placeholder="https://drive.google.com/...">
+        </div>
+      </div>
+      <div id="em-preview-section" class="hidden">
+        <div class="stats-section-title" style="margin-top:12px">Aperçu du courriel</div>
+        <div class="email-preview-box" id="em-preview-box"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-email')">Annuler</button>
+      <button class="btn btn-outline" onclick="showEmailPreview()">👁 Aperçu</button>
+      <button class="btn btn-gold" onclick="sendEmail()">📤 Envoyer</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════════ SCRIPTS ══════════════════════════════════════════════ -->
 <script>
 'use strict';
@@ -776,6 +922,88 @@ const SOURCES_LABEL = {
   // legacy
   reference:'Référence', web:'Web', social:'Réseaux sociaux', appel:'Appel entrant', autre:'Autre'
 };
+
+const EMAIL_TEMPLATES = [
+  {
+    id:'rdv', label:'📅 Confirmation de rendez-vous',
+    subject:'Confirmation de rendez-vous – {{nom_projet}}',
+    body:`Bonjour {{nom_client}},
+
+Nous vous confirmons votre rendez-vous pour le projet {{nom_projet}}.
+
+📅 Date : {{date_rdv}}
+📍 Adresse : {{adresse}}
+
+N'hésitez pas à nous contacter si vous avez des questions.
+
+Cordialement,
+Gestions Heuréka`
+  },
+  {
+    id:'soumission', label:'📋 Envoi de soumission',
+    subject:'Soumission – {{nom_projet}}',
+    body:`Bonjour {{nom_client}},
+
+Veuillez trouver ci-joint notre soumission pour le projet {{nom_projet}}.
+
+💰 Montant estimé : {{prix}}
+📎 Document : {{lien_soumission}}
+
+Cette soumission est valide pour 30 jours. N'hésitez pas à nous contacter pour toute question.
+
+Cordialement,
+Gestions Heuréka`
+  },
+  {
+    id:'relance', label:'🔔 Relance',
+    subject:'Suivi – {{nom_projet}}',
+    body:`Bonjour {{nom_client}},
+
+Je me permets de vous relancer concernant le projet {{nom_projet}} pour lequel nous vous avions fait parvenir une soumission.
+
+Avez-vous eu l'occasion d'en prendre connaissance ? Nous sommes disponibles pour répondre à vos questions ou ajuster notre proposition si nécessaire.
+
+Cordialement,
+Gestions Heuréka`
+  },
+  {
+    id:'gagne', label:'🎉 Bienvenue – Projet gagné',
+    subject:'Bienvenue ! Votre projet avec Gestions Heuréka',
+    body:`Bonjour {{nom_client}},
+
+Nous sommes ravis de vous accueillir dans la famille Gestions Heuréka !
+
+Votre projet {{nom_projet}} est maintenant confirmé. Notre équipe va communiquer avec vous très prochainement pour planifier les étapes à venir.
+
+Merci de nous faire confiance !
+
+Cordialement,
+Gestions Heuréka`
+  },
+  {
+    id:'fin_chantier', label:'⭐ Fin de chantier – Demande avis Google',
+    subject:'Votre projet est terminé – Partagez votre expérience !',
+    body:`Bonjour {{nom_client}},
+
+Votre projet {{nom_projet}} est maintenant terminé. Nous espérons que vous êtes pleinement satisfait(e) du résultat !
+
+Votre avis est très important pour nous. Pourriez-vous prendre 2 minutes pour laisser un commentaire Google ? Cela aide d'autres familles à nous trouver.
+
+👉 Laisser un avis : {{lien_google_review}}
+
+Merci infiniment pour votre confiance !
+
+Cordialement,
+Gestions Heuréka`
+  },
+];
+
+const SAISONS = [
+  { id:'printemps', label:'🌸 Printemps', mois:[3,4,5], color:'#22C55E' },
+  { id:'ete',       label:'☀ Été',        mois:[6,7,8], color:'#F59E0B' },
+  { id:'automne',   label:'🍂 Automne',   mois:[9,10,11],color:'#C9922A' },
+  { id:'hiver',     label:'❄ Hiver',      mois:[12,1,2], color:'#3B82F6' },
+];
 
 const ACTI_TYPES = [
   { id:'appel',             label:'Appel',            ico:'📞', color:'#3B82F6' },
@@ -847,7 +1075,7 @@ function openModal(id){ document.getElementById(id).classList.remove('hidden'); 
 ═══════════════════════════════════════════════════════════════════════════ */
 function showView(view){
   currentView = view;
-  ['pipeline','chantiers','clients','config'].forEach(v=>{
+  ['pipeline','chantiers','clients','config','stats'].forEach(v=>{
     document.getElementById('view-'+v).classList.toggle('hidden', v!==view);
     const n=document.getElementById('nav-'+v);
     if(n) n.classList.toggle('active', v===view);
@@ -866,6 +1094,9 @@ function showView(view){
   } else if(view==='clients'){
     acts.innerHTML='';
     renderClientList();
+  } else if(view==='stats'){
+    acts.innerHTML='';
+    renderStats();
   } else {
     acts.innerHTML='';
     initConfig();
@@ -914,6 +1145,7 @@ function renderPipeline(){
   const actifs = projets.filter(p=>p.statut!=='perdu'&&p.statut!=='gagne');
   document.getElementById('topbar-sub').textContent = `${actifs.length} projet${actifs.length!==1?'s':''} actifs`;
   renderPipelineTotals(projets);
+  renderInactivityAlerts();
 }
 
 function renderPipelineTotals(projets){
@@ -1141,7 +1373,9 @@ function moveProjet(projetId, newStatut){
   if(old===newStatut) return;
   projets[idx].statut = newStatut;
   projets[idx].dateMiseAJour = new Date().toISOString();
-  if(newStatut==='gagne' && old!=='gagne') createChantierFromProjet(projets[idx]);
+  if(newStatut==='gagne' && old!=='gagne'){ createChantierFromProjet(projets[idx]); offerPostProjetSuivi(projets[idx]); }
+  logHistory(projetId,'statut',`${old} → ${newStatut}`);
+  suggestEmailOnStatut(projets[idx], old);
   DB.set('projets',projets);
   renderPipeline();
   syncProjetToSheets(projets[idx]);
@@ -1204,6 +1438,7 @@ function saveNewProjet(){
     dateMiseAJour: new Date().toISOString(),
   };
   const projets = DB.get('projets'); projets.push(p); DB.set('projets',projets);
+  logHistory(p.id,'creation',`Projet créé : ${p.nom}`);
   closeModal('modal-new-projet');
   renderPipeline();
   syncProjetToSheets(p);
@@ -1246,12 +1481,16 @@ function renderProjetDetail(){
         ${p.soumissionUrl?infoRow('Soumission', `<a href="${escHtml(p.soumissionUrl)}" target="_blank">📎 ${escHtml(p.soumissionNom||'Voir le document')}</a>`):''}
       </div>
     </div>
+    ${margeDisplay(p)}
     ${p.notes?`<div><div class="section-title">Notes</div><div class="info-block" style="white-space:pre-wrap;font-size:13px;color:#ccc;line-height:1.6">${escHtml(p.notes)}</div></div>`:''}
     <div>
       <div class="section-title">Changer le statut</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px">
         ${COLUMNS.map(c=>`<button class="btn btn-sm" style="background:${c.color}22;border:1px solid ${c.color}44;color:${c.color};font-size:11px" onclick="moveProjet('${p.id}','${c.id}');renderProjetDetail()">${c.label}</button>`).join('')}
       </div>
+    </div>
+    <div>
+      <button class="btn btn-outline btn-sm" style="width:100%;margin-top:4px" onclick="openEmailCompose('proj','${p.id}')">📧 Envoyer un courriel</button>
     </div>
   `;
 
@@ -1377,6 +1616,7 @@ function addActivite(ctx, refId){
     userId:'', dateCreation: new Date().toISOString()
   };
   const activites = DB.get('activites'); activites.push(a); DB.set('activites',activites);
+  logHistory(a.projetId||'', 'activite', `${type} planifié le ${date}`);
 
   // Update dernier contact for project
   if(ctx==='proj'){
@@ -1410,6 +1650,8 @@ function openEditProjet(){
   document.getElementById('ep-rdv').value=p.dateProchainRDV||'';
   document.getElementById('ep-notes').value=p.notes||'';
   document.getElementById('ep-soumission').value=p.soumissionUrl||'';
+  document.getElementById('ep-cout-mat').value=p.coutMateriaux||'';
+  document.getElementById('ep-cout-mo').value=p.coutMainOeuvre||'';
   const sel = document.getElementById('ep-statut');
   sel.innerHTML = COLUMNS.map(c=>`<option value="${c.id}" ${p.statut===c.id?'selected':''}>${c.label}</option>`).join('');
   ['ep-priorite','ep-type','ep-source'].forEach(id=>{
@@ -1437,8 +1679,11 @@ function saveEditProjet(){
   p.dateProchainRDV = document.getElementById('ep-rdv').value;
   p.notes = document.getElementById('ep-notes').value.trim();
   p.soumissionUrl = document.getElementById('ep-soumission').value.trim();
+  p.coutMateriaux = Number(document.getElementById('ep-cout-mat').value)||0;
+  p.coutMainOeuvre = Number(document.getElementById('ep-cout-mo').value)||0;
   p.dateMiseAJour = new Date().toISOString();
-  if(p.statut==='gagne' && oldStatut!=='gagne') createChantierFromProjet(p);
+  if(p.statut!==oldStatut){ logHistory(p.id,'statut',`${oldStatut} → ${p.statut}`); suggestEmailOnStatut(p, oldStatut); }
+  if(p.statut==='gagne' && oldStatut!=='gagne'){ createChantierFromProjet(p); offerPostProjetSuivi(p); }
   DB.set('projets',projets);
   closeModal('modal-edit-projet');
   renderProjetDetail();
@@ -1476,11 +1721,14 @@ function createChantierFromProjet(projet){
 
 function setChantiersViewTab(tab){
   chantiersViewTab = tab;
-  document.getElementById('ch-tab-actifs').classList.toggle('active', tab==='actifs');
-  document.getElementById('ch-tab-termines').classList.toggle('active', tab==='termines');
+  ['actifs','termines','saison'].forEach(t=>{ const el=document.getElementById('ch-tab-'+t); if(el) el.classList.toggle('active',t===tab); });
   const sec = document.getElementById('chantiers-actifs-section');
   if(sec) sec.style.display = tab==='actifs' ? '' : 'none';
   chantiersFilter = 'all';
+  if(tab==='saison'){
+    document.getElementById('chantiers-grid').innerHTML = renderSaisonView();
+    return;
+  }
   renderChantiers();
 }
 
@@ -1579,8 +1827,19 @@ function updateChantierStatut(){
   const chantiers=DB.get('chantiers');
   const idx=chantiers.findIndex(c=>c.id===currentChantierId);
   if(idx===-1) return;
-  chantiers[idx].statut=document.getElementById('mch-statut').value;
+  const oldStatut=chantiers[idx].statut;
+  const newStatut=document.getElementById('mch-statut').value;
+  chantiers[idx].statut=newStatut;
   DB.set('chantiers',chantiers);
+  const proj=getProjet(chantiers[idx].projetId)||{};
+  logHistory(chantiers[idx].projetId||'','statut',`Chantier : ${oldStatut} → ${newStatut}`);
+  if(newStatut==='termine'&&oldStatut!=='termine'){
+    offerPostProjetSuivi(proj);
+    if(confirm('Chantier terminé ! Envoyer le courriel de fin de chantier avec demande d\'avis Google ?')){
+      openEmailCompose('ch',currentChantierId);
+      setTimeout(()=>applyTemplate('fin_chantier',proj.id||'',currentChantierId),200);
+    }
+  }
   renderChantiers();
   syncChantierToSheets(chantiers[idx]);
   showToast('Statut mis à jour ✓');
@@ -1588,15 +1847,32 @@ function updateChantierStatut(){
 
 function switchTab(tab){
   activeTab=tab;
-  ['overview','echeancier','taches','activites'].forEach(t=>{
-    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
-    document.getElementById('tab-content-'+t).classList.toggle('active',t===tab);
+  ['overview','echeancier','taches','activites','courriels','historique'].forEach(t=>{
+    const btn=document.getElementById('tab-'+t); const cnt=document.getElementById('tab-content-'+t);
+    if(btn) btn.classList.toggle('active',t===tab);
+    if(cnt) cnt.classList.toggle('active',t===tab);
   });
   const ch=getChantier(currentChantierId); if(!ch) return;
   if(tab==='overview') renderChantierOverview(ch);
   else if(tab==='echeancier') renderEcheancier(ch);
   else if(tab==='taches') renderTaches(ch);
   else if(tab==='activites') renderChantierActivites(currentChantierId);
+  else if(tab==='courriels') renderEmailTab('ch', currentChantierId);
+  else if(tab==='historique') renderHistoriqueTab('ch', currentChantierId);
+}
+
+let currentProjTab = 'info';
+function switchProjTab(tab){
+  currentProjTab = tab;
+  ['info','activites','courriels','historique'].forEach(t=>{
+    const btn=document.getElementById('pjtab-'+t); const cnt=document.getElementById('pjtab-content-'+t);
+    if(btn) btn.classList.toggle('active',t===tab);
+    if(cnt) cnt.classList.toggle('active',t===tab);
+  });
+  if(tab==='info'){ renderProjetDetail(); }
+  else if(tab==='activites') renderProjetActivitesFull(currentProjetId);
+  else if(tab==='courriels') renderEmailTab('proj', currentProjetId);
+  else if(tab==='historique') renderHistoriqueTab('proj', currentProjetId);
 }
 
 function renderChantierOverview(ch){
@@ -1892,6 +2168,8 @@ function renderClientDetail(id){
       <div>
         <h2 style="font-size:20px;font-weight:800;color:var(--gold2);margin-bottom:4px">${escHtml(c.nom)}</h2>
         <div style="font-size:12px;color:var(--muted)">Client depuis ${fmtDate(c.dateCreation)}</div>
+        ${c.referredBy?(()=>{const ref=getClient(c.referredBy);return ref?`<span class="ref-badge" style="margin-top:4px">🔗 Référé par ${escHtml(ref.nom)}</span>`:'';})()|'':''}
+        ${(()=>{const refs=DB.get('clients').filter(cl=>cl.referredBy===c.id);return refs.length?`<span class="ref-badge" style="margin-top:4px;background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.3);color:var(--green)">⭐ ${refs.length} référence${refs.length>1?'s':''}</span>`:''})()}
       </div>
       <div style="display:flex;gap:6px">
         <button class="btn btn-outline btn-sm" onclick="openEditClient('${c.id}')">✏ Modifier</button>
@@ -1952,6 +2230,10 @@ function openEditClient(id){
   document.getElementById('nc-adresse').value=c?c.adresse||'':'';
   document.getElementById('nc-ville').value=c?c.ville||'':'';
   document.getElementById('nc-notes').value=c?c.notes||'':'';
+  // Populate referral dropdown
+  const sel=document.getElementById('nc-refby');
+  const clients=DB.get('clients').filter(cl=>cl.id!==id);
+  sel.innerHTML='<option value="">— Aucun —</option>'+clients.map(cl=>`<option value="${cl.id}" ${c&&c.referredBy===cl.id?'selected':''}>${escHtml(cl.nom)}</option>`).join('');
   openModal('modal-new-client');
 }
 
@@ -1963,12 +2245,12 @@ function saveClient(){
   if(id){
     const idx=clients.findIndex(c=>c.id===id);
     if(idx===-1) return;
-    Object.assign(clients[idx],{nom,telephone:document.getElementById('nc-tel').value.trim(),email:document.getElementById('nc-email').value.trim(),adresse:document.getElementById('nc-adresse').value.trim(),ville:document.getElementById('nc-ville').value.trim(),notes:document.getElementById('nc-notes').value.trim()});
+    Object.assign(clients[idx],{nom,telephone:document.getElementById('nc-tel').value.trim(),email:document.getElementById('nc-email').value.trim(),adresse:document.getElementById('nc-adresse').value.trim(),ville:document.getElementById('nc-ville').value.trim(),notes:document.getElementById('nc-notes').value.trim(),referredBy:document.getElementById('nc-refby').value||''});
     DB.set('clients',clients);
     syncClientToSheets(clients[idx]);
     renderClientDetail(id);
   } else {
-    const c={id:uid(),nom,telephone:document.getElementById('nc-tel').value.trim(),email:document.getElementById('nc-email').value.trim(),adresse:document.getElementById('nc-adresse').value.trim(),ville:document.getElementById('nc-ville').value.trim(),notes:document.getElementById('nc-notes').value.trim(),dateCreation:new Date().toISOString()};
+    const c={id:uid(),nom,telephone:document.getElementById('nc-tel').value.trim(),email:document.getElementById('nc-email').value.trim(),adresse:document.getElementById('nc-adresse').value.trim(),ville:document.getElementById('nc-ville').value.trim(),notes:document.getElementById('nc-notes').value.trim(),referredBy:document.getElementById('nc-refby').value||'',dateCreation:new Date().toISOString()};
     clients.push(c); DB.set('clients',clients);
     syncClientToSheets(c);
     selectedClientId=c.id;
@@ -1987,6 +2269,8 @@ function initConfig(){
   const el=document.getElementById('cfg-url');
   if(el) el.value=url;
   if(url) document.getElementById('cfg-url-saved').classList.remove('hidden');
+  const gr=document.getElementById('cfg-google-review');
+  if(gr) gr.value=DB.getStr('googleReviewUrl');
 }
 function saveCfgUrl(){
   const v=document.getElementById('cfg-url').value.trim();
@@ -2030,6 +2314,415 @@ async function syncSheets(){
     else if(currentView==='chantiers') renderChantiers();
     else if(currentView==='clients') renderClientList();
   }catch(e){ showToast('⚠ Erreur sync: '+e.message); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HISTORIQUE AUTOMATIQUE
+═══════════════════════════════════════════════════════════════════════════ */
+function logHistory(projetId, type, details){
+  if(!projetId) return;
+  const hist = DB.get('historique');
+  hist.unshift({ id:uid(), projetId, type, details, ts: new Date().toISOString() });
+  DB.set('historique', hist.slice(0,500)); // keep last 500
+}
+
+function renderHistoriqueTab(ctx, refId){
+  let hist;
+  if(ctx==='proj') hist = DB.get('historique').filter(h=>h.projetId===refId);
+  else {
+    const ch = getChantier(refId)||{};
+    hist = DB.get('historique').filter(h=>h.projetId===(ch.projetId||refId)||h.chantierId===refId);
+  }
+  const typeLabel = {statut:'Statut', activite:'Activité', courriel:'Courriel', note:'Note', creation:'Création'};
+  const typeColor = {statut:'var(--gold)', activite:'var(--blue)', courriel:'var(--teal)', note:'var(--muted)', creation:'var(--green)'};
+  const el = ctx==='proj' ? document.getElementById('mpj-historique') : document.getElementById('mch-historique');
+  if(!el) return;
+  if(hist.length===0){ el.innerHTML='<div class="empty-state"><div class="empty-ico">📜</div><div class="empty-text">Aucun historique</div></div>'; return; }
+  el.innerHTML = `<div style="padding:4px 0">${hist.map(h=>`
+    <div class="hist-item">
+      <div class="hist-dot" style="border-color:${typeColor[h.type]||'var(--gold)'}"></div>
+      <div class="hist-time">${fmtDateHeure(h.ts)}</div>
+      <div class="hist-text"><span class="hist-type" style="color:${typeColor[h.type]||'var(--gold)'}">${typeLabel[h.type]||h.type}</span> — ${escHtml(h.details||'')}</div>
+    </div>`).join('')}</div>`;
+}
+
+function renderProjetActivitesFull(projetId){
+  const el = document.getElementById('mpj-activites-full'); if(!el) return;
+  const all = DB.get('activites').filter(a=>a.projetId===projetId);
+  const pending = all.filter(a=>!a.done).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const done = all.filter(a=>a.done).sort((a,b)=>new Date(b.dateDone||b.date)-new Date(a.dateDone||a.date));
+  el.innerHTML = `
+    <div class="section-title" style="margin-bottom:10px">Activités (${pending.length} actives)</div>
+    ${pending.length===0&&done.length===0?'<div class="empty-state"><div class="empty-text">Aucune activité</div></div>':''}
+    ${pending.map(a=>renderActiItem(a,'proj')).join('')}
+    ${done.length?`<div class="acti-history-sep">Historique (${done.length})</div>${done.map(a=>renderActiItem(a,'proj')).join('')}`:''}
+    <div class="acti-add-form" style="margin-top:12px">
+      <div class="acti-add-title">+ Ajouter une activité</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <select class="form-control" id="acti-type-projfull" style="font-size:12px">
+          ${ACTI_TYPES.map(t=>`<option value="${t.id}">${t.ico} ${t.label}</option>`).join('')}
+        </select>
+        <input class="form-control" type="date" id="acti-date-projfull" value="${todayStr()}" style="font-size:12px">
+      </div>
+      <textarea class="form-control" id="acti-desc-projfull" rows="2" placeholder="Description..." style="font-size:12px;margin-bottom:8px"></textarea>
+      <button class="btn btn-gold btn-sm" style="width:100%" onclick="addActiviteFromFull('${projetId}')">Ajouter</button>
+    </div>`;
+}
+
+function addActiviteFromFull(projetId){
+  const type = document.getElementById('acti-type-projfull')?.value;
+  const date = document.getElementById('acti-date-projfull')?.value;
+  const desc = document.getElementById('acti-desc-projfull')?.value?.trim()||'';
+  if(!type||!date) return;
+  const a={id:uid(),projetId,chantierId:'',type,date,description:desc,userId:'',dateCreation:new Date().toISOString()};
+  const acts=DB.get('activites'); acts.push(a); DB.set('activites',acts);
+  logHistory(projetId,'activite',`${type} planifié le ${date}`);
+  const projets=DB.get('projets');const idx=projets.findIndex(p=>p.id===projetId);
+  if(idx!==-1){projets[idx].dateDernierContact=date;DB.set('projets',projets);}
+  renderProjetActivitesFull(projetId);
+  if(currentView==='pipeline') renderPipeline();
+  syncActiviteToSheets(a);
+}
+
+function fmtDateHeure(ts){
+  if(!ts) return '—';
+  try{ const d=new Date(ts); return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`; }catch(e){return ts;}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CALCUL MARGE
+═══════════════════════════════════════════════════════════════════════════ */
+function margeDisplay(p){
+  const prix = Number(p.prix)||0;
+  const mat = Number(p.coutMateriaux)||0;
+  const mo = Number(p.coutMainOeuvre)||0;
+  if(!mat && !mo) return '';
+  const totalCout = mat + mo;
+  const marge = prix - totalCout;
+  const pct = prix>0 ? Math.round(marge/prix*100) : 0;
+  const cls = marge>0?'marge-positive':marge<0?'marge-negative':'marge-neutral';
+  return `<div>
+    <div class="section-title">Marge bénéficiaire</div>
+    <div class="marge-display">
+      <div class="marge-row"><span>Prix de vente</span><span>${fmtMoney(prix)}</span></div>
+      ${mat?`<div class="marge-row"><span>— Matériaux</span><span style="color:var(--muted)">${fmtMoney(mat)}</span></div>`:''}
+      ${mo?`<div class="marge-row"><span>— Main-d'œuvre</span><span style="color:var(--muted)">${fmtMoney(mo)}</span></div>`:''}
+      <div class="marge-row total"><span>Marge nette</span><span class="${cls}">${fmtMoney(marge)} (${pct}%)</span></div>
+    </div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RAPPELS INTELLIGENTS (INACTIVITÉ)
+═══════════════════════════════════════════════════════════════════════════ */
+const INACTIVITY_THRESHOLDS = { pas_repondu:7, a_contacter:5, rdv_pris:5, faire_soumission:7, soumission_envoyee:10 };
+
+function renderInactivityAlerts(){
+  const projets = DB.get('projets');
+  const alerts = projets.filter(p=>{
+    if(p.statut==='perdu'||p.statut==='gagne') return false;
+    const seuil = INACTIVITY_THRESHOLDS[p.statut]||7;
+    return daysSince(p.dateDernierContact) >= seuil;
+  }).sort((a,b)=>daysSince(b.dateDernierContact)-daysSince(a.dateDernierContact));
+  const el = document.getElementById('pipeline-alerts');
+  if(!el) return;
+  if(alerts.length===0){ el.innerHTML=''; return; }
+  el.innerHTML = `<div class="inactivity-alert">
+    <strong>⚠ ${alerts.length} projet${alerts.length>1?'s':''} sans suivi :</strong>
+    ${alerts.slice(0,3).map(p=>`<span onclick="openProjetDetail('${p.id}')" style="cursor:pointer;text-decoration:underline">${escHtml(p.nom)} (${daysSince(p.dateDernierContact)}j)</span>`).join(' · ')}
+    ${alerts.length>3?`<span style="color:var(--muted)">+${alerts.length-3} autres</span>`:''}
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STATISTIQUES
+═══════════════════════════════════════════════════════════════════════════ */
+function renderStats(){
+  document.getElementById('topbar-title').textContent='Statistiques';
+  const projets = DB.get('projets');
+  const all = projets.length;
+  const gagnes = projets.filter(p=>p.statut==='gagne');
+  const perdus = projets.filter(p=>p.statut==='perdu');
+  const actifs = projets.filter(p=>p.statut!=='gagne'&&p.statut!=='perdu');
+  const txConversion = all>0 ? Math.round(gagnes.length/all*100) : 0;
+  const sum = arr => arr.reduce((s,p)=>s+(Number(p.prix)||0),0);
+  const avg = arr => arr.length>0 ? Math.round(sum(arr)/arr.length) : 0;
+
+  // By type
+  const types = Object.keys(TYPES_LABEL).filter(k=>!['residential','commercial','industriel','renovation','construction','autre'].includes(k));
+  const typeStats = types.map(k=>{
+    const g = gagnes.filter(p=>p.typeProjet===k);
+    const tot = projets.filter(p=>p.typeProjet===k);
+    return { label:TYPES_LABEL[k], total:tot.length, gagnes:g.length, tx:tot.length>0?Math.round(g.length/tot.length*100):0, revenu:sum(g) };
+  }).filter(t=>t.total>0).sort((a,b)=>b.total-a.total);
+  const maxTypeTot = Math.max(...typeStats.map(t=>t.total),1);
+
+  // By source
+  const sources = Object.keys(SOURCES_LABEL).filter(k=>!['reference','web','social','appel','autre'].includes(k));
+  const srcStats = sources.map(k=>{
+    const g = gagnes.filter(p=>p.source===k);
+    const tot = projets.filter(p=>p.source===k);
+    return { label:SOURCES_LABEL[k], total:tot.length, gagnes:g.length, tx:tot.length>0?Math.round(g.length/tot.length*100):0 };
+  }).filter(s=>s.total>0).sort((a,b)=>b.total-a.total);
+  const maxSrcTot = Math.max(...srcStats.map(s=>s.total),1);
+
+  // Season distribution (based on dateCreation month)
+  const saisons = SAISONS.map(s=>{
+    const ps = projets.filter(p=>{ const m=new Date(p.dateCreation||Date.now()).getMonth()+1; return s.mois.includes(m); });
+    return {...s, count:ps.length, revenu:sum(ps.filter(p=>p.statut==='gagne'))};
+  });
+
+  document.getElementById('stats-content').innerHTML = `
+    <div class="stats-grid">
+      <div class="stats-card">
+        <div class="stats-card-title">Total projets</div>
+        <div class="stats-big">${all}</div>
+        <div class="stats-sub">${actifs.length} actifs · ${gagnes.length} gagnés · ${perdus.length} perdus</div>
+      </div>
+      <div class="stats-card">
+        <div class="stats-card-title">Taux de conversion global</div>
+        <div class="stats-big" style="color:${txConversion>=30?'var(--green)':txConversion>=15?'var(--gold)':'var(--red)'}">${txConversion}%</div>
+        <div class="stats-sub">${gagnes.length} gagnés sur ${all} projets</div>
+      </div>
+      <div class="stats-card">
+        <div class="stats-card-title">Revenus gagnés</div>
+        <div class="stats-big" style="color:var(--gold2)">${fmtMoney(sum(gagnes))}</div>
+        <div class="stats-sub">Moy. ${fmtMoney(avg(gagnes))} / projet</div>
+      </div>
+      <div class="stats-card">
+        <div class="stats-card-title">Pipeline actif</div>
+        <div class="stats-big" style="color:var(--blue)">${fmtMoney(sum(actifs))}</div>
+        <div class="stats-sub">${actifs.length} soumission${actifs.length!==1?'s':''} en cours</div>
+      </div>
+    </div>
+
+    <div class="stats-grid" style="grid-template-columns:1fr 1fr">
+      <div class="stats-card">
+        <div class="stats-section-title">Conversion par type de projet</div>
+        ${typeStats.length===0?'<div style="color:var(--muted);font-size:12px">Aucune donnée</div>':typeStats.map(t=>`
+          <div class="stats-bar-row">
+            <div class="stats-bar-label" title="${t.label}">${t.label}</div>
+            <div class="stats-bar-track"><div class="stats-bar-fill" style="width:${Math.round(t.total/maxTypeTot*100)}%"></div></div>
+            <div class="stats-bar-val">${t.total}p</div>
+          </div>
+          <div style="font-size:10px;color:var(--muted2);margin:-3px 0 7px 138px">${t.tx}% conv. · ${fmtMoney(t.revenu)}</div>`).join('')}
+      </div>
+      <div class="stats-card">
+        <div class="stats-section-title">Meilleure source de leads</div>
+        ${srcStats.length===0?'<div style="color:var(--muted);font-size:12px">Aucune donnée</div>':srcStats.map(s=>`
+          <div class="stats-bar-row">
+            <div class="stats-bar-label">${s.label}</div>
+            <div class="stats-bar-track"><div class="stats-bar-fill" style="width:${Math.round(s.total/maxSrcTot*100)}%;background:var(--blue)"></div></div>
+            <div class="stats-bar-val">${s.total}p</div>
+          </div>
+          <div style="font-size:10px;color:var(--muted2);margin:-3px 0 7px 138px">${s.tx}% conversion · ${s.gagnes} gagnés</div>`).join('')}
+      </div>
+    </div>
+
+    <div class="stats-card" style="margin-bottom:14px">
+      <div class="stats-section-title">Répartition par saison</div>
+      <div class="season-grid">
+        ${saisons.map(s=>`
+          <div class="season-col">
+            <div class="season-header">
+              <span>${s.label}</span>
+              <span style="color:${s.color};font-weight:800">${s.count}</span>
+            </div>
+            ${s.count===0?'<div class="season-card-meta" style="padding:6px 0;font-size:11px">Aucun projet</div>':''}
+            ${s.count>0?`<div class="stats-sub" style="margin-bottom:6px">Revenus : ${fmtMoney(s.revenu)}</div>`:''}
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="stats-card">
+      <div class="stats-section-title">Références clients</div>
+      ${renderRefStats()}
+    </div>`;
+}
+
+function renderRefStats(){
+  const clients = DB.get('clients');
+  const refs = clients.filter(c=>c.referredBy).map(c=>c.referredBy);
+  const counts = {};
+  refs.forEach(id=>{ counts[id]=(counts[id]||0)+1; });
+  const top = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  if(top.length===0) return '<div style="color:var(--muted);font-size:12px">Aucune référence enregistrée</div>';
+  return top.map(([id,n])=>{ const c=getClient(id); return `<div class="stats-bar-row"><div class="stats-bar-label">${c?escHtml(c.nom):'Client supprimé'}</div><div class="stats-bar-track"><div class="stats-bar-fill" style="width:${n*20}%;background:var(--purple)"></div></div><div class="stats-bar-val">${n} réf.</div></div>`; }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SAISONNALITÉ (vue chantiers)
+═══════════════════════════════════════════════════════════════════════════ */
+function renderSaisonView(){
+  const projets = DB.get('projets');
+  return `<div class="season-grid" style="margin-bottom:16px">
+    ${SAISONS.map(s=>{
+      const ps = projets.filter(p=>{
+        const m=new Date(p.dateCreation||Date.now()).getMonth()+1;
+        return s.mois.includes(m);
+      });
+      return `<div class="season-col" style="border-top:3px solid ${s.color}">
+        <div class="season-header"><span>${s.label}</span><span style="color:${s.color}">${ps.length} projet${ps.length!==1?'s':''}</span></div>
+        ${ps.slice(0,5).map(p=>{
+          const col=COLUMNS.find(c=>c.id===p.statut)||{color:'#555',label:p.statut};
+          return `<div class="season-card" onclick="openProjetDetail('${p.id}')" style="cursor:pointer">
+            <div class="season-card-name">${escHtml(p.nom)}</div>
+            <div class="season-card-meta"><span style="color:${col.color}">${col.label}</span> · ${fmtMoney(p.prix)}</div>
+          </div>`;
+        }).join('')}
+        ${ps.length>5?`<div style="font-size:10px;color:var(--muted);padding:4px 0">+${ps.length-5} autres...</div>`:''}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SYSTÈME COURRIELS
+═══════════════════════════════════════════════════════════════════════════ */
+function fillTemplateVars(text, projetId, chantierId){
+  const p = getProjet(projetId)||{};
+  const c = getClient(p.clientId)||{};
+  const ch = chantierId ? getChantier(chantierId)||{} : {};
+  return text
+    .replace(/\{\{nom_client\}\}/g, c.nom||'Client')
+    .replace(/\{\{nom_projet\}\}/g, p.nom||'votre projet')
+    .replace(/\{\{date_rdv\}\}/g, p.dateProchainRDV?fmtDate(p.dateProchainRDV):'à confirmer')
+    .replace(/\{\{prix\}\}/g, fmtMoney(p.prix))
+    .replace(/\{\{adresse\}\}/g, c.adresse||(ch.adresse||'à confirmer'))
+    .replace(/\{\{lien_soumission\}\}/g, p.soumissionUrl||'(voir pièce jointe)')
+    .replace(/\{\{lien_google_review\}\}/g, DB.getStr('googleReviewUrl')||'https://g.page/r/VOTRE-ID-GOOGLE/review');
+}
+
+function openEmailCompose(ctx, refId){
+  const projetId = ctx==='proj' ? refId : (getChantier(refId)||{}).projetId||'';
+  const chantierId = ctx==='ch' ? refId : '';
+  document.getElementById('em-proj-id').value = projetId;
+  document.getElementById('em-ch-id').value = chantierId;
+  document.getElementById('em-preview-section').classList.add('hidden');
+
+  const p = getProjet(projetId)||{};
+  const client = getClient(p.clientId)||{};
+  document.getElementById('em-to').value = client.email||'';
+  document.getElementById('em-subject').value='';
+  document.getElementById('em-body').value='';
+  document.getElementById('em-attach').value=p.soumissionUrl||'';
+  document.getElementById('email-modal-subtitle').textContent = p.nom||'';
+
+  document.getElementById('em-templates-list').innerHTML = EMAIL_TEMPLATES.map(t=>`
+    <button class="template-btn" onclick="applyTemplate('${t.id}','${projetId}','${chantierId}')">
+      ${t.label}
+    </button>`).join('');
+
+  openModal('modal-email');
+}
+
+function applyTemplate(templateId, projetId, chantierId){
+  const tpl = EMAIL_TEMPLATES.find(t=>t.id===templateId); if(!tpl) return;
+  document.getElementById('em-subject').value = fillTemplateVars(tpl.subject, projetId, chantierId);
+  document.getElementById('em-body').value = fillTemplateVars(tpl.body, projetId, chantierId);
+  showEmailPreview();
+}
+
+function showEmailPreview(){
+  const to = document.getElementById('em-to').value;
+  const subj = document.getElementById('em-subject').value;
+  const body = document.getElementById('em-body').value;
+  const attach = document.getElementById('em-attach').value;
+  document.getElementById('em-preview-box').textContent =
+    `À : ${to}\nSujet : ${subj}\n${'─'.repeat(40)}\n${body}${attach?'\n\n📎 Pièce jointe : '+attach:''}`;
+  document.getElementById('em-preview-section').classList.remove('hidden');
+}
+
+function updateEmailPreview(){
+  if(!document.getElementById('em-preview-section').classList.contains('hidden')) showEmailPreview();
+}
+
+async function sendEmail(){
+  const projetId = document.getElementById('em-proj-id').value;
+  const chantierId = document.getElementById('em-ch-id').value;
+  const to = document.getElementById('em-to').value.trim();
+  const subject = document.getElementById('em-subject').value.trim();
+  const body = document.getElementById('em-body').value.trim();
+  const attachment = document.getElementById('em-attach').value.trim();
+  if(!to||!subject||!body){ showToast('Remplissez destinataire, sujet et message.'); return; }
+
+  // Always show preview first — confirm before send
+  showEmailPreview();
+  if(!confirm(`Envoyer ce courriel à ${to} ?\n\nSujet : ${subject}`)) return;
+
+  const url = getScriptUrl();
+  let status = 'local';
+  if(url){
+    try{
+      showToast('Envoi en cours...');
+      const r = await fetch(url,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'sendEmail',to,subject,body,attachment,projetId,chantierId})});
+      const d = await r.json();
+      status = d.success ? 'sent' : 'error';
+    }catch(e){ status='error'; console.warn(e); }
+  }
+
+  const courriel = { id:uid(), projetId, chantierId, to, subject, body, attachment, status, dateSent:new Date().toISOString() };
+  const courriels = DB.get('courriels'); courriels.unshift(courriel); DB.set('courriels',courriels);
+  logHistory(projetId,'courriel',`Courriel envoyé à ${to} — "${subject}"`);
+
+  closeModal('modal-email');
+  showToast(status==='sent'?'✓ Courriel envoyé via Gmail':status==='error'?'⚠ Erreur envoi — courriel sauvegardé localement':'✓ Courriel sauvegardé (pas de connexion Gmail)');
+  if(currentProjTab==='courriels') renderEmailTab('proj',projetId);
+  if(activeTab==='courriels') renderEmailTab('ch',chantierId);
+}
+
+function renderEmailTab(ctx, refId){
+  let courriels;
+  if(ctx==='proj') courriels = DB.get('courriels').filter(e=>e.projetId===refId);
+  else courriels = DB.get('courriels').filter(e=>e.chantierId===refId);
+  const el = ctx==='proj' ? document.getElementById('mpj-courriels') : document.getElementById('mch-courriels');
+  if(!el) return;
+  const sendBtn = ctx==='proj'
+    ? `<button class="btn btn-gold btn-sm" style="margin-bottom:12px" onclick="openEmailCompose('proj','${refId}')">📧 Nouveau courriel</button>`
+    : `<button class="btn btn-gold btn-sm" style="margin-bottom:12px" onclick="openEmailCompose('ch','${refId}')">📧 Nouveau courriel</button>`;
+  if(courriels.length===0){
+    el.innerHTML=sendBtn+'<div class="empty-state"><div class="empty-ico">📧</div><div class="empty-text">Aucun courriel envoyé</div></div>'; return;
+  }
+  el.innerHTML = sendBtn + courriels.map(e=>`
+    <div class="email-list-item">
+      <div class="email-li-header">
+        <div class="email-li-subject">${escHtml(e.subject)}</div>
+        <div class="email-li-date">${fmtDateHeure(e.dateSent)}</div>
+      </div>
+      <div class="email-li-to">À : ${escHtml(e.to)} ${e.status==='sent'?'<span style="color:var(--green)">✓</span>':e.status==='error'?'<span style="color:var(--red)">⚠</span>':''}</div>
+      <div class="email-li-preview">${escHtml((e.body||'').substring(0,120))}...</div>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SUGGESTION EMAIL SELON STATUT + SUIVI POST-PROJET
+═══════════════════════════════════════════════════════════════════════════ */
+function suggestEmailOnStatut(p, oldStatut){
+  const suggestions = {
+    rdv_pris:       { templateId:'rdv',         msg:'Le projet est en RDV — envoyer une confirmation ?' },
+    soumission_envoyee: { templateId:'soumission', msg:'La soumission est envoyée — joindre le document ?' },
+    gagne:          { templateId:'gagne',        msg:'Projet gagné ! Envoyer un courriel de bienvenue ?' },
+  };
+  const s = suggestions[p.statut];
+  if(!s) return;
+  setTimeout(()=>{
+    if(confirm(s.msg)){
+      openEmailCompose('proj',p.id);
+      setTimeout(()=>applyTemplate(s.templateId,p.id,''),200);
+    }
+  },400);
+}
+
+function offerPostProjetSuivi(p){
+  // Schedule a reminder activity 1 week after for satisfaction, 1 month for Google review
+  const d7 = new Date(); d7.setDate(d7.getDate()+7);
+  const d30 = new Date(); d30.setDate(d30.getDate()+30);
+  const acts = DB.get('activites');
+  acts.push({id:uid(),projetId:p.id,chantierId:'',type:'courriel',date:d7.toISOString().split('T')[0],description:'[Auto] Courriel satisfaction client (1 semaine)',done:false,dateCreation:new Date().toISOString()});
+  acts.push({id:uid(),projetId:p.id,chantierId:'',type:'suivi',date:d30.toISOString().split('T')[0],description:'[Auto] Demande avis Google (1 mois)',done:false,dateCreation:new Date().toISOString()});
+  DB.set('activites',acts);
+  logHistory(p.id,'note','Rappels post-projet créés : satisfaction (7j) + avis Google (30j)');
+  showToast('✓ Rappels post-chantier créés automatiquement');
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
