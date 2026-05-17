@@ -77,7 +77,7 @@ a{color:inherit;text-decoration:none}
 .col-body.drag-over{border-color:var(--gold) !important;background:var(--gold-dim)}
 .col-empty{text-align:center;padding:30px 0;color:var(--border2);font-size:12px}
 /* Cards */
-.proj-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 46px 14px 16px;margin-bottom:10px;cursor:pointer;transition:var(--tr);border-left:4px solid transparent;position:relative;user-select:none;min-height:72px}
+.proj-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 46px 14px 16px;margin-bottom:10px;cursor:pointer;transition:var(--tr);border-left:4px solid transparent;position:relative;user-select:none;min-height:72px;overflow:hidden}
 .proj-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.5)}
 .proj-card.dragging{opacity:.35}
 .card-del{position:absolute;bottom:8px;right:8px;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:11px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:var(--tr);z-index:4;line-height:1}
@@ -310,6 +310,18 @@ textarea.form-control{resize:vertical;min-height:72px}
 .inactivity-alert strong{color:var(--red)}
 /* ─── Referral Badge ─────────────────────────────────────────────────────────── */
 .ref-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);color:#a78bfa;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700}
+/* ─── Long-press Quick Actions ───────────────────────────────────────────────── */
+.card-quick-panel{position:absolute;bottom:0;left:0;right:0;display:none;gap:5px;padding:8px;background:rgba(8,8,8,.97);border-top:1px solid var(--border2);z-index:8;animation:qpSlide .18s ease}
+.card-quick-panel.qp-visible{display:flex}
+@keyframes qpSlide{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.qbtn{flex:1;padding:9px 4px;border:none;border-radius:7px;font-size:11px;font-weight:800;cursor:pointer;transition:opacity .15s;white-space:nowrap;font-family:inherit}
+.qbtn:hover{opacity:.8;transform:scale(1.04)}
+.qbtn-del{background:rgba(239,68,68,.22);color:#fca5a5;border:1px solid rgba(239,68,68,.45)}
+.qbtn-perdu{background:rgba(107,114,128,.22);color:#9CA3AF;border:1px solid rgba(107,114,128,.4)}
+.qbtn-gagne{background:rgba(34,197,94,.22);color:#86efac;border:1px solid rgba(34,197,94,.45)}
+@keyframes lpPulse{0%,100%{box-shadow:0 0 0 0 rgba(201,146,42,.5)}60%{box-shadow:0 0 0 6px rgba(201,146,42,0)}}
+.proj-card.lp-holding{border-color:var(--gold)!important;animation:lpPulse .7s ease infinite}
+.proj-card.lp-active{transform:scale(1.02)!important;box-shadow:0 8px 28px rgba(201,146,42,.28)!important;border-color:var(--gold)!important;z-index:6}
 /* ─── Activity Mini Panel ───────────────────────────────────────────────────── */
 .act-mini-panel{position:fixed;z-index:500;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.7);width:270px;overflow:hidden;display:flex;flex-direction:column;animation:panelIn .14s ease}
 @keyframes panelIn{from{opacity:0;transform:scale(.94) translateY(-4px)}to{opacity:1;transform:scale(1) translateY(0)}}
@@ -1332,7 +1344,11 @@ function renderCard(p){
     draggable="true"
     ondragstart="e_start(event,'${p.id}')"
     ondragend="e_end(event)"
-    onclick="openProjetDetail('${p.id}')">
+    onpointerdown="cardPD(event,'${p.id}')"
+    onpointermove="cardPM(event)"
+    onpointerup="cardPU()"
+    onpointercancel="cardPU()"
+    onclick="cardClick(event,'${p.id}')">
     <button class="card-del" onclick="event.stopPropagation();confirmDeleteFromCard('${p.id}')" title="Supprimer">✕</button>
     ${actStatusIco(actStatus, p.id)}
     <div class="card-client">${escHtml(clientNom)}</div>
@@ -1342,6 +1358,11 @@ function renderCard(p){
       ${alertHtml}
       ${rdvHtml}
       ${prixHtml}
+    </div>
+    <div class="card-quick-panel">
+      <button class="qbtn qbtn-del" onclick="quickAction('delete','${p.id}',event)">🗑 Supprimer</button>
+      <button class="qbtn qbtn-perdu" onclick="quickAction('perdu','${p.id}',event)">✗ Perdu</button>
+      <button class="qbtn qbtn-gagne" onclick="quickAction('gagne','${p.id}',event)">✓ Gagné</button>
     </div>
   </div>`;
 }
@@ -1354,8 +1375,77 @@ function confirmDeleteFromCard(projetId){
   showToast('Projet supprimé.');
 }
 
+/* ─── Long-press Quick Actions ─────────────────────────────────────────────── */
+let _lpTimer=null, _lpId=null, _lpPos=null, _lpFired=false;
+
+function cardPD(e, id){
+  if(e.target.closest('.card-del,.card-status-ico,.card-quick-panel,button,a,select')) return;
+  _lpId=id; _lpFired=false;
+  _lpPos={x:e.clientX,y:e.clientY};
+  const card=document.getElementById('card-'+id);
+  if(card) card.classList.add('lp-holding');
+  _lpTimer=setTimeout(()=>{ _lpFired=true; showCardQP(id); },1000);
+}
+
+function cardPM(e){
+  if(!_lpTimer||!_lpPos) return;
+  if(Math.abs(e.clientX-_lpPos.x)>8||Math.abs(e.clientY-_lpPos.y)>8) cancelLP();
+}
+
+function cardPU(){ cancelLP(false); }
+
+function cancelLP(clearFired=true){
+  if(_lpTimer){ clearTimeout(_lpTimer); _lpTimer=null; }
+  if(_lpId){ const c=document.getElementById('card-'+_lpId); if(c) c.classList.remove('lp-holding'); }
+  if(clearFired){ _lpFired=false; _lpId=null; }
+}
+
+function cardClick(e, id){
+  if(_lpFired){ _lpFired=false; return; }
+  openProjetDetail(id);
+}
+
+function showCardQP(id){
+  hideAllCardQP();
+  const card=document.getElementById('card-'+id); if(!card) return;
+  card.classList.remove('lp-holding');
+  card.classList.add('lp-active');
+  card.querySelector('.card-quick-panel')?.classList.add('qp-visible');
+  if(navigator.vibrate) navigator.vibrate(40);
+  setTimeout(()=>document.addEventListener('click',_qpOutside,true),0);
+}
+
+function _qpOutside(e){
+  const inside=[...document.querySelectorAll('.card-quick-panel.qp-visible')].some(p=>p.contains(e.target));
+  if(!inside){ hideAllCardQP(); document.removeEventListener('click',_qpOutside,true); }
+}
+
+function hideAllCardQP(){
+  document.querySelectorAll('.card-quick-panel.qp-visible').forEach(p=>{
+    p.classList.remove('qp-visible');
+    p.closest('.proj-card')?.classList.remove('lp-active');
+  });
+}
+
+function quickAction(action, id, e){
+  e.stopPropagation();
+  hideAllCardQP();
+  document.removeEventListener('click',_qpOutside,true);
+  _lpFired=false;
+  if(action==='delete'){
+    if(!confirm('Supprimer ce projet définitivement ?')) return;
+    confirmDeleteFromCard(id);
+  } else if(action==='perdu'){
+    if(!confirm('Marquer ce projet comme Perdu ?')) return;
+    moveProjet(id,'perdu');
+  } else if(action==='gagne'){
+    if(!confirm('Marquer ce projet comme Gagné ?\nUn chantier sera créé automatiquement.')) return;
+    moveProjet(id,'gagne');
+  }
+}
+
 /* ─── Drag & Drop ──────────────────────────────────────────────────────────── */
-function e_start(e,id){ dragProjetId=id; setTimeout(()=>{ const c=document.getElementById('card-'+id); if(c) c.classList.add('dragging'); },0); e.dataTransfer.effectAllowed='move'; }
+function e_start(e,id){ cancelLP(); dragProjetId=id; setTimeout(()=>{ const c=document.getElementById('card-'+id); if(c) c.classList.add('dragging'); },0); e.dataTransfer.effectAllowed='move'; }
 function e_end(e){ document.querySelectorAll('.proj-card.dragging').forEach(c=>c.classList.remove('dragging')); dragProjetId=null; }
 function e_over(e){ e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.add('drag-over'); }
 function e_leave(e){ if(!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('drag-over'); }
