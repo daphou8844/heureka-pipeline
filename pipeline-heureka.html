@@ -1727,26 +1727,28 @@ async function syncToAdmin(projet){
   try {
     const clients = DB.get('clients');
     const client = clients.find(c=>c.id===projet.clientId)||{};
+    const adresse = [client.adresse, client.ville].filter(Boolean).join(', ');
     const payload = {
-      action:      'createChantier',
-      id:          uid(),
-      projetNom:   projet.nom          || '',
-      clientNom:   client.nom          || '',
-      clientEmail: client.email        || '',
-      clientTel:   client.telephone    || '',
-      adresse:     client.adresse      || '',
-      ville:       client.ville        || '',
-      description: projet.notes        || '',
-      prix:        projet.prix         || '',
-      statut:      'a_planifier',
-      dateCreation: new Date().toISOString()
+      action: 'saveJob',
+      job: {
+        id:      'pipe-' + projet.id,
+        name:    projet.nom || '',
+        client:  client.nom || '',
+        address: adresse,
+        status:  'a_programmer',
+        start:   '',
+        end:     '',
+        budget:  Number(projet.prix) || 0,
+        foreman: '',
+        notes:   projet.notes || ''
+      }
     };
     const resp = await fetch(ADMIN_SCRIPT_URL, {
       method: 'POST',
       body: JSON.stringify(payload)
     });
     const data = await resp.json().catch(()=>({}));
-    if(data.error) throw new Error(data.error);
+    if(data.status === 'error') throw new Error(data.message);
     showToast('✅ Chantier envoyé vers Admin.');
   } catch(err) {
     console.warn('syncToAdmin failed:', err);
