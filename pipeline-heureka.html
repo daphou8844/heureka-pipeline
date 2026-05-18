@@ -364,6 +364,12 @@ textarea.form-control{resize:vertical;min-height:72px}
       <div class="nav-item" onclick="showView('stats')" id="nav-stats">
         <span class="nav-ico">📊</span> Statistiques
       </div>
+      <div class="nav-item" onclick="showView('courriels')" id="nav-courriels">
+        <span class="nav-ico">📧</span> Courriels
+      </div>
+      <div class="nav-item" onclick="showView('soumissions')" id="nav-soumissions">
+        <span class="nav-ico">📐</span> Soumissions
+      </div>
     </nav>
     <div class="sb-footer">
       <button class="sb-sync-btn" onclick="syncSheets()">⟳ Sync Google Sheets</button>
@@ -452,6 +458,16 @@ textarea.form-control{resize:vertical;min-height:72px}
       <!-- VIEW: STATS -->
       <div id="view-stats" class="hidden">
         <div id="stats-content" style="padding:4px 0"></div>
+      </div>
+
+      <!-- VIEW: COURRIELS -->
+      <div id="view-courriels" class="hidden" style="height:100%;overflow-y:auto">
+        <div id="courriels-all-content"></div>
+      </div>
+
+      <!-- VIEW: SOUMISSIONS -->
+      <div id="view-soumissions" class="hidden" style="height:100%;overflow-y:auto">
+        <div id="soumissions-all-content"></div>
       </div>
 
       <!-- VIEW: CONFIG -->
@@ -1064,7 +1080,7 @@ let activeTab = 'overview';
 function uid(){ return crypto.randomUUID(); }
 function todayStr(){ return new Date().toISOString().split('T')[0]; }
 function daysSince(d){ if(!d) return 999; return Math.floor((Date.now()-new Date(d).getTime())/86400000); }
-function fmtDate(d){ if(!d||d==='') return '—'; try{ const p=d.split('T')[0].split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }catch(e){ return d; } }
+function fmtDate(d){ if(!d||d===''||d==='undefined'||d==='null') return '—'; try{ const p=d.split('T')[0].split('-'); if(p.length<3||!p[0]||!p[1]||!p[2]) return '—'; return p[2]+'/'+p[1]+'/'+p[0]; }catch(e){ return '—'; } }
 function fmtMoney(n){ if(!n||n===0||n==='') return '—'; return '$'+Number(n).toLocaleString('fr-CA'); }
 function actiStatus(dateStr){
   if(!dateStr) return 'future';
@@ -1087,32 +1103,28 @@ function openModal(id){ document.getElementById(id).classList.remove('hidden'); 
 ═══════════════════════════════════════════════════════════════════════════ */
 function showView(view){
   currentView = view;
-  ['pipeline','chantiers','clients','config','stats'].forEach(v=>{
+  ['pipeline','chantiers','clients','config','stats','courriels','soumissions'].forEach(v=>{
     document.getElementById('view-'+v).classList.toggle('hidden', v!==view);
     const n=document.getElementById('nav-'+v);
     if(n) n.classList.toggle('active', v===view);
   });
   const titles={
-    pipeline:'Pipeline', chantiers:'Chantiers', clients:'Clients', config:'Configuration'
+    pipeline:'Pipeline', chantiers:'Chantiers', clients:'Clients',
+    config:'Configuration', stats:'Statistiques',
+    courriels:'Courriels envoyés', soumissions:'Soumissions Revêtement',
   };
   document.getElementById('topbar-title').textContent = titles[view]||'';
   const acts = document.getElementById('topbar-actions');
+  acts.innerHTML = '';
   if(view==='pipeline'){
     acts.innerHTML=`<button class="btn btn-gold" onclick="openModalNewProjet()">+ Nouveau projet</button>`;
     renderPipeline();
-  } else if(view==='chantiers'){
-    acts.innerHTML='';
-    renderChantiers();
-  } else if(view==='clients'){
-    acts.innerHTML='';
-    renderClientList();
-  } else if(view==='stats'){
-    acts.innerHTML='';
-    renderStats();
-  } else {
-    acts.innerHTML='';
-    initConfig();
-  }
+  } else if(view==='chantiers'){ renderChantiers();
+  } else if(view==='clients'){   renderClientList();
+  } else if(view==='stats'){     renderStats();
+  } else if(view==='courriels'){ renderAllCourriels();
+  } else if(view==='soumissions'){ renderAllSoumissions();
+  } else { initConfig(); }
   document.getElementById('topbar-sub').textContent='';
 }
 
@@ -1337,8 +1349,8 @@ function renderCard(p){
   const pri = PRIORITES[p.priorite]||PRIORITES.normale;
   const days = daysSince(p.dateDernierContact);
   let alertHtml = '';
-  if(days>=10) alertHtml=`<span class="card-alert alert-red">⚠ ${days}j sans suivi</span>`;
-  else if(days>=5) alertHtml=`<span class="card-alert alert-orange">⏰ ${days}j</span>`;
+  if(p.dateDernierContact && days>=10) alertHtml=`<span class="card-alert alert-red">⚠ ${days}j sans suivi</span>`;
+  else if(p.dateDernierContact && days>=5) alertHtml=`<span class="card-alert alert-orange">⏰ ${days}j</span>`;
 
   const rdvHtml = p.dateProchainRDV ? `<span class="card-rdv">📅 ${fmtDate(p.dateProchainRDV)}</span>` : '';
   const prixHtml = p.prix ? `<span class="card-prix">${fmtMoney(p.prix)}</span>` : '';
@@ -2842,6 +2854,178 @@ function seedDemo(){
     {id:uid(),projetId:'',chantierId:'ch1',type:'suivi',description:'Travaux carrelage débutés, bon rythme',date:todayStr(),userId:'maxime',dateCreation:new Date().toISOString()},
   ];
   DB.set('activites',activites);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VUE COURRIELS — tous les courriels, tous projets/chantiers
+═══════════════════════════════════════════════════════════════════════════ */
+let courrielF = { projet:'', client:'', dateFrom:'', dateTo:'' };
+
+function renderAllCourriels(){
+  const el = document.getElementById('courriels-all-content'); if(!el) return;
+  const allC = DB.get('courriels').sort((a,b)=> new Date(b.dateSent)-new Date(a.dateSent));
+  const projets = DB.get('projets');
+  const clients = DB.get('clients');
+
+  let filtered = allC;
+  if(courrielF.projet)   filtered = filtered.filter(e=>e.projetId===courrielF.projet);
+  if(courrielF.client){
+    const pids = projets.filter(p=>p.clientId===courrielF.client).map(p=>p.id);
+    filtered = filtered.filter(e=>pids.includes(e.projetId));
+  }
+  if(courrielF.dateFrom) filtered = filtered.filter(e=>e.dateSent>=courrielF.dateFrom);
+  if(courrielF.dateTo)   filtered = filtered.filter(e=>e.dateSent<=(courrielF.dateTo+'T23:59:59'));
+
+  const hasFilter = Object.values(courrielF).some(v=>v);
+  const sentCount = filtered.filter(e=>e.status==='sent').length;
+  const errCount  = filtered.filter(e=>e.status==='error').length;
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rad)">
+      <select class="form-control" style="flex:1;min-width:180px;max-width:240px"
+        onchange="courrielF.projet=this.value;renderAllCourriels()">
+        <option value="">Tous les projets</option>
+        ${projets.sort((a,b)=>a.nom.localeCompare(b.nom)).map(p=>
+          `<option value="${p.id}" ${courrielF.projet===p.id?'selected':''}>${escHtml(p.nom)}</option>`
+        ).join('')}
+      </select>
+      <select class="form-control" style="flex:1;min-width:180px;max-width:240px"
+        onchange="courrielF.client=this.value;renderAllCourriels()">
+        <option value="">Tous les clients</option>
+        ${clients.sort((a,b)=>a.nom.localeCompare(b.nom)).map(c=>
+          `<option value="${c.id}" ${courrielF.client===c.id?'selected':''}>${escHtml(c.nom)}</option>`
+        ).join('')}
+      </select>
+      <input class="form-control" type="date" style="width:148px" title="Du" value="${courrielF.dateFrom}"
+        oninput="courrielF.dateFrom=this.value;renderAllCourriels()">
+      <input class="form-control" type="date" style="width:148px" title="Au" value="${courrielF.dateTo}"
+        oninput="courrielF.dateTo=this.value;renderAllCourriels()">
+      <div style="display:flex;gap:10px;align-items:center;font-size:12px;color:var(--muted);margin-left:auto">
+        <span>${filtered.length} courriel${filtered.length!==1?'s':''}</span>
+        ${sentCount?`<span style="color:var(--green)">✓ ${sentCount} envoyé${sentCount!==1?'s':''}</span>`:''}
+        ${errCount?`<span style="color:var(--red)">⚠ ${errCount} erreur${errCount!==1?'s':''}</span>`:''}
+        ${hasFilter?`<button class="btn btn-outline btn-sm" onclick="courrielF={projet:'',client:'',dateFrom:'',dateTo:''};renderAllCourriels()">✕ Effacer</button>`:''}
+      </div>
+    </div>
+
+    ${filtered.length===0 ? `<div class="empty-state"><div class="empty-ico">📧</div><div class="empty-text">Aucun courriel trouvé</div></div>` : `
+    <div style="display:flex;flex-direction:column;gap:6px">
+      ${filtered.map(e=>{
+        const p  = getProjet(e.projetId)||{};
+        const cl = getClient(p.clientId)||{};
+        const ch = e.chantierId ? getChantier(e.chantierId) : null;
+        const sIco = e.status==='sent'
+          ? '<span style="color:var(--green);font-size:11px">✓ Envoyé</span>'
+          : e.status==='error'
+          ? '<span style="color:var(--red);font-size:11px">⚠ Erreur</span>'
+          : '<span style="color:var(--muted);font-size:11px">◉ Local</span>';
+        return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);overflow:hidden">
+          <div style="padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:flex-start;gap:12px"
+            onclick="this.nextElementSibling.classList.toggle('hidden')">
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px">${escHtml(e.subject||'—')}</div>
+              <div style="font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px">
+                <span>À : <strong style="color:var(--text)">${escHtml(e.to||'—')}</strong></span>
+                ${sIco}
+                ${p.nom?`<span>📁 ${escHtml(p.nom)}${cl.nom?' · '+escHtml(cl.nom):''}</span>`:''}
+                ${ch?`<span>🏗 Chantier</span>`:''}
+              </div>
+            </div>
+            <div style="font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0">${fmtDateHeure(e.dateSent)}</div>
+          </div>
+          <div class="hidden" style="padding:0 14px 14px;border-top:1px solid var(--border);margin-top:0">
+            <div style="font-size:12px;color:#ccc;white-space:pre-wrap;line-height:1.65;margin-top:12px">${escHtml(e.body||'')}${e.attachment?'\n\n📎 '+escHtml(e.attachment):''}</div>
+            ${p.id?`<div style="margin-top:10px"><button class="btn btn-outline btn-sm" onclick="openProjetDetail('${p.id}')">↗ Ouvrir le projet</button></div>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`}
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VUE SOUMISSIONS — toutes les soumissions revêtement
+═══════════════════════════════════════════════════════════════════════════ */
+function renderAllSoumissions(){
+  const el = document.getElementById('soumissions-all-content'); if(!el) return;
+  const allS = JSON.parse(localStorage.getItem('rev-soumissions-list')||'[]');
+
+  if(allS.length===0){
+    el.innerHTML=`<div class="empty-state"><div class="empty-ico">📐</div><div class="empty-text">Aucune soumission créée<br><small style="color:var(--muted2)">Ouvrez un projet → onglet Soumission pour créer la première</small></div></div>`;
+    return;
+  }
+
+  const totalCumulatif = allS.reduce((s,x)=>s+((x.financier&&x.financier.total)||0),0);
+
+  el.innerHTML = `
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+      ${[
+        ['Total soumissions', allS.length+''],
+        ['Valeur cumulée', fmtMoney(Math.round(totalCumulatif))],
+        ['Moy. par soumission', fmtMoney(Math.round(totalCumulatif/allS.length))],
+      ].map(([l,v])=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);padding:14px 18px;flex:1;min-width:160px">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">${l}</div>
+        <div style="font-size:18px;font-weight:800;color:var(--gold)">${v}</div>
+      </div>`).join('')}
+    </div>
+
+    <div style="border:1px solid var(--border);border-radius:var(--rad);overflow:hidden">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border)">
+            <th style="padding:10px 14px;text-align:left;font-size:11px;color:var(--muted);font-weight:700;background:var(--surface)">No</th>
+            <th style="padding:10px 14px;text-align:left;font-size:11px;color:var(--muted);font-weight:700;background:var(--surface)">Date</th>
+            <th style="padding:10px 14px;text-align:left;font-size:11px;color:var(--muted);font-weight:700;background:var(--surface)">Client</th>
+            <th style="padding:10px 14px;text-align:left;font-size:11px;color:var(--muted);font-weight:700;background:var(--surface)">Projet</th>
+            <th style="padding:10px 14px;text-align:right;font-size:11px;color:var(--muted);font-weight:700;background:var(--surface)">Matériaux</th>
+            <th style="padding:10px 14px;text-align:right;font-size:11px;color:var(--muted);font-weight:700;background:var(--surface)">Main d'œuvre</th>
+            <th style="padding:10px 14px;text-align:right;font-size:11px;color:var(--muted);font-weight:700;background:var(--surface)">Total TTC</th>
+            <th style="padding:10px 14px;text-align:center;font-size:11px;color:var(--muted);font-weight:700;background:var(--surface)"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${allS.map((s,i)=>{
+            const fin = s.financier||{};
+            const c   = s.client||{};
+            const p   = s.projetId ? getProjet(s.projetId) : null;
+            const dateStr = s.date ? fmtDate(s.date.split('T')[0]) : '—';
+            return `
+              <tr style="border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s"
+                onmouseenter="this.style.background='var(--surface)'" onmouseleave="this.style.background=''"
+                onclick="document.getElementById('soum-detail-${i}').classList.toggle('hidden')">
+                <td style="padding:10px 14px;font-weight:700;color:var(--gold)">${escHtml(s.noSoumission||'—')}</td>
+                <td style="padding:10px 14px;color:var(--muted);font-size:12px">${dateStr}</td>
+                <td style="padding:10px 14px;font-weight:600">${escHtml(c.nom||'—')}</td>
+                <td style="padding:10px 14px;color:var(--muted);font-size:12px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(s.nomProjet||'—')}</td>
+                <td style="padding:10px 14px;text-align:right;font-size:12px">${fin.prixMat?fmtMoney(Math.round(fin.prixMat)):'—'}</td>
+                <td style="padding:10px 14px;text-align:right;font-size:12px">${fin.prixMO?fmtMoney(Math.round(fin.prixMO)):'—'}</td>
+                <td style="padding:10px 14px;text-align:right;font-weight:700;color:var(--gold)">${fin.total?fmtMoney(Math.round(fin.total)):'—'}</td>
+                <td style="padding:10px 14px;text-align:center">
+                  ${p?`<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showView('pipeline');setTimeout(()=>{openProjetDetail('${p.id}');switchProjTab('soumission')},150)" title="Ouvrir dans le pipeline">↗</button>`:''}
+                </td>
+              </tr>
+              <tr id="soum-detail-${i}" class="hidden">
+                <td colspan="8" style="padding:14px 18px;background:var(--bg);border-bottom:1px solid var(--border)">
+                  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;font-size:12px;color:var(--muted)">
+                    ${c.tel?`<div><span>📞</span> ${escHtml(c.tel)}</div>`:''}
+                    ${c.email?`<div><span>✉</span> ${escHtml(c.email)}</div>`:''}
+                    ${c.adresse?`<div><span>📍</span> ${escHtml(c.adresse)}</div>`:''}
+                    <div><span>Marge mat. :</span> <strong style="color:var(--text)">${s.margeMateriaux||20}%</strong></div>
+                    ${(s.mainOeuvre||{}).hommes?`<div><span>Main d'œuvre :</span> <strong style="color:var(--text)">${s.mainOeuvre.hommes} hommes × ${s.mainOeuvre.jours} jours</strong></div>`:''}
+                    ${fin.TPS?`<div><span>TPS :</span> ${fmtMoney(Math.round(fin.TPS))}</div>`:''}
+                    ${fin.TVQ?`<div><span>TVQ :</span> ${fmtMoney(Math.round(fin.TVQ))}</div>`:''}
+                    ${fin.sousTotal?`<div><span>Sous-total :</span> ${fmtMoney(Math.round(fin.sousTotal))}</div>`:''}
+                  </div>
+                </td>
+              </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--muted);text-align:right">
+      ${allS.length} soumission${allS.length!==1?'s':''} · Valeur totale cumulée : <strong style="color:var(--gold)">${fmtMoney(Math.round(totalCumulatif))}</strong>
+    </div>
+  `;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
