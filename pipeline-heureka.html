@@ -862,6 +862,29 @@ textarea.form-control{resize:vertical;min-height:72px}
   </div>
 </div>
 
+<!-- ═══════════════════ MODAL: NOUVELLE SOUMISSION ══════════════════════════ -->
+<div class="modal-overlay hidden" id="modal-new-soum">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div><div class="modal-title">📐 Nouvelle soumission</div><div class="modal-subtitle">Choisir le projet associé</div></div>
+      <button class="modal-close" onclick="closeModal('modal-new-soum')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Projet *</label>
+        <select class="form-control" id="new-soum-projet" style="font-size:14px">
+          <option value="">— Sélectionner un projet —</option>
+        </select>
+      </div>
+      <div id="new-soum-client-info" style="margin-top:10px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--rad);font-size:12px;color:var(--muted);display:none"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-new-soum')">Annuler</button>
+      <button class="btn btn-gold" onclick="confirmerNouvelleSOumission()">Créer la soumission →</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════════ MODAL: COMPOSER COURRIEL ════════════════════════════ -->
 <div class="modal-overlay hidden" id="modal-email">
   <div class="modal" style="max-width:720px">
@@ -3005,6 +3028,40 @@ function renderAllCourriels(){
 ═══════════════════════════════════════════════════════════════════════════ */
 let soumissionsF = { statut:'', dateFrom:'', dateTo:'' };
 
+function openNewSoumModal(){
+  const projets = DB.get('projets').sort((a,b)=>a.nom.localeCompare(b.nom));
+  const sel = document.getElementById('new-soum-projet');
+  sel.innerHTML = `<option value="">— Sélectionner un projet —</option>` +
+    projets.map(p=>{
+      const cl = getClient(p.clientId)||{};
+      return `<option value="${p.id}">${escHtml(p.nom)}${cl.nom?' — '+escHtml(cl.nom):''}  [${p.statut||''}]</option>`;
+    }).join('');
+  document.getElementById('new-soum-client-info').style.display='none';
+  sel.onchange = function(){
+    const info = document.getElementById('new-soum-client-info');
+    if(!this.value){ info.style.display='none'; return; }
+    const p  = getProjet(this.value)||{};
+    const cl = getClient(p.clientId)||{};
+    info.style.display='block';
+    info.innerHTML = `
+      <div style="font-weight:700;color:var(--text);margin-bottom:4px">${escHtml(p.nom)}</div>
+      ${cl.nom?`<div>Client : <strong style="color:var(--text)">${escHtml(cl.nom)}</strong></div>`:''}
+      ${cl.telephone?`<div>📞 ${escHtml(cl.telephone)}</div>`:''}
+      ${cl.email?`<div>✉ ${escHtml(cl.email)}</div>`:''}
+      ${p.adresse?`<div>📍 ${escHtml(p.adresse)}</div>`:''}
+    `;
+  };
+  openModal('modal-new-soum');
+}
+
+function confirmerNouvelleSOumission(){
+  const projetId = document.getElementById('new-soum-projet').value;
+  if(!projetId){ showToast('Sélectionnez un projet'); return; }
+  closeModal('modal-new-soum');
+  showView('pipeline');
+  setTimeout(()=>{ openProjetDetail(projetId); switchProjTab('soumission'); }, 200);
+}
+
 function soumSetStatut(noSoumission, statut){
   const list = JSON.parse(localStorage.getItem('rev-soumissions-list')||'[]');
   const idx = list.findIndex(s=>s.noSoumission===noSoumission);
@@ -3026,7 +3083,8 @@ function renderAllSoumissions(){
     .sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
 
   if(allS.length===0){
-    el.innerHTML=`<div class="empty-state"><div class="empty-ico">📐</div><div class="empty-text">Aucune soumission créée<br><small style="color:var(--muted2)">Ouvrez un projet → onglet Soumission pour créer la première</small></div></div>`;
+    el.innerHTML=`<div style="text-align:right;margin-bottom:14px"><button class="btn btn-gold" onclick="openNewSoumModal()">+ Nouvelle soumission</button></div>
+      <div class="empty-state"><div class="empty-ico">📐</div><div class="empty-text">Aucune soumission créée<br><small style="color:var(--muted2)">Cliquez sur « Nouvelle soumission » pour commencer</small></div></div>`;
     return;
   }
 
@@ -3053,6 +3111,11 @@ function renderAllSoumissions(){
   };
 
   el.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Soumissions revêtement</div>
+      <button class="btn btn-gold" onclick="openNewSoumModal()">+ Nouvelle soumission</button>
+    </div>
+
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">
       ${[
         ['En attente',    enAttenteList.length+'',       fmtMoney(Math.round(totalEnAttente)),   '#F59E0B'],
