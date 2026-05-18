@@ -389,6 +389,10 @@ textarea.form-control{resize:vertical;min-height:72px}
             <button class="filter-btn active" id="filter-actif" onclick="togglePerdu(false)">Actifs</button>
             <button class="filter-btn" id="filter-perdu" onclick="togglePerdu(true)">Perdus <span id="perdu-count" style="margin-left:4px"></span></button>
           </div>
+          <div style="position:relative;flex:1;max-width:320px">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none">🔍</span>
+            <input id="pipeline-search" type="text" placeholder="Rechercher projet ou client…" oninput="renderPipeline()" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px 7px 32px;color:#fff;font-size:13px;outline:none;box-sizing:border-box">
+          </div>
         </div>
         <div class="pipeline-legend">
           <span class="legend-lbl">Priorité :</span>
@@ -1117,9 +1121,15 @@ function togglePerdu(show){
 }
 
 function renderPipeline(){
-  const projets = DB.get('projets');
-  const perdus = projets.filter(p=>p.statut==='perdu');
+  const allProjets = DB.get('projets');
+  const perdus = allProjets.filter(p=>p.statut==='perdu');
   document.getElementById('perdu-count').textContent = perdus.length ? `(${perdus.length})` : '';
+
+  const q = (document.getElementById('pipeline-search')?.value||'').toLowerCase().trim();
+  const projets = q ? allProjets.filter(p=>{
+    const client = getClient(p.clientId);
+    return (p.nom||'').toLowerCase().includes(q) || (client&&(client.nom||'').toLowerCase().includes(q));
+  }) : allProjets;
 
   let cols = showPerdu
     ? COLUMNS.filter(c=>c.id==='perdu')
@@ -1339,6 +1349,7 @@ function renderCard(p){
     ${actStatusIco(actStatus, p.id)}
     <div class="card-client">${escHtml(clientNom)}</div>
     <div class="card-name">${escHtml(p.nom)}</div>
+    ${p.dateDernierContact?`<div style="font-size:10px;color:var(--muted);margin:3px 0 2px">📞 ${fmtDate(p.dateDernierContact)}</div>`:'<div style="font-size:10px;color:rgba(255,255,255,.25);margin:3px 0 2px;font-style:italic">Aucun contact</div>'}
     <div class="card-footer">
       ${typeHtml}
       ${alertHtml}
