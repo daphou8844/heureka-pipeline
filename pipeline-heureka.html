@@ -2671,9 +2671,12 @@ function fillTemplateVars(text, projetId, chantierId){
     .replace(/\{\{lien_google_review\}\}/g, DB.getStr('googleReviewUrl')||'https://g.page/r/VOTRE-ID-GOOGLE/review');
 }
 
+let _lastTemplateId = '';
+
 function openEmailCompose(ctx, refId){
   const projetId = ctx==='proj' ? refId : (getChantier(refId)||{}).projetId||'';
   const chantierId = ctx==='ch' ? refId : '';
+  _lastTemplateId = '';
   document.getElementById('em-proj-id').value = projetId;
   document.getElementById('em-ch-id').value = chantierId;
   document.getElementById('em-preview-section').classList.add('hidden');
@@ -2694,8 +2697,24 @@ function openEmailCompose(ctx, refId){
   openModal('modal-email');
 }
 
+function openEmailReply(courrielId){
+  const e = (DB.get('courriels')||[]).find(x=>x.id===courrielId); if(!e) return;
+  const ctx = e.chantierId ? 'ch' : 'proj';
+  const refId = e.chantierId || e.projetId;
+  openEmailCompose(ctx, refId);
+  setTimeout(()=>{
+    document.getElementById('em-to').value = e.to||'';
+    document.getElementById('em-subject').value = e.subject||'';
+    document.getElementById('em-body').value = e.body||'';
+    document.getElementById('em-attach').value = e.attachment||'';
+    _lastTemplateId = e.templateId||'';
+    showEmailPreview();
+  }, 80);
+}
+
 function applyTemplate(templateId, projetId, chantierId){
   const tpl = EMAIL_TEMPLATES.find(t=>t.id===templateId); if(!tpl) return;
+  _lastTemplateId = templateId;
   document.getElementById('em-subject').value = fillTemplateVars(tpl.subject, projetId, chantierId);
   document.getElementById('em-body').value = fillTemplateVars(tpl.body, projetId, chantierId);
   showEmailPreview();
@@ -2739,7 +2758,7 @@ async function sendEmail(){
     }catch(e){ status='error'; console.warn(e); }
   }
 
-  const courriel = { id:uid(), projetId, chantierId, to, subject, body, attachment, status, dateSent:new Date().toISOString() };
+  const courriel = { id:uid(), projetId, chantierId, to, subject, body, attachment, status, dateSent:new Date().toISOString(), templateId:_lastTemplateId||'' };
   const courriels = DB.get('courriels'); courriels.unshift(courriel); DB.set('courriels',courriels);
   logHistory(projetId,'courriel',`Courriel envoyé à ${to} — "${subject}"`);
 
@@ -2859,7 +2878,7 @@ function seedDemo(){
 /* ═══════════════════════════════════════════════════════════════════════════
    VUE COURRIELS — tous les courriels, tous projets/chantiers
 ═══════════════════════════════════════════════════════════════════════════ */
-let courrielF = { projet:'', client:'', dateFrom:'', dateTo:'' };
+let courrielF = { projet:'', client:'', template:'', dateFrom:'', dateTo:'' };
 
 function renderAllCourriels(){
   const el = document.getElementById('courriels-all-content'); if(!el) return;
@@ -2867,44 +2886,76 @@ function renderAllCourriels(){
   const projets = DB.get('projets');
   const clients = DB.get('clients');
 
+  // Compteur ce mois
+  const now = new Date();
+  const thisMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const cesMois = allC.filter(e=>(e.dateSent||'').startsWith(thisMonth)).length;
+
   let filtered = allC;
   if(courrielF.projet)   filtered = filtered.filter(e=>e.projetId===courrielF.projet);
   if(courrielF.client){
     const pids = projets.filter(p=>p.clientId===courrielF.client).map(p=>p.id);
     filtered = filtered.filter(e=>pids.includes(e.projetId));
   }
+  if(courrielF.template) filtered = filtered.filter(e=>e.templateId===courrielF.template);
   if(courrielF.dateFrom) filtered = filtered.filter(e=>e.dateSent>=courrielF.dateFrom);
   if(courrielF.dateTo)   filtered = filtered.filter(e=>e.dateSent<=(courrielF.dateTo+'T23:59:59'));
 
   const hasFilter = Object.values(courrielF).some(v=>v);
   const sentCount = filtered.filter(e=>e.status==='sent').length;
   const errCount  = filtered.filter(e=>e.status==='error').length;
+  const localCount = filtered.filter(e=>!e.status||e.status==='local').length;
 
   el.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);padding:10px 16px;min-width:140px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Total ce mois</div>
+          <div style="font-size:22px;font-weight:800;color:var(--gold)">${cesMois}</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);padding:10px 16px;min-width:140px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Envoyés (total)</div>
+          <div style="font-size:22px;font-weight:800;color:var(--green)">${allC.filter(e=>e.status==='sent').length}</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);padding:10px 16px;min-width:140px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">En local</div>
+          <div style="font-size:22px;font-weight:800;color:var(--muted)">${allC.filter(e=>!e.status||e.status==='local').length}</div>
+        </div>
+      </div>
+      <button class="btn btn-gold" onclick="openEmailCompose('proj','')">+ Nouveau courriel rapide</button>
+    </div>
+
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rad)">
-      <select class="form-control" style="flex:1;min-width:180px;max-width:240px"
+      <select class="form-control" style="flex:1;min-width:160px;max-width:220px"
         onchange="courrielF.projet=this.value;renderAllCourriels()">
         <option value="">Tous les projets</option>
         ${projets.sort((a,b)=>a.nom.localeCompare(b.nom)).map(p=>
           `<option value="${p.id}" ${courrielF.projet===p.id?'selected':''}>${escHtml(p.nom)}</option>`
         ).join('')}
       </select>
-      <select class="form-control" style="flex:1;min-width:180px;max-width:240px"
+      <select class="form-control" style="flex:1;min-width:160px;max-width:220px"
         onchange="courrielF.client=this.value;renderAllCourriels()">
         <option value="">Tous les clients</option>
         ${clients.sort((a,b)=>a.nom.localeCompare(b.nom)).map(c=>
           `<option value="${c.id}" ${courrielF.client===c.id?'selected':''}>${escHtml(c.nom)}</option>`
         ).join('')}
       </select>
-      <input class="form-control" type="date" style="width:148px" title="Du" value="${courrielF.dateFrom}"
+      <select class="form-control" style="flex:1;min-width:140px;max-width:200px"
+        onchange="courrielF.template=this.value;renderAllCourriels()">
+        <option value="">Tous les templates</option>
+        ${EMAIL_TEMPLATES.map(t=>
+          `<option value="${t.id}" ${courrielF.template===t.id?'selected':''}>${t.label}</option>`
+        ).join('')}
+      </select>
+      <input class="form-control" type="date" style="width:140px" title="Du" value="${courrielF.dateFrom}"
         oninput="courrielF.dateFrom=this.value;renderAllCourriels()">
-      <input class="form-control" type="date" style="width:148px" title="Au" value="${courrielF.dateTo}"
+      <input class="form-control" type="date" style="width:140px" title="Au" value="${courrielF.dateTo}"
         oninput="courrielF.dateTo=this.value;renderAllCourriels()">
-      <div style="display:flex;gap:10px;align-items:center;font-size:12px;color:var(--muted);margin-left:auto">
+      <div style="display:flex;gap:10px;align-items:center;font-size:12px;color:var(--muted);margin-left:auto;flex-shrink:0">
         <span>${filtered.length} courriel${filtered.length!==1?'s':''}</span>
         ${sentCount?`<span style="color:var(--green)">✓ ${sentCount} envoyé${sentCount!==1?'s':''}</span>`:''}
         ${errCount?`<span style="color:var(--red)">⚠ ${errCount} erreur${errCount!==1?'s':''}</span>`:''}
-        ${hasFilter?`<button class="btn btn-outline btn-sm" onclick="courrielF={projet:'',client:'',dateFrom:'',dateTo:''};renderAllCourriels()">✕ Effacer</button>`:''}
+        ${hasFilter?`<button class="btn btn-outline btn-sm" onclick="courrielF={projet:'',client:'',template:'',dateFrom:'',dateTo:''};renderAllCourriels()">✕ Effacer</button>`:''}
       </div>
     </div>
 
@@ -2914,28 +2965,34 @@ function renderAllCourriels(){
         const p  = getProjet(e.projetId)||{};
         const cl = getClient(p.clientId)||{};
         const ch = e.chantierId ? getChantier(e.chantierId) : null;
-        const sIco = e.status==='sent'
-          ? '<span style="color:var(--green);font-size:11px">✓ Envoyé</span>'
+        const tplLabel = e.templateId ? (EMAIL_TEMPLATES.find(t=>t.id===e.templateId)||{}).label||'' : '';
+        const sTag = e.status==='sent'
+          ? '<span style="background:rgba(34,197,94,.15);color:var(--green);padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700">✓ Envoyé</span>'
           : e.status==='error'
-          ? '<span style="color:var(--red);font-size:11px">⚠ Erreur</span>'
-          : '<span style="color:var(--muted);font-size:11px">◉ Local</span>';
+          ? '<span style="background:rgba(239,68,68,.15);color:var(--red);padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700">⚠ Erreur</span>'
+          : '<span style="background:rgba(100,100,100,.2);color:var(--muted);padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700">◉ Local</span>';
         return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);overflow:hidden">
-          <div style="padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:flex-start;gap:12px"
-            onclick="this.nextElementSibling.classList.toggle('hidden')">
-            <div style="flex:1;min-width:0">
-              <div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px">${escHtml(e.subject||'—')}</div>
-              <div style="font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px">
+          <div style="padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+            <div style="flex:1;min-width:0;cursor:pointer" onclick="this.closest('[data-body]')||this.closest('div').nextElementSibling.classList.toggle('hidden')">
+              <div style="font-weight:700;font-size:13px;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(e.subject||'—')}</div>
+              <div style="font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px;align-items:center">
                 <span>À : <strong style="color:var(--text)">${escHtml(e.to||'—')}</strong></span>
-                ${sIco}
-                ${p.nom?`<span>📁 ${escHtml(p.nom)}${cl.nom?' · '+escHtml(cl.nom):''}</span>`:''}
-                ${ch?`<span>🏗 Chantier</span>`:''}
+                ${sTag}
+                ${tplLabel?`<span style="font-size:11px;color:var(--gold2)">${tplLabel}</span>`:''}
+                ${p.nom?`<span style="font-size:11px">📁 ${escHtml(p.nom)}${cl.nom?' · '+escHtml(cl.nom):''}</span>`:''}
+                ${ch?`<span style="font-size:11px">🏗 Chantier</span>`:''}
               </div>
             </div>
-            <div style="font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0">${fmtDateHeure(e.dateSent)}</div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+              <div style="font-size:11px;color:var(--muted);white-space:nowrap">${fmtDateHeure(e.dateSent)}</div>
+              <div style="display:flex;gap:6px">
+                <button class="btn btn-outline btn-sm" onclick="openEmailReply('${e.id}')" title="Renvoyer ce courriel">↩ Renvoyer</button>
+                ${p.id?`<button class="btn btn-outline btn-sm" onclick="openProjetDetail('${p.id}')" title="Ouvrir le projet">↗</button>`:''}
+              </div>
+            </div>
           </div>
-          <div class="hidden" style="padding:0 14px 14px;border-top:1px solid var(--border);margin-top:0">
-            <div style="font-size:12px;color:#ccc;white-space:pre-wrap;line-height:1.65;margin-top:12px">${escHtml(e.body||'')}${e.attachment?'\n\n📎 '+escHtml(e.attachment):''}</div>
-            ${p.id?`<div style="margin-top:10px"><button class="btn btn-outline btn-sm" onclick="openProjetDetail('${p.id}')">↗ Ouvrir le projet</button></div>`:''}
+          <div class="hidden" style="padding:0 14px 14px;border-top:1px solid var(--border)">
+            <div style="font-size:12px;color:#ccc;white-space:pre-wrap;line-height:1.65;margin-top:12px;max-height:200px;overflow-y:auto">${escHtml(e.body||'')}${e.attachment?'\n\n📎 '+escHtml(e.attachment):''}</div>
           </div>
         </div>`;
       }).join('')}
@@ -2946,85 +3003,138 @@ function renderAllCourriels(){
 /* ═══════════════════════════════════════════════════════════════════════════
    VUE SOUMISSIONS — toutes les soumissions revêtement
 ═══════════════════════════════════════════════════════════════════════════ */
+let soumissionsF = { statut:'', dateFrom:'', dateTo:'' };
+
+function soumSetStatut(noSoumission, statut){
+  const list = JSON.parse(localStorage.getItem('rev-soumissions-list')||'[]');
+  const idx = list.findIndex(s=>s.noSoumission===noSoumission);
+  if(idx===-1) return;
+  list[idx].statut = statut;
+  localStorage.setItem('rev-soumissions-list', JSON.stringify(list));
+  // also update per-project LS
+  const pid = list[idx].projetId;
+  if(pid){
+    const ps = JSON.parse(localStorage.getItem('rev-soum-'+pid)||'{}');
+    if(ps.noSoumission===noSoumission) { ps.statut=statut; localStorage.setItem('rev-soum-'+pid, JSON.stringify(ps)); }
+  }
+  renderAllSoumissions();
+}
+
 function renderAllSoumissions(){
   const el = document.getElementById('soumissions-all-content'); if(!el) return;
-  const allS = JSON.parse(localStorage.getItem('rev-soumissions-list')||'[]');
+  const allS = JSON.parse(localStorage.getItem('rev-soumissions-list')||'[]')
+    .sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
 
   if(allS.length===0){
     el.innerHTML=`<div class="empty-state"><div class="empty-ico">📐</div><div class="empty-text">Aucune soumission créée<br><small style="color:var(--muted2)">Ouvrez un projet → onglet Soumission pour créer la première</small></div></div>`;
     return;
   }
 
-  const totalCumulatif = allS.reduce((s,x)=>s+((x.financier&&x.financier.total)||0),0);
+  const totalCumulatif   = allS.reduce((s,x)=>s+((x.financier&&x.financier.total)||0),0);
+  const enAttenteList    = allS.filter(s=>!s.statut||s.statut==='en_attente');
+  const totalEnAttente   = enAttenteList.reduce((s,x)=>s+((x.financier&&x.financier.total)||0),0);
+  const accepteeList     = allS.filter(s=>s.statut==='acceptee');
+  const totalAcceptee    = accepteeList.reduce((s,x)=>s+((x.financier&&x.financier.total)||0),0);
+
+  let filtered = allS;
+  if(soumissionsF.statut){
+    if(soumissionsF.statut==='en_attente') filtered = filtered.filter(s=>!s.statut||s.statut==='en_attente');
+    else filtered = filtered.filter(s=>s.statut===soumissionsF.statut);
+  }
+  if(soumissionsF.dateFrom) filtered = filtered.filter(s=>(s.date||'')>=soumissionsF.dateFrom);
+  if(soumissionsF.dateTo)   filtered = filtered.filter(s=>(s.date||'')<=(soumissionsF.dateTo+'T23:59:59'));
+
+  const hasFilter = Object.values(soumissionsF).some(v=>v);
+
+  const STATUT_CFG = {
+    en_attente: { label:'En attente', bg:'rgba(245,158,11,.15)', color:'#F59E0B' },
+    acceptee:   { label:'Acceptée',   bg:'rgba(34,197,94,.15)',  color:'var(--green)' },
+    refusee:    { label:'Refusée',    bg:'rgba(239,68,68,.15)',  color:'var(--red)' },
+  };
 
   el.innerHTML = `
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">
       ${[
-        ['Total soumissions', allS.length+''],
-        ['Valeur cumulée', fmtMoney(Math.round(totalCumulatif))],
-        ['Moy. par soumission', fmtMoney(Math.round(totalCumulatif/allS.length))],
-      ].map(([l,v])=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);padding:14px 18px;flex:1;min-width:160px">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">${l}</div>
-        <div style="font-size:18px;font-weight:800;color:var(--gold)">${v}</div>
+        ['En attente',    enAttenteList.length+'',       fmtMoney(Math.round(totalEnAttente)),   '#F59E0B'],
+        ['Acceptées',     accepteeList.length+'',        fmtMoney(Math.round(totalAcceptee)),    'var(--green)'],
+        ['Valeur totale', allS.length+' soumissions',   fmtMoney(Math.round(totalCumulatif)),   'var(--gold)'],
+      ].map(([l,sub,v,col])=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);padding:14px 18px;flex:1;min-width:170px">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">${l}</div>
+        <div style="font-size:20px;font-weight:800;color:${col}">${v}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${sub}</div>
       </div>`).join('')}
     </div>
 
-    <div style="border:1px solid var(--border);border-radius:var(--rad);overflow:hidden">
-      <table style="width:100%;border-collapse:collapse;font-size:13px">
-        <thead>
-          <tr style="border-bottom:1px solid var(--border)">
-            <th style="padding:10px 14px;text-align:left;font-size:11px;color:var(--muted);font-weight:700;background:var(--surface)">No</th>
-            <th style="padding:10px 14px;text-align:left;font-size:11px;color:var(--muted);font-weight:700;background:var(--surface)">Date</th>
-            <th style="padding:10px 14px;text-align:left;font-size:11px;color:var(--muted);font-weight:700;background:var(--surface)">Client</th>
-            <th style="padding:10px 14px;text-align:left;font-size:11px;color:var(--muted);font-weight:700;background:var(--surface)">Projet</th>
-            <th style="padding:10px 14px;text-align:right;font-size:11px;color:var(--muted);font-weight:700;background:var(--surface)">Matériaux</th>
-            <th style="padding:10px 14px;text-align:right;font-size:11px;color:var(--muted);font-weight:700;background:var(--surface)">Main d'œuvre</th>
-            <th style="padding:10px 14px;text-align:right;font-size:11px;color:var(--muted);font-weight:700;background:var(--surface)">Total TTC</th>
-            <th style="padding:10px 14px;text-align:center;font-size:11px;color:var(--muted);font-weight:700;background:var(--surface)"></th>
-          </tr>
-        </thead>
-        <tbody>
-          ${allS.map((s,i)=>{
-            const fin = s.financier||{};
-            const c   = s.client||{};
-            const p   = s.projetId ? getProjet(s.projetId) : null;
-            const dateStr = s.date ? fmtDate(s.date.split('T')[0]) : '—';
-            return `
-              <tr style="border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s"
-                onmouseenter="this.style.background='var(--surface)'" onmouseleave="this.style.background=''"
-                onclick="document.getElementById('soum-detail-${i}').classList.toggle('hidden')">
-                <td style="padding:10px 14px;font-weight:700;color:var(--gold)">${escHtml(s.noSoumission||'—')}</td>
-                <td style="padding:10px 14px;color:var(--muted);font-size:12px">${dateStr}</td>
-                <td style="padding:10px 14px;font-weight:600">${escHtml(c.nom||'—')}</td>
-                <td style="padding:10px 14px;color:var(--muted);font-size:12px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(s.nomProjet||'—')}</td>
-                <td style="padding:10px 14px;text-align:right;font-size:12px">${fin.prixMat?fmtMoney(Math.round(fin.prixMat)):'—'}</td>
-                <td style="padding:10px 14px;text-align:right;font-size:12px">${fin.prixMO?fmtMoney(Math.round(fin.prixMO)):'—'}</td>
-                <td style="padding:10px 14px;text-align:right;font-weight:700;color:var(--gold)">${fin.total?fmtMoney(Math.round(fin.total)):'—'}</td>
-                <td style="padding:10px 14px;text-align:center">
-                  ${p?`<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showView('pipeline');setTimeout(()=>{openProjetDetail('${p.id}');switchProjTab('soumission')},150)" title="Ouvrir dans le pipeline">↗</button>`:''}
-                </td>
-              </tr>
-              <tr id="soum-detail-${i}" class="hidden">
-                <td colspan="8" style="padding:14px 18px;background:var(--bg);border-bottom:1px solid var(--border)">
-                  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;font-size:12px;color:var(--muted)">
-                    ${c.tel?`<div><span>📞</span> ${escHtml(c.tel)}</div>`:''}
-                    ${c.email?`<div><span>✉</span> ${escHtml(c.email)}</div>`:''}
-                    ${c.adresse?`<div><span>📍</span> ${escHtml(c.adresse)}</div>`:''}
-                    <div><span>Marge mat. :</span> <strong style="color:var(--text)">${s.margeMateriaux||20}%</strong></div>
-                    ${(s.mainOeuvre||{}).hommes?`<div><span>Main d'œuvre :</span> <strong style="color:var(--text)">${s.mainOeuvre.hommes} hommes × ${s.mainOeuvre.jours} jours</strong></div>`:''}
-                    ${fin.TPS?`<div><span>TPS :</span> ${fmtMoney(Math.round(fin.TPS))}</div>`:''}
-                    ${fin.TVQ?`<div><span>TVQ :</span> ${fmtMoney(Math.round(fin.TVQ))}</div>`:''}
-                    ${fin.sousTotal?`<div><span>Sous-total :</span> ${fmtMoney(Math.round(fin.sousTotal))}</div>`:''}
-                  </div>
-                </td>
-              </tr>`;
-          }).join('')}
-        </tbody>
-      </table>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rad)">
+      <select class="form-control" style="flex:1;min-width:160px;max-width:220px"
+        onchange="soumissionsF.statut=this.value;renderAllSoumissions()">
+        <option value="">Tous les statuts</option>
+        <option value="en_attente" ${soumissionsF.statut==='en_attente'?'selected':''}>En attente</option>
+        <option value="acceptee"   ${soumissionsF.statut==='acceptee'?'selected':''}>Acceptée</option>
+        <option value="refusee"    ${soumissionsF.statut==='refusee'?'selected':''}>Refusée</option>
+      </select>
+      <input class="form-control" type="date" style="width:140px" title="Du" value="${soumissionsF.dateFrom}"
+        oninput="soumissionsF.dateFrom=this.value;renderAllSoumissions()">
+      <input class="form-control" type="date" style="width:140px" title="Au" value="${soumissionsF.dateTo}"
+        oninput="soumissionsF.dateTo=this.value;renderAllSoumissions()">
+      <div style="display:flex;gap:10px;align-items:center;font-size:12px;color:var(--muted);margin-left:auto;flex-shrink:0">
+        <span>${filtered.length} soumission${filtered.length!==1?'s':''}</span>
+        ${hasFilter?`<button class="btn btn-outline btn-sm" onclick="soumissionsF={statut:'',dateFrom:'',dateTo:''};renderAllSoumissions()">✕ Effacer</button>`:''}
+      </div>
     </div>
-    <div style="margin-top:10px;font-size:12px;color:var(--muted);text-align:right">
-      ${allS.length} soumission${allS.length!==1?'s':''} · Valeur totale cumulée : <strong style="color:var(--gold)">${fmtMoney(Math.round(totalCumulatif))}</strong>
-    </div>
+
+    ${filtered.length===0 ? `<div class="empty-state"><div class="empty-ico">📐</div><div class="empty-text">Aucune soumission pour ce filtre</div></div>` : `
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${filtered.map(s=>{
+        const fin    = s.financier||{};
+        const c      = s.client||{};
+        const p      = s.projetId ? getProjet(s.projetId) : null;
+        const dateStr= s.date ? fmtDate(s.date.split('T')[0]) : '—';
+        const jours  = s.date ? daysSince(s.date.split('T')[0]) : 999;
+        const stat   = s.statut||'en_attente';
+        const scfg   = STATUT_CFG[stat]||STATUT_CFG['en_attente'];
+        const alerte = stat==='en_attente' && jours>=7;
+        return `<div style="background:var(--surface);border:1px solid ${alerte?'rgba(239,68,68,.4)':scfg.bg||'var(--border)'};border-radius:var(--rad);overflow:hidden">
+          <div style="padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+            <div style="flex:1;min-width:200px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+                <span style="font-weight:800;color:var(--gold);font-size:13px">${escHtml(s.noSoumission||'—')}</span>
+                <span style="background:${scfg.bg};color:${scfg.color};padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700">${scfg.label}</span>
+                ${alerte?`<span style="background:rgba(239,68,68,.15);color:var(--red);padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700">⚠ ${jours}j sans réponse</span>`:''}
+              </div>
+              <div style="font-size:13px;font-weight:600;margin-bottom:4px">${escHtml(c.nom||'—')}</div>
+              <div style="font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px">
+                ${p?`<span>📁 ${escHtml(p.nom||s.nomProjet||'—')}</span>`:`<span>${escHtml(s.nomProjet||'—')}</span>`}
+                <span>📅 ${dateStr}</span>
+                ${c.tel?`<span>📞 ${escHtml(c.tel)}</span>`:''}
+                ${c.email?`<span>✉ ${escHtml(c.email)}</span>`:''}
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
+              <div style="font-size:20px;font-weight:800;color:var(--gold)">${fin.total?fmtMoney(Math.round(fin.total)):'—'}</div>
+              <div style="font-size:11px;color:var(--muted);text-align:right">
+                ${fin.prixMat?`Mat. ${fmtMoney(Math.round(fin.prixMat))} · `:''}${fin.prixMO?`M.O. ${fmtMoney(Math.round(fin.prixMO))}`:''}
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+                ${alerte&&c.email?`<button class="btn btn-outline btn-sm" style="border-color:var(--red);color:var(--red)"
+                  onclick="(function(){const pid='${s.projetId||''}';openEmailCompose('proj',pid);setTimeout(()=>{document.getElementById('em-to').value='${escHtml(c.email||'')}';applyTemplate('relance',pid,'');},100)})()">🔔 Relancer</button>`:''}
+                ${s.soumissionUrl?`<a class="btn btn-outline btn-sm" href="${escHtml(s.soumissionUrl)}" target="_blank" rel="noopener">📄 Drive</a>`:''}
+                ${p?`<button class="btn btn-outline btn-sm" onclick="showView('pipeline');setTimeout(()=>{openProjetDetail('${p.id}');switchProjTab('soumission')},150)">↗ Pipeline</button>`:''}
+              </div>
+            </div>
+          </div>
+          <div style="padding:8px 14px;border-top:1px solid var(--border);background:rgba(0,0,0,.2);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-size:11px;color:var(--muted)">Statut :</span>
+            ${['en_attente','acceptee','refusee'].map(st=>{
+              const sc=STATUT_CFG[st]; const active=stat===st;
+              return `<button class="btn btn-sm" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid ${sc.color};color:${active?'#0A0A0A':sc.color};background:${active?sc.color:'transparent'};font-weight:${active?800:400}"
+                onclick="event.stopPropagation();soumSetStatut('${escHtml(s.noSoumission||'')}','${st}')">${sc.label}</button>`;
+            }).join('')}
+            ${fin.TPS?`<span style="margin-left:auto;font-size:11px;color:var(--muted)">TPS ${fmtMoney(Math.round(fin.TPS))} · TVQ ${fmtMoney(Math.round(fin.TVQ||0))} · Sous-total ${fmtMoney(Math.round(fin.sousTotal||0))}</span>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`}
   `;
 }
 
