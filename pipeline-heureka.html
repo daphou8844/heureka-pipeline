@@ -3058,8 +3058,28 @@ function confirmerNouvelleSOumission(){
   const projetId = document.getElementById('new-soum-projet').value;
   if(!projetId){ showToast('Sélectionnez un projet'); return; }
   closeModal('modal-new-soum');
-  showView('pipeline');
-  setTimeout(()=>{ openProjetDetail(projetId); switchProjTab('soumission'); }, 200);
+
+  const el = document.getElementById('soumissions-all-content');
+  if(!el) return;
+  const p = getProjet(projetId)||{};
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <button class="btn btn-outline btn-sm" onclick="revBackToList()">← Retour</button>
+      <span style="font-size:13px;font-weight:700;color:var(--gold)">Nouvelle soumission</span>
+      <span style="font-size:12px;color:var(--muted)">— ${escHtml(p.nom||'')}</span>
+    </div>
+    <div id="soum-inline-wizard" style="border:1px solid var(--border);border-radius:var(--rad);overflow:hidden;height:calc(100vh - 220px)"></div>
+  `;
+
+  revContainerId = 'soum-inline-wizard';
+  revStep = 1;
+  revLoadState(projetId);
+  revRender();
+}
+
+function revBackToList(){
+  revContainerId = 'rev-soum-container';
+  renderAllSoumissions();
 }
 
 function soumSetStatut(noSoumission, statut){
@@ -3207,6 +3227,7 @@ function renderAllSoumissions(){
 
 let revStep = 1;
 let revState = null;
+let revContainerId = 'rev-soum-container';
 
 const REV_SELMAP = {
   revetement:'revetements', coinExt:'coinsExt', coinInt:'coinsInt',
@@ -3279,7 +3300,7 @@ function renderSoumissionTab(projetId){
 }
 
 function revRender(){
-  const el=document.getElementById('rev-soum-container');
+  const el=document.getElementById(revContainerId);
   if(!el) return;
   el.innerHTML=`
     <div style="display:flex;flex-direction:column;height:100%;min-height:0">
@@ -3337,7 +3358,7 @@ function revGoStep(n){
     if(revStep===2&&!revState.selections.revetement){ showToast('Sélectionnez un revêtement'); return; }
   }
   revStep=n; revRender();
-  document.getElementById('pjtab-content-soumission')?.scrollTo(0,0);
+  document.getElementById(revContainerId)?.scrollTo(0,0);
 }
 
 function revBuildStep(){
@@ -3729,6 +3750,11 @@ async function revFinaliser(){
   }
 
   showToast('Soumission enregistrée ✓');
+  if(revContainerId !== 'rev-soum-container'){
+    revContainerId = 'rev-soum-container';
+    renderAllSoumissions();
+    return;
+  }
   if(status) status.textContent=msg;
   if(btn){ btn.disabled=false; btn.textContent='✓ Enregistrer dans Sheets'; }
 }
