@@ -32,21 +32,32 @@ a{color:inherit;text-decoration:none}
 #content{flex:1;overflow:auto;padding:22px 24px;position:relative}
 
 /* ─── Sidebar ───────────────────────────────────────────────────────────────── */
-.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
-.sb-logo-inner{display:flex;align-items:center;gap:10px}
-.sb-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
-.sb-title{font-size:12.5px;font-weight:800;color:var(--gold2);line-height:1.3}
-.sb-nav{padding:10px 8px;flex:1}
-.nav-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:8px;margin-bottom:2px;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--muted);border:1px solid transparent;transition:var(--tr);user-select:none}
-.nav-item:hover{color:#ddd;background:rgba(255,255,255,.04)}
-.nav-item.active{color:var(--gold2);background:var(--gold-dim);border-color:rgba(201,146,42,.25);font-weight:700}
-.nav-item .nav-ico{font-size:14px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.06);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--tr)}
-.nav-item.active .nav-ico{background:var(--gold-dim)}
-.sb-footer{padding:12px;border-top:1px solid var(--border)}
-.sb-sync-btn{width:100%;padding:8px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:center;transition:var(--tr)}
+.sb-logo{padding:16px 14px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sb-logomark{height:34px;width:auto;object-fit:contain;flex-shrink:0}
+.sb-logotxt{display:flex;flex-direction:column;min-width:0}
+.sb-brand{font-size:12px;font-weight:800;color:var(--gold2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-subt{font-size:9.5px;color:var(--muted2);text-transform:uppercase;letter-spacing:1.2px;margin-top:1px}
+.sb-nav{padding:10px 8px;flex:1;overflow-y:auto}
+.sb-section{font-size:9.5px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted2);padding:12px 10px 5px;font-weight:700;user-select:none}
+.sb-section:first-child{padding-top:4px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;margin-bottom:1px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);border:1px solid transparent;transition:var(--tr);user-select:none;position:relative}
+.nav-item:hover{color:var(--gold2);background:rgba(201,146,42,.07);border-color:rgba(201,146,42,.12);transform:translateX(2px)}
+.nav-item.active{color:var(--gold2);background:var(--gold-dim);border-color:rgba(201,146,42,.22);font-weight:600}
+.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:58%;background:var(--gold);border-radius:0 3px 3px 0}
+.nav-ico{width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,.05);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--tr)}
+.nav-item:hover .nav-ico{background:rgba(201,146,42,.12)}
+.nav-item.active .nav-ico{background:rgba(201,146,42,.18)}
+.nav-ico svg{display:block}
+.nav-badge{margin-left:auto;background:var(--gold);color:#000;font-size:9.5px;font-weight:800;padding:2px 6px;border-radius:20px;min-width:18px;text-align:center;line-height:1.4;flex-shrink:0}
+.sb-footer{padding:10px 8px;border-top:1px solid var(--border)}
+.sb-sync-btn{width:100%;padding:7px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:11px;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:center;transition:var(--tr);margin-bottom:4px}
 .sb-sync-btn:hover{border-color:var(--gold);color:var(--gold)}
-.sb-config{padding:8px;font-size:11px;color:var(--muted2);text-align:center;margin-top:6px;cursor:pointer}
-.sb-config:hover{color:var(--muted)}
+.sb-config-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);transition:var(--tr)}
+.sb-config-item:hover{color:var(--gold2);background:rgba(201,146,42,.07);transform:translateX(2px)}
+.sb-app-info{display:flex;align-items:center;gap:8px;padding:8px 10px;margin-top:6px;border-top:1px solid var(--border)}
+.sb-app-logo{height:24px;width:auto;object-fit:contain;flex-shrink:0;opacity:.7}
+.sb-app-name{font-size:11px;font-weight:700;color:var(--muted);line-height:1.3}
+.sb-app-ver{font-size:9px;color:var(--muted2)}
 
 /* ─── Topbar ────────────────────────────────────────────────────────────────── */
 .tb-title{font-size:17px;font-weight:800;color:var(--gold2)}
@@ -347,33 +358,70 @@ textarea.form-control{resize:vertical;min-height:72px}
   <!-- SIDEBAR -->
   <aside id="sidebar">
     <div class="sb-logo">
-      <div class="sb-logo-inner">
-        <img src="logo.png" alt="Gestions Heuréka" style="height:38px;width:auto;object-fit:contain;max-width:176px">
+      <img src="logo.png" class="sb-logomark" alt="Logo">
+      <div class="sb-logotxt">
+        <span class="sb-brand">Gestions Heuréka</span>
+        <span class="sb-subt">Pipeline</span>
       </div>
     </div>
+
     <nav class="sb-nav">
+      <!-- VENTES -->
+      <div class="sb-section">Ventes</div>
       <div class="nav-item active" onclick="showView('pipeline')" id="nav-pipeline">
-        <span class="nav-ico">🎯</span> Pipeline
+        <span class="nav-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="4" height="18" rx="1"/><rect x="10" y="3" width="4" height="13" rx="1"/><rect x="17" y="3" width="4" height="16" rx="1"/></svg></span>
+        Pipeline
+        <span class="nav-badge" id="badge-pipeline" style="display:none"></span>
       </div>
       <div class="nav-item" onclick="showView('chantiers')" id="nav-chantiers">
-        <span class="nav-ico">🏗</span> Chantiers
-      </div>
-      <div class="nav-item" onclick="showView('clients')" id="nav-clients">
-        <span class="nav-ico">👥</span> Clients
-      </div>
-      <div class="nav-item" onclick="showView('stats')" id="nav-stats">
-        <span class="nav-ico">📊</span> Statistiques
-      </div>
-      <div class="nav-item" onclick="showView('courriels')" id="nav-courriels">
-        <span class="nav-ico">📧</span> Courriels
+        <span class="nav-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-5h6v5"/></svg></span>
+        Chantiers
       </div>
       <div class="nav-item" onclick="showView('soumissions')" id="nav-soumissions">
-        <span class="nav-ico">📐</span> Soumissions
+        <span class="nav-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg></span>
+        Soumissions
+        <span class="nav-badge" id="badge-soumissions" style="display:none"></span>
+      </div>
+
+      <!-- CONTACTS -->
+      <div class="sb-section">Contacts</div>
+      <div class="nav-item" onclick="showView('clients')" id="nav-clients">
+        <span class="nav-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        Clients
+      </div>
+
+      <!-- COMMUNICATION -->
+      <div class="sb-section">Communication</div>
+      <div class="nav-item" onclick="showView('courriels')" id="nav-courriels">
+        <span class="nav-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+        Courriels
+        <span class="nav-badge" id="badge-courriels" style="display:none"></span>
+      </div>
+
+      <!-- ANALYSE -->
+      <div class="sb-section">Analyse</div>
+      <div class="nav-item" onclick="showView('stats')" id="nav-stats">
+        <span class="nav-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg></span>
+        Statistiques
       </div>
     </nav>
+
     <div class="sb-footer">
-      <button class="sb-sync-btn" onclick="syncSheets()">⟳ Sync Google Sheets</button>
-      <div class="sb-config" onclick="showView('config')">⚙ Configuration</div>
+      <button class="sb-sync-btn" onclick="syncSheets()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Sync Google Sheets
+      </button>
+      <div class="sb-config-item" onclick="showView('config')">
+        <span class="nav-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+        Configuration
+      </div>
+      <div class="sb-app-info">
+        <img src="logo.png" class="sb-app-logo" alt="Logo">
+        <div>
+          <div class="sb-app-name">Gestions Heuréka</div>
+          <div class="sb-app-ver">Pipeline v2.1</div>
+        </div>
+      </div>
     </div>
   </aside>
 
@@ -1126,6 +1174,7 @@ function openModal(id){ document.getElementById(id).classList.remove('hidden'); 
 ═══════════════════════════════════════════════════════════════════════════ */
 function showView(view){
   currentView = view;
+  updateNavBadges();
   ['pipeline','chantiers','clients','config','stats','courriels','soumissions'].forEach(v=>{
     document.getElementById('view-'+v).classList.toggle('hidden', v!==view);
     const n=document.getElementById('nav-'+v);
@@ -3802,11 +3851,41 @@ function revReset(){
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   BADGES DE NAVIGATION
+═══════════════════════════════════════════════════════════════════════════ */
+function setBadge(id, count){
+  const el = document.getElementById(id); if(!el) return;
+  if(count > 0){ el.textContent = count > 99 ? '99+' : count; el.style.display = ''; }
+  else el.style.display = 'none';
+}
+
+function updateNavBadges(){
+  // Pipeline : projets actifs (hors perdu / terminé)
+  const projets = DB.get('projets');
+  const actifs  = projets.filter(p=>!['perdu','termine'].includes(p.statut)).length;
+  setBadge('badge-pipeline', actifs);
+
+  // Courriels : courriels non envoyés (local ou erreur)
+  const courriels = DB.get('courriels');
+  const nonEnvoyes = courriels.filter(c=>c.status==='local'||c.status==='error').length;
+  setBadge('badge-courriels', nonEnvoyes);
+
+  // Soumissions : en attente depuis +7 jours
+  const allS = JSON.parse(localStorage.getItem('rev-soumissions-list')||'[]');
+  const soumAlerte = allS.filter(s=>{
+    if(s.statut && s.statut !== 'en_attente') return false;
+    return s.date && daysSince(s.date.split('T')[0]) >= 7;
+  }).length;
+  setBadge('badge-soumissions', soumAlerte);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════════════════════════════════ */
 function init(){
   seedDemo();
   showView('pipeline');
+  updateNavBadges();
 }
 document.addEventListener('DOMContentLoaded', init);
 // Close modals on overlay click
