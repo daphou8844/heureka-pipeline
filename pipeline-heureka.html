@@ -602,6 +602,7 @@ textarea.form-control{resize:vertical;min-height:72px}
         <button class="tab-btn" onclick="switchProjTab('activites')" id="pjtab-activites">📅 Activités</button>
         <button class="tab-btn" onclick="switchProjTab('courriels')" id="pjtab-courriels">📧 Courriels</button>
         <button class="tab-btn" onclick="switchProjTab('historique')" id="pjtab-historique">📜 Historique</button>
+        <button class="tab-btn" onclick="switchProjTab('soumission')" id="pjtab-soumission" style="color:var(--gold)">📐 Soumission</button>
       </div>
       <div id="pjtab-content-info" class="tab-content active" style="flex:1;overflow-y:auto">
         <div class="proj-detail-grid"><div class="proj-info-panel" id="mpj-info"></div><div class="proj-activity-panel" id="mpj-activities"></div></div>
@@ -614,6 +615,9 @@ textarea.form-control{resize:vertical;min-height:72px}
       </div>
       <div id="pjtab-content-historique" class="tab-content" style="flex:1;overflow-y:auto;padding:4px 0">
         <div id="mpj-historique"></div>
+      </div>
+      <div id="pjtab-content-soumission" class="tab-content" style="flex:1;overflow-y:auto;padding:0">
+        <div id="rev-soum-container" style="height:100%"></div>
       </div>
     </div>
   </div>
@@ -889,6 +893,8 @@ textarea.form-control{resize:vertical;min-height:72px}
 </div>
 
 <!-- ═══════════════════ SCRIPTS ══════════════════════════════════════════════ -->
+<script src="data/prix.js"></script>
+<script src="js/calcul.js"></script>
 <script>
 'use strict';
 
@@ -1339,22 +1345,6 @@ function renderCard(p){
   const typeHtml = p.typeProjet ? `<span class="card-type">${TYPES_LABEL[p.typeProjet]||p.typeProjet}</span>` : '';
 
   const actStatus = getProjetActivityStatus(p.id);
-
-  const revBtn = p.typeProjet === 'revetement' ? (() => {
-    const params = new URLSearchParams({
-      projetId: p.id,
-      nom: (client ? client.nom : '') || p.nom,
-      tel: (client && client.telephone) ? client.telephone : '',
-      email: (client && client.email) ? client.email : '',
-      adresse: p.adresse || '',
-    });
-    return `<a href="https://daphou8844.github.io/revetement-heureka/?${params}"
-      onclick="event.stopPropagation()"
-      target="_blank"
-      style="display:block;margin:5px 0 2px;background:rgba(201,146,42,.15);border:1px solid rgba(201,146,42,.4);border-radius:4px;padding:3px 8px;font-size:10px;font-weight:700;color:#F2C96E;text-decoration:none;text-align:center;letter-spacing:.3px"
-      title="Ouvrir dans Soumission Revêtement">📋 Ouvrir Soumission</a>`;
-  })() : '';
-
   return `<div class="proj-card" id="card-${p.id}"
     style="border-left-color:${pri.color}"
     draggable="true"
@@ -1366,7 +1356,6 @@ function renderCard(p){
     <div class="card-client">${escHtml(clientNom)}</div>
     <div class="card-name">${escHtml(p.nom)}</div>
     ${p.dateDernierContact?`<div style="font-size:10px;color:var(--muted);margin:3px 0 2px">📞 ${fmtDate(p.dateDernierContact)}</div>`:'<div style="font-size:10px;color:rgba(255,255,255,.25);margin:3px 0 2px;font-style:italic">Aucun contact</div>'}
-    ${revBtn}
     <div class="card-footer">
       ${typeHtml}
       ${alertHtml}
@@ -1940,7 +1929,7 @@ function switchTab(tab){
 let currentProjTab = 'info';
 function switchProjTab(tab){
   currentProjTab = tab;
-  ['info','activites','courriels','historique'].forEach(t=>{
+  ['info','activites','courriels','historique','soumission'].forEach(t=>{
     const btn=document.getElementById('pjtab-'+t); const cnt=document.getElementById('pjtab-content-'+t);
     if(btn) btn.classList.toggle('active',t===tab);
     if(cnt) cnt.classList.toggle('active',t===tab);
@@ -1949,6 +1938,7 @@ function switchProjTab(tab){
   else if(tab==='activites') renderProjetActivitesFull(currentProjetId);
   else if(tab==='courriels') renderEmailTab('proj', currentProjetId);
   else if(tab==='historique') renderHistoriqueTab('proj', currentProjetId);
+  else if(tab==='soumission') renderSoumissionTab(currentProjetId);
 }
 
 function renderChantierOverview(ch){
@@ -2852,6 +2842,580 @@ function seedDemo(){
     {id:uid(),projetId:'',chantierId:'ch1',type:'suivi',description:'Travaux carrelage débutés, bon rythme',date:todayStr(),userId:'maxime',dateCreation:new Date().toISOString()},
   ];
   DB.set('activites',activites);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODULE SOUMISSION REVÊTEMENT — intégré au pipeline
+═══════════════════════════════════════════════════════════════════════════ */
+
+let revStep = 1;
+let revState = null;
+
+const REV_SELMAP = {
+  revetement:'revetements', coinExt:'coinsExt', coinInt:'coinsInt',
+  jTrim:'jTrim', moulureDepart:'moulurasDepart', soffite:'soffites',
+  fascia:'fascias', gouttiereDescente:'gouttiereDescentes',
+  gouttiereCoude:'gouttiereCoudes', gouttiereCapuchon:'gouttiereCapuchons',
+  gouttiereSupport:'gouttiereSupports', isolation:'isolation', fourrure:'fourrures',
+};
+
+const REV_QTY_LABELS = {
+  revetement:'Revêtement', fourrure:'Fourrures 1×3', isolation:'Isolation Isoclad',
+  coinExt:'Coins ext.', coinInt:'Coins int.', jTrim:'J-Trim',
+  moulureDepart:'Moulure départ', soffite:'Soffite', fascia:'Fascia',
+  membrane:'Membrane Typar', rubanMembrane:'Ruban membrane',
+  gouttiereDescente:'Descente gouttière', gouttiereCoude:'Coude descente',
+  gouttiereCapuchon:'Capuchon descente', gouttiereSupport:'Support gouttière',
+  fixRevetement:'Clous revêtement', fixFourrure:'Clous fourrures',
+  fixSoffite:'Vis soffite', fixFascia:'Vis fascia',
+  scellant:'Scellant Adfast', mousse:'Mousse polyuréthane',
+};
+
+function revLSKey(pid){ return 'rev-soum-'+pid; }
+
+function revNewMur(){
+  return { id:uid(), nom:'', hauteurPieds:10, hauteurPouces:0, longueurPieds:30, longueurPouces:0, ouvertures:0, pertePct:10, soffiteLargeur:0, nbDescentes:0 };
+}
+
+function revGenNo(){
+  const d=new Date();
+  return `REV-${String(d.getFullYear()).slice(2)}${String(d.getMonth()+1).padStart(2,'0')}-${Math.floor(Math.random()*900)+100}`;
+}
+
+function revLoadState(projetId){
+  const p  = getProjet(projetId)||{};
+  const cl = getClient(p.clientId)||{};
+  const defaults = {
+    projetId,
+    noSoumission: revGenNo(),
+    nomProjet: p.nom||'',
+    client:{ nom:cl.nom||'', tel:cl.telephone||'', email:cl.email||'', adresse:p.adresse||'', notes:'' },
+    murs:[revNewMur()],
+    nbCoinsExt:2, nbCoinsInt:0,
+    selections:{ revetement:'', coinExt:'', coinInt:'', jTrim:'', moulureDepart:'', soffite:'', fascia:'', gouttiereDescente:'', gouttiereCoude:'', gouttiereCapuchon:'', gouttiereSupport:'', isolation:'', fourrure:'' },
+    margeMateriaux:20,
+    mainOeuvre:{ hommes:3, jours:5, heuresParJour:9, tauxHoraire:105, marge:25 },
+  };
+  try {
+    const saved = JSON.parse(localStorage.getItem(revLSKey(projetId)));
+    if(saved && saved.projetId===projetId){
+      revState = {...defaults, ...saved};
+      revState.client     = {...defaults.client,      ...(saved.client||{})};
+      revState.selections = {...defaults.selections,  ...(saved.selections||{})};
+      revState.mainOeuvre = {...defaults.mainOeuvre,  ...(saved.mainOeuvre||{})};
+      if(!Array.isArray(revState.murs)||!revState.murs.length) revState.murs=[revNewMur()];
+      return;
+    }
+  } catch(e){}
+  revState = defaults;
+}
+
+function revSave(){
+  if(revState) localStorage.setItem(revLSKey(revState.projetId), JSON.stringify(revState));
+}
+
+/* ── Rendu principal ─────────────────────────────────────────────────────── */
+function renderSoumissionTab(projetId){
+  revStep=1;
+  revLoadState(projetId);
+  revRender();
+}
+
+function revRender(){
+  const el=document.getElementById('rev-soum-container');
+  if(!el) return;
+  el.innerHTML=`
+    <div style="display:flex;flex-direction:column;height:100%;min-height:0">
+      ${revBuildStepper()}
+      <div style="flex:1;overflow-y:auto;padding:16px" id="rev-step-body">${revBuildStep()}</div>
+      ${revBuildNav()}
+    </div>`;
+}
+
+function revBuildStepper(){
+  const steps=[{n:1,l:'Client & Murs'},{n:2,l:'Produits'},{n:3,l:'Quantités'},{n:4,l:'Finaliser'}];
+  return `<div style="display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);gap:0;overflow-x:auto;flex-shrink:0;background:var(--card-bg,#111)">
+    ${steps.map((s,i)=>`
+      ${i?'<div style="width:18px;height:1px;background:var(--border);flex-shrink:0"></div>':''}
+      <div onclick="revGoStep(${s.n})" style="cursor:pointer;display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:16px;white-space:nowrap;font-size:12px;font-weight:600;
+        ${revStep===s.n?'background:rgba(201,146,42,.15);color:var(--gold)':revStep>s.n?'color:#4CAF7D':'color:var(--muted)'}">
+        <div style="width:20px;height:20px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;
+          ${revStep===s.n?'background:var(--gold);border-color:var(--gold);color:#000':revStep>s.n?'background:#4CAF7D;border-color:#4CAF7D;color:#000':''}">
+          ${revStep>s.n?'✓':s.n}
+        </div>${s.l}
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function revBuildNav(){
+  let totalHtml='';
+  if(revStep>=3){
+    try{ const f=calculerFinancier(revState); totalHtml=`<span style="color:var(--gold);font-weight:700">${fmt$(f.total)}</span> TTC estimé`; }catch(e){}
+  }
+  return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--border);flex-shrink:0;background:var(--card-bg,#111)">
+    <div style="font-size:12px;color:var(--muted)">${totalHtml||`Étape ${revStep} / 4`}</div>
+    <div style="display:flex;gap:8px">
+      ${revStep>1?`<button class="btn btn-outline btn-sm" onclick="revGoStep(${revStep-1})">← Retour</button>`:''}
+      ${revStep<4
+        ?`<button class="btn btn-gold btn-sm" onclick="revGoStep(${revStep+1})">Suivant →</button>`
+        :`<div style="display:flex;gap:6px">
+            <button class="btn btn-outline btn-sm" onclick="revPrint()">🖨 PDF</button>
+            <button class="btn btn-gold btn-sm" id="rev-btn-save" onclick="revFinaliser()">✓ Enregistrer</button>
+          </div>`
+      }
+    </div>
+  </div>`;
+}
+
+function revGoStep(n){
+  if(n<1||n>4) return;
+  if(n>revStep){
+    if(revStep===1){
+      if(!revState.client.nom.trim()){ showToast('Entrez le nom du client'); return; }
+      for(const m of revState.murs){
+        if((parseFloat(m.hauteurPieds)||0)<=0||(parseFloat(m.longueurPieds)||0)<=0){ showToast('Vérifiez les dimensions des murs'); return; }
+      }
+    }
+    if(revStep===2&&!revState.selections.revetement){ showToast('Sélectionnez un revêtement'); return; }
+  }
+  revStep=n; revRender();
+  document.getElementById('pjtab-content-soumission')?.scrollTo(0,0);
+}
+
+function revBuildStep(){
+  switch(revStep){
+    case 1: return revStep1();
+    case 2: return revStep2();
+    case 3: return revStep3();
+    case 4: return revStep4();
+    default: return '';
+  }
+}
+
+/* ── Étape 1 — Client & Murs ────────────────────────────────────────────── */
+function revStep1(){
+  const c=revState.client;
+  const mursHtml=revState.murs.map((m,i)=>{
+    const aire=calcMurAire(m);
+    return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-size:12px;font-weight:700;color:var(--gold)">MUR ${i+1}${m.nom?' — '+escHtml(m.nom):''}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:11px;color:var(--muted);background:rgba(201,146,42,.07);padding:2px 8px;border-radius:10px;min-width:60px;text-align:center" id="rev-aire-${m.id}">${aire>0?aire.toFixed(1)+' pi²':''}</span>
+          ${revState.murs.length>1?`<button onclick="revRemoveMur('${m.id}')" style="background:none;border:1px solid var(--border);color:var(--red,#E05252);border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer">✕</button>`:''}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Nom / Côté</label>
+          <input class="form-control" value="${escHtml(m.nom)}" placeholder="Façade sud" onchange="revUpdMur('${m.id}','nom',this.value)">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Hauteur</label>
+          <div style="display:flex;gap:3px;align-items:center">
+            <input class="form-control" type="number" min="0" style="flex:1;min-width:0" value="${m.hauteurPieds}" oninput="revUpdMur('${m.id}','hauteurPieds',this.value)">
+            <span style="font-size:10px;color:var(--muted)">pi</span>
+            <input class="form-control" type="number" min="0" max="11" style="flex:1;min-width:0" value="${m.hauteurPouces}" oninput="revUpdMur('${m.id}','hauteurPouces',this.value)">
+            <span style="font-size:10px;color:var(--muted)">po</span>
+          </div>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Longueur</label>
+          <div style="display:flex;gap:3px;align-items:center">
+            <input class="form-control" type="number" min="0" style="flex:1;min-width:0" value="${m.longueurPieds}" oninput="revUpdMur('${m.id}','longueurPieds',this.value)">
+            <span style="font-size:10px;color:var(--muted)">pi</span>
+            <input class="form-control" type="number" min="0" max="11" style="flex:1;min-width:0" value="${m.longueurPouces}" oninput="revUpdMur('${m.id}','longueurPouces',this.value)">
+            <span style="font-size:10px;color:var(--muted)">po</span>
+          </div>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Ouvertures (pi²)</label>
+          <input class="form-control" type="number" min="0" value="${m.ouvertures||''}" placeholder="0" oninput="revUpdMur('${m.id}','ouvertures',this.value)">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Perte/Coupe (%)</label>
+          <input class="form-control" type="number" min="0" max="50" value="${m.pertePct}" oninput="revUpdMur('${m.id}','pertePct',this.value)">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Soffite largeur (pi)</label>
+          <input class="form-control" type="number" min="0" step="0.5" value="${m.soffiteLargeur||''}" placeholder="0" oninput="revUpdMur('${m.id}','soffiteLargeur',this.value)">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Descentes gouttière</label>
+          <input class="form-control" type="number" min="0" value="${m.nbDescentes||''}" placeholder="0" oninput="revUpdMur('${m.id}','nbDescentes',this.value)">
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="section-title" style="margin-bottom:10px">Informations client</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <div class="form-group" style="margin:0">
+        <label class="form-label">Nom / Entreprise *</label>
+        <input class="form-control" value="${escHtml(c.nom)}" placeholder="Jean Tremblay" oninput="revState.client.nom=this.value;revSave()">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label class="form-label">No soumission</label>
+        <input class="form-control" value="${escHtml(revState.noSoumission)}" oninput="revState.noSoumission=this.value;revSave()">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label class="form-label">Téléphone</label>
+        <input class="form-control" type="tel" value="${escHtml(c.tel)}" oninput="revState.client.tel=this.value;revSave()">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label class="form-label">Courriel</label>
+        <input class="form-control" type="email" value="${escHtml(c.email)}" oninput="revState.client.email=this.value;revSave()">
+      </div>
+      <div class="form-group" style="margin:0;grid-column:1/-1">
+        <label class="form-label">Adresse du chantier</label>
+        <input class="form-control" value="${escHtml(c.adresse)}" oninput="revState.client.adresse=this.value;revSave()">
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="section-title">Murs / Façades</div>
+      <button class="btn btn-outline btn-sm" onclick="revAddMur()">+ Ajouter un mur</button>
+    </div>
+    ${mursHtml}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+      <div class="form-group" style="margin:0">
+        <label class="form-label">Coins extérieurs</label>
+        <input class="form-control" type="number" min="0" value="${revState.nbCoinsExt}" oninput="revState.nbCoinsExt=parseInt(this.value)||0;revSave()">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label class="form-label">Coins intérieurs</label>
+        <input class="form-control" type="number" min="0" value="${revState.nbCoinsInt}" oninput="revState.nbCoinsInt=parseInt(this.value)||0;revSave()">
+      </div>
+    </div>`;
+}
+
+/* ── Étape 2 — Produits ─────────────────────────────────────────────────── */
+function revStep2(){
+  function pRow(key, label, categ, ph){
+    const sel=revState.selections[key];
+    const p=sel?findProduit(categ,sel):null;
+    return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">${label}</div>
+      <select class="form-control" onchange="revUpdSel('${key}',this.value)">
+        ${revBuildSelect(categ,ph||'— Aucun —',sel)}
+      </select>
+      <div id="rev-price-${key}" style="font-size:11px;color:var(--gold);margin-top:4px;min-height:16px">${p?`${fmt$(p.prix)} / ${p.unite}`:''}</div>
+    </div>`;
+  }
+  return `
+    <div class="section-title" style="margin-bottom:10px">Revêtement principal *</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-bottom:14px">
+      ${pRow('revetement','Revêtement','revetements','— Choisir le revêtement —')}
+      ${pRow('isolation','Isolation Isoclad (opt.)','isolation')}
+      ${pRow('fourrure','Fourrures 1×3 (opt.)','fourrures')}
+    </div>
+    <div class="section-title" style="margin-bottom:10px">Accessoires revêtement</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-bottom:14px">
+      ${pRow('coinExt','Coins extérieurs','coinsExt')}
+      ${pRow('coinInt','Coins intérieurs','coinsInt')}
+      ${pRow('jTrim','J-Trim / Moulure J','jTrim')}
+      ${pRow('moulureDepart','Moulure de départ','moulurasDepart')}
+    </div>
+    <div class="section-title" style="margin-bottom:10px">Soffites & Fascias</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-bottom:14px">
+      ${pRow('soffite','Soffite','soffites')}
+      ${pRow('fascia','Fascia','fascias')}
+    </div>
+    <div class="section-title" style="margin-bottom:10px">Gouttières</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px">
+      ${pRow('gouttiereDescente','Descente','gouttiereDescentes')}
+      ${pRow('gouttiereCoude','Coude descente','gouttiereCoudes')}
+      ${pRow('gouttiereCapuchon','Capuchon','gouttiereCapuchons')}
+      ${pRow('gouttiereSupport','Support gouttière','gouttiereSupports')}
+    </div>`;
+}
+
+function revBuildSelect(categorie, placeholder, selectedId){
+  const cat=PRODUITS[categorie]; if(!cat) return `<option value="">—</option>`;
+  const marques=[...new Set(cat.map(p=>p.marque))];
+  let html=`<option value="">${placeholder}</option>`;
+  marques.forEach(marque=>{
+    html+=`<optgroup label="${escHtml(marque)}">`;
+    cat.filter(p=>p.marque===marque).forEach(p=>{
+      const note=p.note?` (${p.note})`:'';
+      const price=p.couverture?`${fmt$(p.prix)}/${p.unite}·${p.couverture}pi²`
+        :p.longueur?`${fmt$(p.prix)}/${p.unite}·${p.longueur}'`
+        :`${fmt$(p.prix)}/${p.unite}`;
+      html+=`<option value="${p.id}" ${selectedId===p.id?'selected':''}>${escHtml(p.nom)}${note} — ${price}</option>`;
+    });
+    html+=`</optgroup>`;
+  });
+  return html;
+}
+
+/* ── Étape 3 — Quantités & Financier ────────────────────────────────────── */
+function revStep3(){
+  let fin;
+  try{ fin=calculerFinancier(revState); }
+  catch(e){ return `<div style="color:var(--muted);padding:20px;text-align:center">Erreur de calcul — vérifiez les données saisies.<br><small>${e.message}</small></div>`; }
+  const q=fin.quantites, t=q._totaux, mo=revState.mainOeuvre;
+
+  const rows=Object.entries(REV_QTY_LABELS).map(([key,lbl])=>{
+    const v=q[key]; if(!v||!v.prod) return '';
+    const sous=v.prod.prix*v.qte;
+    return `<tr style="border-bottom:1px solid rgba(42,42,42,.6)">
+      <td style="padding:7px 10px">${lbl}${v.label?`<span style="font-size:11px;color:var(--muted)"> (${v.label})</span>`:''}${v.prod.note?`<span style="font-size:10px;color:var(--muted);margin-left:3px">[${v.prod.note}]</span>`:''}</td>
+      <td style="padding:7px 10px;color:var(--muted);font-size:12px">${escHtml(v.prod.marque||'')}</td>
+      <td style="padding:7px 10px;text-align:center;font-weight:700;color:var(--gold)">${v.qte}</td>
+      <td style="padding:7px 10px;color:var(--muted);font-size:12px">${v.prod.unite}</td>
+      <td style="padding:7px 10px;text-align:right">${fmt$(v.prod.prix)}</td>
+      <td style="padding:7px 10px;text-align:right;color:var(--gold);font-weight:700">${fmt$(sous)}</td>
+    </tr>`;
+  }).join('');
+
+  const finRow=(label,value,gold=false)=>`<div style="display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--border)">
+    <span style="font-size:12px;color:var(--muted)">${label}</span>
+    <span style="font-size:13px;font-weight:600;${gold?'color:var(--gold)':''}">${value}</span>
+  </div>`;
+
+  return `<div style="display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start">
+    <div>
+      <div class="section-title" style="margin-bottom:10px">Liste des matériaux</div>
+      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr style="border-bottom:1px solid var(--border)">
+            <th style="padding:7px 10px;text-align:left;font-size:11px;color:var(--muted)">Produit</th>
+            <th style="padding:7px 10px;text-align:left;font-size:11px;color:var(--muted)">Marque</th>
+            <th style="padding:7px 10px;text-align:center;font-size:11px;color:var(--muted)">Qté</th>
+            <th style="padding:7px 10px;text-align:left;font-size:11px;color:var(--muted)">Unité</th>
+            <th style="padding:7px 10px;text-align:right;font-size:11px;color:var(--muted)">Prix</th>
+            <th style="padding:7px 10px;text-align:right;font-size:11px;color:var(--muted)">Sous-total</th>
+          </tr></thead>
+          <tbody>${rows||'<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Aucun produit sélectionné</td></tr>'}</tbody>
+        </table>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;border:1px solid var(--border);border-radius:8px;padding:14px">
+        ${[['Aire totale',t.totalAire.toFixed(1),'pi²'],['Périmètre',t.totalLongueur.toFixed(1),'pi lin.'],['Soffites',t.totalSoffite.toFixed(1),'pi²']].map(([l,v,u])=>`
+          <div style="text-align:center">
+            <div style="font-size:11px;color:var(--muted)">${l}</div>
+            <div style="font-size:18px;font-weight:700;color:var(--gold)">${v}</div>
+            <div style="font-size:11px;color:var(--muted)">${u}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div style="border:1px solid var(--border);border-radius:8px;padding:16px;position:sticky;top:0">
+      <div style="font-size:12px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Calcul financier</div>
+
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:8px 0 4px">Matériaux</div>
+      ${finRow('Coût matériaux',fmt$(fin.coutMat))}
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:12px;color:var(--muted)">Marge</span>
+        <div style="display:flex;align-items:center;gap:4px">
+          <input type="number" min="0" max="60" value="${revState.margeMateriaux}" style="width:50px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:3px 5px;font-size:12px;text-align:right"
+            onchange="revState.margeMateriaux=parseFloat(this.value)||20;revSave();revRender()"> <span style="font-size:11px;color:var(--muted)">%</span>
+        </div>
+      </div>
+      ${finRow('Prix mat. client',fmt$(fin.prixMat),true)}
+      ${finRow('Profit mat.',fmt$(fin.profitMat))}
+
+      <div style="height:1px;background:var(--border);margin:8px 0"></div>
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Main d'œuvre</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+        ${[['Hommes','hommes','number',1],['Jours','jours','number',1],['H/jour','heuresParJour','number',0.5],['Taux $/h','tauxHoraire','number',5]].map(([l,k,t,s])=>`
+          <div class="form-group" style="margin:0">
+            <label class="form-label" style="font-size:10px">${l}</label>
+            <input class="form-control" type="${t}" step="${s}" min="${s}" value="${mo[k]}" style="font-size:12px;padding:4px 6px"
+              oninput="revState.mainOeuvre.${k}=${k==='heuresParJour'||k==='tauxHoraire'?'parseFloat':'parseInt'}(this.value)||${k==='tauxHoraire'?105:k==='heuresParJour'?9:1};revSave();revRender()">
+          </div>`).join('')}
+      </div>
+      ${finRow('Heures totales',fin.heures+'h')}
+      ${finRow('Coût M.O.',fmt$(fin.coutMO))}
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:12px;color:var(--muted)">Marge M.O.</span>
+        <div style="display:flex;align-items:center;gap:4px">
+          <input type="number" min="0" max="60" value="${mo.marge}" style="width:50px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:3px 5px;font-size:12px;text-align:right"
+            onchange="revState.mainOeuvre.marge=parseFloat(this.value)||25;revSave();revRender()"> <span style="font-size:11px;color:var(--muted)">%</span>
+        </div>
+      </div>
+      ${finRow('Prix M.O. client',fmt$(fin.prixMO),true)}
+      ${finRow('Profit M.O.',fmt$(fin.profitMO))}
+
+      <div style="height:1px;background:var(--border);margin:8px 0"></div>
+      ${finRow('Sous-total',fmt$(fin.sousTotal))}
+      ${finRow('TPS (5%)',fmt$(fin.TPS))}
+      ${finRow('TVQ (9.975%)',fmt$(fin.TVQ))}
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;margin-top:2px">
+        <span style="font-size:14px;font-weight:700">TOTAL TTC</span>
+        <span style="font-size:20px;font-weight:800;color:var(--gold)">${fmt$(fin.total)}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ── Étape 4 — Finaliser ─────────────────────────────────────────────────── */
+function revStep4(){
+  let fin;
+  try{ fin=calculerFinancier(revState); }
+  catch(e){ return '<div style="color:var(--muted);padding:20px">Erreur de calcul</div>'; }
+  const c=revState.client;
+  const today=new Date().toLocaleDateString('fr-CA',{year:'numeric',month:'long',day:'numeric'});
+
+  return `
+    <div style="border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:22px;color:var(--gold)">⬡</span>
+          <div>
+            <div style="font-size:13px;font-weight:800;color:var(--gold)">GESTIONS HEURÉKA</div>
+            <div style="font-size:11px;color:var(--muted)">Revêtement Extérieur</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--muted)">No soumission</div>
+          <div style="font-weight:700;color:var(--gold)">${escHtml(revState.noSoumission)}</div>
+          <div style="font-size:11px;color:var(--muted)">${today}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start">
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px;font-size:12px;color:var(--muted);line-height:1.9">
+          <strong style="display:block;font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px">${escHtml(c.nom||'—')}</strong>
+          ${c.tel?escHtml(c.tel)+'<br>':''}${c.email?escHtml(c.email)+'<br>':''}${c.adresse?escHtml(c.adresse):''}
+        </div>
+        <div style="text-align:center;background:rgba(201,146,42,.1);border:1px solid var(--gold);border-radius:8px;padding:14px;min-width:155px">
+          <div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.5px">Total estimé TTC</div>
+          <div style="font-size:22px;font-weight:800;color:var(--gold);margin:4px 0">${fmt$(fin.total)}</div>
+          <div style="font-size:11px;color:var(--muted)">TPS ${fmt$(fin.TPS)} · TVQ ${fmt$(fin.TVQ)}</div>
+        </div>
+      </div>
+    </div>
+    <div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Récapitulatif</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center">
+        ${[["Matériaux",fmt$(fin.prixMat)],["Main d'œuvre",fmt$(fin.prixMO)],["Sous-total",fmt$(fin.sousTotal)]].map(([l,v])=>`
+          <div><div style="font-size:11px;color:var(--muted)">${l}</div><div style="font-size:15px;font-weight:700;color:var(--gold)">${v}</div></div>
+        `).join('')}
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" onclick="revPrint()">🖨 Imprimer / PDF</button>
+      <button class="btn btn-gold btn-sm" id="rev-btn-save" onclick="revFinaliser()">✓ Enregistrer dans Sheets</button>
+      <button class="btn btn-danger btn-sm" onclick="revReset()">↺ Réinitialiser</button>
+    </div>
+    <div id="rev-sync-status" style="font-size:12px;color:var(--muted);margin-top:8px"></div>`;
+}
+
+/* ── CRUD murs & sélections ─────────────────────────────────────────────── */
+function revUpdMur(id, field, value){
+  const m=revState.murs.find(m=>m.id===id); if(!m) return;
+  const num=['hauteurPieds','hauteurPouces','longueurPieds','longueurPouces','ouvertures','pertePct','soffiteLargeur','nbDescentes'];
+  m[field]=num.includes(field)?(parseFloat(value)||0):value;
+  revSave();
+  const el=document.getElementById('rev-aire-'+id);
+  if(el){ const a=calcMurAire(m); el.textContent=a>0?a.toFixed(1)+' pi²':''; }
+}
+
+function revAddMur(){ revState.murs.push(revNewMur()); revSave(); revRender(); }
+
+function revRemoveMur(id){
+  if(revState.murs.length<=1){ showToast('Il faut au moins un mur'); return; }
+  revState.murs=revState.murs.filter(m=>m.id!==id); revSave(); revRender();
+}
+
+function revUpdSel(key, value){
+  revState.selections[key]=value; revSave();
+  const el=document.getElementById('rev-price-'+key);
+  if(el){
+    const p=value?findProduit(REV_SELMAP[key],value):null;
+    el.textContent=p?`${fmt$(p.prix)} / ${p.unite}`:'';
+  }
+}
+
+/* ── Finaliser & PDF ─────────────────────────────────────────────────────── */
+async function revFinaliser(){
+  const btn=document.getElementById('rev-btn-save');
+  const status=document.getElementById('rev-sync-status');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Envoi…'; }
+
+  let fin;
+  try{ fin=calculerFinancier(revState); }
+  catch(e){ showToast('Erreur de calcul'); if(btn){btn.disabled=false;btn.textContent='✓ Enregistrer dans Sheets';} return; }
+
+  const soumission={
+    noSoumission: revState.noSoumission,
+    projetId: revState.projetId,
+    nomProjet: revState.nomProjet,
+    client: {...revState.client},
+    financier:{ coutMat:fin.coutMat, prixMat:fin.prixMat, prixMO:fin.prixMO, sousTotal:fin.sousTotal, TPS:fin.TPS, TVQ:fin.TVQ, total:fin.total },
+    murs: revState.murs,
+    selections: {...revState.selections},
+    margeMateriaux: revState.margeMateriaux,
+    mainOeuvre: {...revState.mainOeuvre},
+    date: new Date().toISOString(),
+  };
+
+  // Sheets
+  const GAS=DB.cfg().scriptUrl||'https://script.google.com/macros/s/AKfycbwzhekI8CnQ0Erg_s2mM2G5n2gB-kzl2XnAeTtdjFGs2B-pyVX8yCGZISseIJsyvhNxaA/exec';
+  let msg='';
+  try{
+    const r=await fetch(GAS,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'saveSoumission',data:soumission}),redirect:'follow'});
+    const d=await r.json();
+    msg=d.status==='ok'?'✓ Sauvegardé dans Google Sheets':'⚠ Sheets inaccessible — sauvegardé localement';
+  }catch(e){ msg='⚠ Réseau — sauvegardé localement seulement'; }
+
+  // LocalStorage (liste globale)
+  const all=JSON.parse(localStorage.getItem('rev-soumissions-list')||'[]');
+  const idx=all.findIndex(s=>s.noSoumission===soumission.noSoumission);
+  if(idx>=0) all[idx]=soumission; else all.unshift(soumission);
+  localStorage.setItem('rev-soumissions-list',JSON.stringify(all.slice(0,50)));
+
+  // Mettre à jour le prix estimé du projet dans le pipeline
+  if(fin.total>0){
+    const projets=DB.get('projets');
+    const pidx=projets.findIndex(p=>p.id===revState.projetId);
+    if(pidx>=0){ projets[pidx].prix=fin.total.toFixed(0); DB.set('projets',projets); renderPipeline(); }
+  }
+
+  showToast('Soumission enregistrée ✓');
+  if(status) status.textContent=msg;
+  if(btn){ btn.disabled=false; btn.textContent='✓ Enregistrer dans Sheets'; }
+}
+
+function revPrint(){
+  let fin;
+  try{ fin=calculerFinancier(revState); }catch(e){ showToast('Erreur de calcul'); return; }
+  const c=revState.client, q=fin.quantites, mo=revState.mainOeuvre;
+  const today=new Date().toLocaleDateString('fr-CA',{year:'numeric',month:'long',day:'numeric'});
+
+  const rows=Object.entries(REV_QTY_LABELS).map(([k,l])=>{
+    const v=q[k]; if(!v||!v.prod) return '';
+    return `<tr><td>${l}</td><td>${v.prod.marque||''}</td><td style="text-align:center">${v.qte}</td><td>${v.prod.unite}</td><td style="text-align:right">$${(v.prod.prix*v.qte).toLocaleString('fr-CA',{minimumFractionDigits:2})}</td></tr>`;
+  }).join('');
+
+  const html=`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Soumission ${revState.noSoumission}</title>
+  <style>body{font-family:Arial,sans-serif;font-size:12px;color:#111;margin:30px}h1{font-size:20px;margin:0}h2{font-size:13px;margin:12px 0 6px;border-bottom:1px solid #ddd;padding-bottom:3px}table{width:100%;border-collapse:collapse;margin-bottom:12px}th,td{padding:5px 8px;border:1px solid #ddd;font-size:11px}th{background:#f5f5f5;font-weight:700}.total-box{background:#faf5e8;border:2px solid #C9922A;padding:12px 16px;display:inline-block}.total-box .amt{font-size:22px;font-weight:900;color:#C9922A}</style>
+  </head><body>
+  <table style="border:none;margin-bottom:20px"><tr>
+    <td style="border:none;font-size:26px;color:#C9922A;width:36px">⬡</td>
+    <td style="border:none"><h1>GESTIONS HEURÉKA</h1><div style="font-size:11px;color:#888">Revêtement Extérieur</div></td>
+    <td style="border:none;text-align:right"><div style="font-size:11px;color:#888">No soumission</div><div style="font-size:14px;font-weight:700;color:#C9922A">${escHtml(revState.noSoumission)}</div><div style="font-size:11px;color:#888">${today}</div></td>
+  </tr></table>
+  <h2>Client</h2>
+  <div><strong>${escHtml(c.nom)}</strong>${c.tel?' · '+escHtml(c.tel):''}${c.email?' · '+escHtml(c.email):''}</div>
+  ${c.adresse?`<div>${escHtml(c.adresse)}</div>`:''}
+  <h2>Matériaux</h2>
+  <table><thead><tr><th>Produit</th><th>Marque</th><th style="text-align:center">Qté</th><th>Unité</th><th style="text-align:right">Total</th></tr></thead><tbody>${rows}</tbody></table>
+  <h2>Main d'œuvre</h2>
+  <table><tr><th>Équipe</th><th>Heures</th><th>Prix M.O.</th></tr>
+  <tr><td>${mo.hommes} hommes × ${mo.jours} jours</td><td>${fin.heures}h</td><td style="text-align:right">$${fin.prixMO.toLocaleString('fr-CA',{minimumFractionDigits:2})}</td></tr></table>
+  <div class="total-box">
+    <div style="font-size:11px;color:#888">Sous-total</div><div>$${fin.sousTotal.toLocaleString('fr-CA',{minimumFractionDigits:2})}</div>
+    <div style="font-size:11px;color:#888;margin-top:4px">TPS + TVQ</div><div>$${(fin.TPS+fin.TVQ).toLocaleString('fr-CA',{minimumFractionDigits:2})}</div>
+    <div style="font-size:11px;color:#888;margin-top:6px">TOTAL TTC</div><div class="amt">$${fin.total.toLocaleString('fr-CA',{minimumFractionDigits:2})}</div>
+  </div>
+  <script>window.onload=()=>window.print()<\/script></body></html>`;
+  const w=window.open('','_blank'); w.document.write(html); w.document.close();
+}
+
+function revReset(){
+  if(!confirm('Réinitialiser cette soumission ?')) return;
+  localStorage.removeItem(revLSKey(revState.projetId));
+  revStep=1; revLoadState(revState.projetId); revRender();
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
