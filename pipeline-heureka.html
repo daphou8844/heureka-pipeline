@@ -211,15 +211,18 @@ textarea.form-control{resize:vertical;min-height:72px}
 .tab-content.active{display:block}
 
 /* ─── Timeline ──────────────────────────────────────────────────────────────── */
-.timeline-container{overflow-x:auto;padding:10px 0}
-.timeline-header{display:flex;gap:0;padding-left:160px;margin-bottom:4px;min-width:700px}
-.timeline-month{font-size:10px;color:var(--muted);font-weight:600;text-align:center;border-left:1px solid var(--border)}
-.timeline-rows{min-width:700px}
-.timeline-row{display:flex;align-items:center;margin-bottom:8px;min-height:32px}
-.timeline-label{width:155px;flex-shrink:0;font-size:12px;color:#ccc;font-weight:600;padding-right:10px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.timeline-track{flex:1;height:24px;background:var(--bg3);border-radius:4px;position:relative;overflow:hidden}
-.timeline-bar{position:absolute;height:100%;border-radius:4px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;color:#000;white-space:nowrap;overflow:hidden}
-.timeline-today{position:absolute;top:0;bottom:0;width:2px;background:var(--red);opacity:.8;z-index:1}
+.timeline-container{overflow-x:auto;padding:8px 0 4px}
+.timeline-rows{min-width:600px;display:flex;flex-direction:column;gap:6px}
+.timeline-row{display:grid;grid-template-columns:150px 1fr 28px;align-items:center;gap:8px;min-height:36px}
+.timeline-label{font-size:12px;color:#ccc;font-weight:600;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:4px}
+.timeline-track{height:26px;background:var(--bg3);border-radius:6px;position:relative;overflow:visible}
+.timeline-bar{position:absolute;height:100%;border-radius:6px;min-width:6px;top:0}
+.timeline-bar-inner{height:100%;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#000;overflow:hidden;white-space:nowrap;padding:0 6px}
+.timeline-bar-label{position:absolute;top:100%;left:0;margin-top:3px;font-size:10px;color:var(--muted);white-space:nowrap;pointer-events:none}
+.timeline-today{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--red);opacity:.85;z-index:2;border-radius:2px}
+.timeline-today::after{content:'';position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:var(--red)}
+.etape-del-btn{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px;padding:2px 4px;border-radius:4px;transition:color .15s}
+.etape-del-btn:hover{color:var(--red)}
 .etape-form{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:10px}
 
 /* ─── Tasks ─────────────────────────────────────────────────────────────────── */
@@ -645,10 +648,11 @@ textarea.form-control{resize:vertical;min-height:72px}
         <div class="form-group">
           <label class="form-label">Source de référence</label>
           <select class="form-control" id="np-source">
-            <option value="site_web">Site web</option>
-            <option value="walk_in">Walk-in</option>
             <option value="soumission_renovation">Soumission Rénovation</option>
             <option value="reno_assistance">Réno Assistance</option>
+            <option value="site_web">Site web</option>
+            <option value="walk_in">Walk-in</option>
+            <option value="facebook">Facebook</option>
             <option value="autres">Autres</option>
           </select>
         </div>
@@ -759,10 +763,11 @@ textarea.form-control{resize:vertical;min-height:72px}
         <div class="form-group">
           <label class="form-label">Source de référence</label>
           <select class="form-control" id="ep-source">
-            <option value="site_web">Site web</option>
-            <option value="walk_in">Walk-in</option>
             <option value="soumission_renovation">Soumission Rénovation</option>
             <option value="reno_assistance">Réno Assistance</option>
+            <option value="site_web">Site web</option>
+            <option value="walk_in">Walk-in</option>
+            <option value="facebook">Facebook</option>
             <option value="autres">Autres</option>
           </select>
         </div>
@@ -1078,8 +1083,8 @@ const TYPES_LABEL = {
 };
 
 const SOURCES_LABEL = {
-  site_web:'Site web', walk_in:'Walk-in', soumission_renovation:'Soumission Rénovation',
-  reno_assistance:'Réno Assistance', autres:'Autres',
+  soumission_renovation:'Soumission Rénovation', reno_assistance:'Réno Assistance',
+  site_web:'Site web', walk_in:'Walk-in', facebook:'Facebook', autres:'Autres',
   // legacy
   reference:'Référence', web:'Web', social:'Réseaux sociaux', appel:'Appel entrant', autre:'Autre'
 };
@@ -1591,7 +1596,7 @@ function saveNewProjet(){
 
   const p = {
     id:uid(), clientId,
-    nom, statut:'pas_repondu',
+    nom, statut:'a_contacter',
     typeProjet: document.getElementById('np-type').value,
     source: document.getElementById('np-source').value,
     priorite: document.getElementById('np-priorite').value,
@@ -2154,39 +2159,44 @@ function updateChantierField(field,value){
 /* ─── Échéancier ─────────────────────────────────────────────────────────── */
 function renderEcheancier(ch){
   const etapes=ch.etapes||[];
-  const allDates=[...etapes.map(e=>e.dateDebut),...etapes.map(e=>e.dateFin)].filter(Boolean).sort();
-  const minDate=allDates[0]||todayStr();
-  const maxDate=allDates[allDates.length-1]||todayStr();
-  const msSpan=Math.max(new Date(maxDate)-new Date(minDate),1);
+  const hasAnyDate=etapes.some(e=>e.dateDebut||e.dateFin)||(ch.dateDebut||ch.dateFin);
 
   let timelineHTML='';
-  if(etapes.length===0){
+  if(!hasAnyDate){
+    timelineHTML='<div class="empty-state"><div class="empty-ico">📅</div><div class="empty-text">Aucune date définie</div></div>';
+  } else if(etapes.length===0){
     timelineHTML='<div class="empty-state"><div class="empty-ico">📅</div><div class="empty-text">Aucune étape. Ajoutes-en ci-dessous.</div></div>';
   } else {
+    const allDates=[ch.dateDebut,...etapes.map(e=>e.dateDebut),...etapes.map(e=>e.dateFin),ch.dateFin].filter(Boolean).sort();
+    const minDate=allDates[0];
+    const maxDate=allDates[allDates.length-1];
+    const minMs=new Date(minDate).getTime();
+    const msSpan=Math.max(new Date(maxDate).getTime()-minMs, 86400000);
     const todayMs=new Date(todayStr()).getTime();
-    const todayPct=Math.max(0,Math.min(100,((todayMs-new Date(minDate).getTime())/msSpan)*100));
-    const colors=['#C9922A','#3B82F6','#22C55E','#8B5CF6','#F59E0B','#EF4444','#14B8A6','#EC4899'];
-    timelineHTML=`<div class="timeline-container">
-      <div class="timeline-rows">
-        ${etapes.map((e,i)=>{
-          const s=new Date(e.dateDebut||minDate).getTime();
-          const f=new Date(e.dateFin||maxDate).getTime();
-          const left=((s-new Date(minDate).getTime())/msSpan)*100;
-          const width=Math.max(2,((f-s)/msSpan)*100);
-          const stColor=e.statut==='done'?'#6B7280':e.statut==='in_progress'?colors[i%colors.length]:colors[i%colors.length];
-          return `<div class="timeline-row">
-            <div class="timeline-label" title="${escHtml(e.titre)}">${escHtml(e.titre)}</div>
-            <div class="timeline-track">
-              <div class="timeline-today" style="left:${todayPct}%"></div>
-              <div class="timeline-bar" style="left:${left}%;width:${width}%;background:${stColor}">
-                ${fmtDate(e.dateDebut)} → ${fmtDate(e.dateFin)}
-              </div>
-            </div>
-            <button onclick="deleteEtape('${ch.id}',${i})" style="background:none;border:none;color:var(--muted2);cursor:pointer;padding:0 6px;font-size:13px" title="Supprimer">✕</button>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;
+    const todayPct=Math.max(0,Math.min(100,((todayMs-minMs)/msSpan)*100));
+    const colors=['#C9922A','#3B82F6','#22C55E','#8B5CF6','#F59E0B','#14B8A6','#EC4899','#EF4444'];
+    const rows=etapes.map((e,i)=>{
+      const s=new Date(e.dateDebut||minDate).getTime();
+      const f=new Date(e.dateFin||e.dateDebut||maxDate).getTime();
+      const left=Math.max(0,((s-minMs)/msSpan)*100);
+      const width=Math.max(1.5,((Math.max(f,s+86400000)-s)/msSpan)*100);
+      const color=e.statut==='done'?'#4B5563':colors[i%colors.length];
+      const opacity=e.statut==='done'?'0.6':'1';
+      const labelTxt=e.dateDebut&&e.dateFin?`${fmtDate(e.dateDebut)} → ${fmtDate(e.dateFin)}`:e.dateDebut?fmtDate(e.dateDebut):'';
+      const showInBar=width>18;
+      return `<div class="timeline-row">
+        <div class="timeline-label" title="${escHtml(e.titre)}">${e.statut==='done'?'✓ ':e.statut==='in_progress'?'▶ ':''}${escHtml(e.titre)}</div>
+        <div class="timeline-track">
+          <div class="timeline-today" style="left:${todayPct}%"></div>
+          <div class="timeline-bar" style="left:${left}%;width:${width}%;opacity:${opacity}">
+            <div class="timeline-bar-inner" style="background:${color}">${showInBar?labelTxt:''}</div>
+            ${!showInBar&&labelTxt?`<span class="timeline-bar-label">${labelTxt}</span>`:''}
+          </div>
+        </div>
+        <button class="etape-del-btn" onclick="deleteEtape('${ch.id}',${i})" title="Supprimer">✕</button>
+      </div>`;
+    }).join('');
+    timelineHTML=`<div class="timeline-container"><div class="timeline-rows">${rows}</div></div>`;
   }
 
   document.getElementById('mch-echeancier').innerHTML=`
@@ -2265,7 +2275,13 @@ function renderTaches(ch){
       </div>
       <div class="form-group">
         <label class="form-label">Assigné à</label>
-        <input class="form-control" id="task-assign" placeholder="Nom employé">
+        <select class="form-control" id="task-assign">
+          <option value="">— Choisir —</option>
+          <option value="Maxime">Maxime</option>
+          <option value="Daphnée">Daphnée</option>
+          <option value="Équipe chantier">Équipe chantier</option>
+          <option value="Anabelle">Anabelle</option>
+        </select>
       </div>
       <div class="form-group">
         <label class="form-label">Échéance</label>
@@ -2915,14 +2931,29 @@ function renderEmailTab(ctx, refId){
     el.innerHTML=sendBtn+'<div class="empty-state"><div class="empty-ico">📧</div><div class="empty-text">Aucun courriel envoyé</div></div>'; return;
   }
   el.innerHTML = sendBtn + courriels.map(e=>`
-    <div class="email-list-item">
+    <div class="email-list-item" style="position:relative">
       <div class="email-li-header">
         <div class="email-li-subject">${escHtml(e.subject)}</div>
-        <div class="email-li-date">${fmtDateHeure(e.dateSent)}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="email-li-date">${fmtDateHeure(e.dateSent)}</div>
+          <button onclick="deleteCourriel('${e.id}','${ctx}','${refId}')" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px;padding:2px 4px;border-radius:4px;line-height:1;transition:color .15s" title="Supprimer" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--muted2)'">✕</button>
+        </div>
       </div>
       <div class="email-li-to">À : ${escHtml(e.to)} ${e.status==='sent'?'<span style="color:var(--green)">✓</span>':e.status==='error'?'<span style="color:var(--red)">⚠</span>':''}</div>
       <div class="email-li-preview">${escHtml((e.body||'').substring(0,120))}...</div>
     </div>`).join('');
+}
+
+function deleteCourriel(id, ctx, refId){
+  const courriels = DB.get('courriels');
+  DB.set('courriels', courriels.filter(e=>e.id!==id));
+  renderEmailTab(ctx, refId);
+}
+
+function deleteCourrielGlobal(id){
+  const courriels = DB.get('courriels');
+  DB.set('courriels', courriels.filter(e=>e.id!==id));
+  renderAllCourriels();
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -3122,6 +3153,7 @@ function renderAllCourriels(){
               <div style="display:flex;gap:6px">
                 <button class="btn btn-outline btn-sm" onclick="openEmailReply('${e.id}')" title="Renvoyer ce courriel">↩ Renvoyer</button>
                 ${p.id?`<button class="btn btn-outline btn-sm" onclick="openProjetDetail('${p.id}')" title="Ouvrir le projet">↗</button>`:''}
+                <button onclick="deleteCourrielGlobal('${e.id}')" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#ef4444;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;font-weight:600" title="Supprimer">✕</button>
               </div>
             </div>
           </div>
