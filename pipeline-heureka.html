@@ -4004,10 +4004,49 @@ function updateNavBadges(){
 /* ═══════════════════════════════════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════════════════════════════════ */
+async function autoSyncFromSheet(){
+  const url=DB.getStr('appsScriptUrl');
+  if(!url) return;
+  // Sync projets
+  try{
+    const r=await fetch(url+'?action=getData&sheet=Projets',{redirect:'follow'});
+    const data=await r.json();
+    if(Array.isArray(data)&&data.length){
+      const sheetProjets=data.map(row=>({
+        id:row.ID_Projet, client:row.Client_ID, nom:row.Nom_Projet,
+        statut:row.Statut, type:row.Type_Projet, prix:row.Prix_Estimé,
+        notes:row.Notes, source:row.Source_Référence
+      }));
+      const local=DB.get('projets');
+      const localIds=new Set(local.map(p=>p.id));
+      const newItems=sheetProjets.filter(p=>p.id&&!localIds.has(p.id));
+      if(newItems.length){DB.set('projets',[...local,...newItems]);if(currentView==='pipeline')renderPipeline();}
+    }
+  }catch(e){}
+  // Sync chantiers
+  try{
+    const r=await fetch(url+'?action=getData&sheet=Chantiers',{redirect:'follow'});
+    const data=await r.json();
+    if(Array.isArray(data)&&data.length){
+      const sheetCh=data.map(row=>({
+        id:row.ID_Chantier, name:row.Nom_Chantier, projetId:row.Client_ID,
+        address:row.Adresse, statut:row.Statut,
+        dateDebut:row.Date_Début, dateFin:row.Date_Fin_Prévue, notes:row.Notes
+      }));
+      const local=DB.get('chantiers');
+      const localIds=new Set(local.map(c=>c.id));
+      const newItems=sheetCh.filter(c=>c.id&&!localIds.has(c.id));
+      if(newItems.length) DB.set('chantiers',[...local,...newItems]);
+    }
+  }catch(e){}
+}
 function init(){
   seedDemo();
   showView('pipeline');
   updateNavBadges();
+  // Sync depuis Sheet au démarrage (après 3s) puis toutes les 30s
+  setTimeout(autoSyncFromSheet, 3000);
+  setInterval(autoSyncFromSheet, 30000);
 }
 document.addEventListener('DOMContentLoaded', init);
 // Close modals on overlay click
