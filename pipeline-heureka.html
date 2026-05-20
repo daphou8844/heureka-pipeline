@@ -2058,6 +2058,7 @@ function updateChantierStatut(){
       openEmailCompose('ch',currentChantierId);
       setTimeout(()=>applyTemplate('fin_chantier',proj.id||'',currentChantierId),200);
     }
+    addMarketingContentEntry(chantiers[idx], proj);
   }
   renderChantiers();
   syncChantierToSheets(chantiers[idx]);
@@ -2528,6 +2529,21 @@ async function scriptPost(body){
 async function syncClientToSheets(c){ await scriptPost({action:'createClient',...c}); }
 async function syncProjetToSheets(p){ await scriptPost({action:'createProjet',...p}); }
 async function syncChantierToSheets(ch){ await scriptPost({action:'createChantier',...ch}); }
+async function addMarketingContentEntry(ch, proj) {
+  const clients=DB.get('clients');
+  const client=clients.find(c=>c.id===proj.client)||{};
+  const typeLabel=TYPES_LABEL[proj.type]||proj.type||'';
+  const ville=(ch.address||proj.ville||'').split(',')[0].trim();
+  const dateFin=new Date().toLocaleDateString('sv-SE',{timeZone:'America/Toronto'});
+  await scriptPost({action:'addRow',sheet:'Marketing_Contenu',data:{
+    Projet_ID:proj.id||'',
+    Client:client.nom||proj.client||'',
+    Type_Travaux:typeLabel,
+    Ville:ville,
+    Date_Fin_Chantier:dateFin,
+    Statut_Contenu:'En attente de contenu'
+  }});
+}
 async function syncActiviteToSheets(a){ await scriptPost({action:'createActivite',...a}); }
 
 async function syncSheets(){
