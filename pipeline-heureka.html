@@ -2496,12 +2496,13 @@ function saveClient(){
    CONFIG
 ═══════════════════════════════════════════════════════════════════════════ */
 function initConfig(){
-  const saved=DB.getStr('appsScriptUrl');
-  const url=saved||HEUREKA_CONFIG.APPS_SCRIPT_URL;
-  if(!saved&&url) DB.setStr('appsScriptUrl',url);
+  // Toujours utiliser l'URL centrale — écrase toute ancienne valeur
+  DB.setStr('appsScriptUrl', HEUREKA_CONFIG.APPS_SCRIPT_URL);
   const el=document.getElementById('cfg-url');
-  if(el) el.value=url;
-  if(url) document.getElementById('cfg-url-saved').classList.remove('hidden');
+  if(el) el.value=HEUREKA_CONFIG.APPS_SCRIPT_URL;
+  document.getElementById('cfg-url-saved').classList.remove('hidden');
+  const el2=document.getElementById('cfg-sheet-id');
+  if(el2) el2.value=HEUREKA_CONFIG.SPREADSHEET_ID;
   const gr=document.getElementById('cfg-google-review');
   if(gr) gr.value=DB.getStr('googleReviewUrl');
 }
