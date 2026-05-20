@@ -26,7 +26,15 @@ a{color:inherit;text-decoration:none}
 
 /* ─── Layout ────────────────────────────────────────────────────────────────── */
 #app{display:flex;height:100vh;overflow:hidden}
-#sidebar{width:214px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:10}
+#sidebar{width:214px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:10;transition:width .25s ease;overflow:hidden}
+#sidebar.collapsed{width:0}
+.sb-toggle{background:none;border:none;color:var(--muted);font-size:19px;cursor:pointer;padding:4px 10px;border-radius:8px;transition:var(--tr);flex-shrink:0;line-height:1}
+.sb-toggle:hover{background:rgba(201,146,42,.1);color:var(--gold2)}
+.auto-save-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#4ade80;background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.18);border-radius:20px;padding:3px 10px;flex-shrink:0}
+.auto-save-dot{width:6px;height:6px;background:#4ade80;border-radius:50%;flex-shrink:0}
+.sb-app-links{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}
+.sb-app-link{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;background:rgba(201,146,42,.07);border:1px solid rgba(201,146,42,.18);border-radius:7px;padding:6px 4px;font-size:11px;font-weight:700;color:var(--gold2);cursor:pointer;text-decoration:none;transition:var(--tr)}
+.sb-app-link:hover{background:rgba(201,146,42,.15);border-color:var(--gold)}
 #main{flex:1;overflow:hidden;display:flex;flex-direction:column;min-width:0}
 #topbar{padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--bg2)}
 #content{flex:1;overflow:auto;padding:22px 24px;position:relative}
@@ -441,10 +449,11 @@ textarea.form-control{resize:vertical;min-height:72px}
     </nav>
 
     <div class="sb-footer">
-      <button class="sb-sync-btn" onclick="syncSheets()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-        Sync Google Sheets
-      </button>
+      <div class="sb-app-links">
+        <a class="sb-app-link" onclick="window.open(HEUREKA_CONFIG.APPS.ADMIN,'_blank')" title="Admin">🏠 Admin</a>
+        <a class="sb-app-link" onclick="window.open(HEUREKA_CONFIG.APPS.PUNCH,'_blank')" title="Punch">⏱ Punch</a>
+        <a class="sb-app-link" onclick="window.open(HEUREKA_CONFIG.APPS.MARKETING,'_blank')" title="Marketing">📣 Mkt</a>
+      </div>
       <div class="sb-config-item" onclick="showView('config')">
         <span class="nav-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
         Configuration
@@ -462,16 +471,15 @@ textarea.form-control{resize:vertical;min-height:72px}
   <!-- MAIN -->
   <div id="main">
     <div id="topbar">
-      <div>
-        <div class="tb-title" id="topbar-title">Pipeline</div>
-        <div class="tb-sub" id="topbar-sub"></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="sb-toggle" onclick="toggleSidebar()" title="Afficher/masquer le menu">☰</button>
+        <div>
+          <div class="tb-title" id="topbar-title">Pipeline</div>
+          <div class="tb-sub" id="topbar-sub"></div>
+        </div>
       </div>
       <div class="tb-actions" id="topbar-actions">
-        <div style="display:flex;gap:6px;align-items:center">
-          <button onclick="window.open(HEUREKA_CONFIG.APPS.ADMIN,'_blank')" title="Admin" style="background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:#D4AF37;cursor:pointer">🏠 Admin</button>
-          <button onclick="window.open(HEUREKA_CONFIG.APPS.PUNCH,'_blank')" title="Punch" style="background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:#D4AF37;cursor:pointer">⏱ Punch</button>
-          <button onclick="window.open(HEUREKA_CONFIG.APPS.MARKETING,'_blank')" title="Marketing" style="background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:#D4AF37;cursor:pointer">📣 Mkt</button>
-        </div>
+        <span class="auto-save-pill"><span class="auto-save-dot"></span>Auto-enregistré</span>
       </div>
     </div>
     <div id="content">
@@ -4003,8 +4011,14 @@ async function autoSyncFromSheet(){
     }
   }catch(e){}
 }
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');
+  const col=sb.classList.toggle('collapsed');
+  localStorage.setItem('ph_sb_col',col?'1':'');
+}
 function init(){
   clearDemoData();
+  if(localStorage.getItem('ph_sb_col')) document.getElementById('sidebar').classList.add('collapsed');
   showView('pipeline');
   updateNavBadges();
   setTimeout(autoSyncFromSheet, 3000);
