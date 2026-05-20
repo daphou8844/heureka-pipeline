@@ -1723,7 +1723,7 @@ function renderActiItem(a, ctx){
     </div>
     <div class="acti-actions">
       ${completeBtn}
-      <button onclick="deleteActivite('${a.id}','${ctx}')" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px;padding:2px 5px" title="Supprimer">✕</button>
+      <button onclick="event.stopPropagation();deleteActivite('${a.id}','${ctx}','${a.projetId||''}','${a.chantierId||''}')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;cursor:pointer;font-size:12px;padding:3px 7px;border-radius:5px;font-weight:700" title="Supprimer">✕ Suppr.</button>
     </div>
   </div>`;
 }
@@ -1802,11 +1802,14 @@ function addActivite(ctx, refId){
   syncActiviteToSheets(a);
 }
 
-function deleteActivite(id, ctx){
+function deleteActivite(id, ctx, projetId, chantierId){
   const activites = DB.get('activites').filter(a=>a.id!==id);
-  DB.set('activites',activites);
-  if(ctx==='proj') renderProjetActivities(currentProjetId);
-  else renderChantierActivites(currentChantierId);
+  DB.set('activites', activites);
+  const pid = projetId || currentProjetId;
+  const cid = chantierId || currentChantierId;
+  if(ctx==='proj'){ renderProjetActivities(pid); if(currentView==='pipeline') renderPipeline(); }
+  else renderChantierActivites(cid);
+  showToast('Activité supprimée ✓');
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
