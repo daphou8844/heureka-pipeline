@@ -3016,56 +3016,18 @@ function offerPostProjetSuivi(p){
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   DEMO DATA
+   NETTOYAGE DONNÉES DÉMO
 ═══════════════════════════════════════════════════════════════════════════ */
-function seedDemo(){
-  if(DB.get('clients').length>0) return;
-  const clients=[
-    {id:'c1',nom:'Jean-François Tremblay',telephone:'514-555-0101',email:'jf.tremblay@gmail.com',adresse:'123 Rue Principale',ville:'Montréal',notes:'Client fidèle depuis 2022',dateCreation:new Date('2024-01-15').toISOString()},
-    {id:'c2',nom:'Marie-Hélène Gagnon',telephone:'438-555-0202',email:'mh.gagnon@outlook.com',adresse:'456 Boul. des Sources',ville:'Laval',notes:'Référée par Tremblay',dateCreation:new Date('2024-03-10').toISOString()},
-    {id:'c3',nom:'Construction Boivin Inc.',telephone:'450-555-0303',email:'info@boivin.ca',adresse:'789 Av. Industrielle',ville:'Longueuil',notes:'Client commercial - bon payeur',dateCreation:new Date('2024-06-01').toISOString()},
-  ];
-  DB.set('clients',clients);
-
-  const projets=[
-    {id:'p1',clientId:'c1',nom:'Rénovation cuisine complète',statut:'rdv_pris',typeProjet:'renovation',source:'reference',priorite:'haute',prix:'28000',notes:'Cuisine avec îlot, comptoir granit',dateDernierContact:new Date(Date.now()-3*86400000).toISOString().split('T')[0],dateProchainRDV:new Date(Date.now()+4*86400000).toISOString().split('T')[0],soumissionUrl:'',soumissionNom:'',dateCreation:new Date('2024-11-01').toISOString(),dateMiseAJour:new Date().toISOString()},
-    {id:'p2',clientId:'c2',nom:'Addition garage double',statut:'faire_soumission',typeProjet:'construction',source:'web',priorite:'normale',prix:'45000',notes:'Garage 24x24 avec loft',dateDernierContact:new Date(Date.now()-12*86400000).toISOString().split('T')[0],dateProchainRDV:'',soumissionUrl:'',soumissionNom:'',dateCreation:new Date('2024-11-15').toISOString(),dateMiseAJour:new Date().toISOString()},
-    {id:'p3',clientId:'c3',nom:'Entrepôt commercial phase 2',statut:'soumission_envoyee',typeProjet:'commercial',source:'appel',priorite:'urgente',prix:'180000',notes:'Extension 5000 pi² avec bureaux',dateDernierContact:new Date(Date.now()-1*86400000).toISOString().split('T')[0],dateProchainRDV:new Date(Date.now()+2*86400000).toISOString().split('T')[0],soumissionUrl:'https://drive.google.com',soumissionNom:'Soumission_Boivin_Phase2.pdf',dateCreation:new Date('2024-12-01').toISOString(),dateMiseAJour:new Date().toISOString()},
-    {id:'p4',clientId:'c1',nom:'Salle de bain principale',statut:'gagne',typeProjet:'renovation',source:'reference',priorite:'normale',prix:'15000',notes:'Douche italienne, bain autoportant',dateDernierContact:new Date('2024-10-01').toISOString().split('T')[0],dateProchainRDV:'',soumissionUrl:'',soumissionNom:'',dateCreation:new Date('2024-09-15').toISOString(),dateMiseAJour:new Date().toISOString()},
-    {id:'p5',clientId:'c2',nom:'Patio arrière bois traité',statut:'a_contacter',typeProjet:'residential',source:'social',priorite:'basse',prix:'8500',notes:'',dateDernierContact:new Date(Date.now()-7*86400000).toISOString().split('T')[0],dateProchainRDV:'',soumissionUrl:'',soumissionNom:'',dateCreation:new Date('2024-12-10').toISOString(),dateMiseAJour:new Date().toISOString()},
-    {id:'p6',clientId:'c3',nom:'Réfection toiture usine',statut:'perdu',typeProjet:'commercial',source:'web',priorite:'normale',prix:'55000',notes:'Client a choisi concurrent moins cher',dateDernierContact:new Date('2024-11-20').toISOString().split('T')[0],dateProchainRDV:'',soumissionUrl:'',soumissionNom:'',dateCreation:new Date('2024-10-01').toISOString(),dateMiseAJour:new Date().toISOString()},
-  ];
-  DB.set('projets',projets);
-
-  const chantiers=[{
-    id:'ch1',projetId:'p4',clientId:'c1',statut:'en_cours',adresse:'123 Rue Principale, Montréal',
-    dateDebut:'2025-01-06',dateFin:'2025-01-31',progression:45,notes:'Chantier en cours — plomberie terminée',
-    etapes:[
-      {titre:'Démolition',statut:'done',dateDebut:'2025-01-06',dateFin:'2025-01-08'},
-      {titre:'Plomberie',statut:'done',dateDebut:'2025-01-08',dateFin:'2025-01-13'},
-      {titre:'Carrelage',statut:'in_progress',dateDebut:'2025-01-13',dateFin:'2025-01-20'},
-      {titre:'Peinture & finition',statut:'todo',dateDebut:'2025-01-20',dateFin:'2025-01-28'},
-      {titre:'Nettoyage',statut:'todo',dateDebut:'2025-01-28',dateFin:'2025-01-31'},
-    ],
-    taches:[
-      {id:uid(),titre:'Commander robinetterie Kohler',statut:'done',assigneA:'Maxime',dateEcheance:'2025-01-05'},
-      {id:uid(),titre:'Vérifier état sous-plancher',statut:'done',assigneA:'Maxime',dateEcheance:'2025-01-07'},
-      {id:uid(),titre:'Installer douche italienne',statut:'todo',assigneA:'Jean',dateEcheance:'2025-01-15'},
-      {id:uid(),titre:'Inspection finale client',statut:'todo',assigneA:'Maxime',dateEcheance:'2025-01-31'},
-    ],
-    dateCreation:new Date().toISOString()
-  }];
-  DB.set('chantiers',chantiers);
-
-  const activites=[
-    {id:uid(),projetId:'p1',chantierId:'',type:'rdv',description:'Visite du chantier, prise de mesures',date:new Date(Date.now()-3*86400000).toISOString().split('T')[0],userId:'maxime',dateCreation:new Date().toISOString()},
-    {id:uid(),projetId:'p2',chantierId:'',type:'appel',description:'Premier contact, intéressé pour garage',date:new Date(Date.now()-12*86400000).toISOString().split('T')[0],userId:'maxime',dateCreation:new Date().toISOString()},
-    {id:uid(),projetId:'p3',chantierId:'',type:'envoyer_soumission',description:'Soumission envoyée par courriel',date:new Date(Date.now()-1*86400000).toISOString().split('T')[0],userId:'maxime',dateCreation:new Date().toISOString()},
-    {id:uid(),projetId:'p3',chantierId:'',type:'rdv',description:'RDV de suivi prévu',date:new Date(Date.now()+2*86400000).toISOString().split('T')[0],userId:'maxime',dateCreation:new Date().toISOString()},
-    {id:uid(),projetId:'p1',chantierId:'',type:'rdv',description:'RDV de finalisation plans',date:new Date(Date.now()+4*86400000).toISOString().split('T')[0],userId:'maxime',dateCreation:new Date().toISOString()},
-    {id:uid(),projetId:'',chantierId:'ch1',type:'suivi',description:'Travaux carrelage débutés, bon rythme',date:todayStr(),userId:'maxime',dateCreation:new Date().toISOString()},
-  ];
-  DB.set('activites',activites);
+function clearDemoData(){
+  if(localStorage.getItem('ph_demo_cleared')) return;
+  const demoC=new Set(['c1','c2','c3']);
+  const demoP=new Set(['p1','p2','p3','p4','p5','p6']);
+  const demoCh=new Set(['ch1']);
+  DB.set('clients',  DB.get('clients').filter(x=>!demoC.has(x.id)));
+  DB.set('projets',  DB.get('projets').filter(x=>!demoP.has(x.id)));
+  DB.set('chantiers',DB.get('chantiers').filter(x=>!demoCh.has(x.id)));
+  DB.set('activites',DB.get('activites').filter(x=>!demoC.has(x.clientId)&&!demoP.has(x.projetId)&&!demoCh.has(x.chantierId)));
+  localStorage.setItem('ph_demo_cleared','1');
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -4042,7 +4004,7 @@ async function autoSyncFromSheet(){
   }catch(e){}
 }
 function init(){
-  seedDemo();
+  clearDemoData();
   showView('pipeline');
   updateNavBadges();
   setTimeout(autoSyncFromSheet, 3000);
