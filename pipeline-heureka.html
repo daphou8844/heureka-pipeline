@@ -466,7 +466,13 @@ textarea.form-control{resize:vertical;min-height:72px}
         <div class="tb-title" id="topbar-title">Pipeline</div>
         <div class="tb-sub" id="topbar-sub"></div>
       </div>
-      <div class="tb-actions" id="topbar-actions"></div>
+      <div class="tb-actions" id="topbar-actions">
+        <div style="display:flex;gap:6px;align-items:center">
+          <button onclick="window.open(HEUREKA_CONFIG.APPS.ADMIN,'_blank')" title="Admin" style="background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:#D4AF37;cursor:pointer">🏠 Admin</button>
+          <button onclick="window.open(HEUREKA_CONFIG.APPS.PUNCH,'_blank')" title="Punch" style="background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:#D4AF37;cursor:pointer">⏱ Punch</button>
+          <button onclick="window.open(HEUREKA_CONFIG.APPS.MARKETING,'_blank')" title="Marketing" style="background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:#D4AF37;cursor:pointer">📣 Mkt</button>
+        </div>
+      </div>
     </div>
     <div id="content">
 
