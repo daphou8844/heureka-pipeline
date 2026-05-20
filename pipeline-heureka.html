@@ -572,7 +572,7 @@ textarea.form-control{resize:vertical;min-height:72px}
             <div class="config-title">📊 Google Sheets ID</div>
             <div class="form-group">
               <label class="form-label">Spreadsheet ID</label>
-              <input class="form-control" id="cfg-sheet-id" value="1kxWL4TJNj5JG0vKDCpbS2XhUodfyVow9lxHM8lYSwwo" readonly>
+              <input class="form-control" id="cfg-sheet-id" value="1NVUNaS5qOo6PMZvSfh3MLDuJCmsUp5qu10967SaGipw" readonly>
             </div>
           </div>
           <div class="config-section">
@@ -1055,7 +1055,7 @@ textarea.form-control{resize:vertical;min-height:72px}
 /* ═══════════════════════════════════════════════════════════════════════════
    CONFIG & CONSTANTS
 ═══════════════════════════════════════════════════════════════════════════ */
-const SPREADSHEET_ID = '1kxWL4TJNj5JG0vKDCpbS2XhUodfyVow9lxHM8lYSwwo';
+const SPREADSHEET_ID = '1NVUNaS5qOo6PMZvSfh3MLDuJCmsUp5qu10967SaGipw';
 
 const COLUMNS = [
   { id:'pas_repondu', label:'Pas répondu', color:'#6B7280' },
@@ -1893,7 +1893,7 @@ function createChantierFromProjet(projet){
   syncToAdmin(projet);
 }
 
-const ADMIN_GAS_URL = 'https://script.google.com/macros/s/AKfycbwzhekI8CnQ0Erg_s2mM2G5n2gB-kzl2XnAeTtdjFGs2B-pyVX8yCGZISseIJsyvhNxaA/exec';
+const ADMIN_GAS_URL = HEUREKA_CONFIG.APPS_SCRIPT_URL;
 
 async function syncToAdmin(projet){
   try {
@@ -2496,7 +2496,9 @@ function saveClient(){
    CONFIG
 ═══════════════════════════════════════════════════════════════════════════ */
 function initConfig(){
-  const url=DB.getStr('appsScriptUrl');
+  const saved=DB.getStr('appsScriptUrl');
+  const url=saved||HEUREKA_CONFIG.APPS_SCRIPT_URL;
+  if(!saved&&url) DB.setStr('appsScriptUrl',url);
   const el=document.getElementById('cfg-url');
   if(el) el.value=url;
   if(url) document.getElementById('cfg-url-saved').classList.remove('hidden');
@@ -3874,7 +3876,7 @@ async function revFinaliser(){
   };
 
   // Sheets
-  const GAS=DB.cfg().scriptUrl||'https://script.google.com/macros/s/AKfycbwzhekI8CnQ0Erg_s2mM2G5n2gB-kzl2XnAeTtdjFGs2B-pyVX8yCGZISseIJsyvhNxaA/exec';
+  const GAS=DB.getStr('appsScriptUrl')||HEUREKA_CONFIG.APPS_SCRIPT_URL;
   let msg='';
   try{
     const r=await fetch(GAS,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'saveSoumission',data:soumission}),redirect:'follow'});
