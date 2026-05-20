@@ -4045,9 +4045,8 @@ function init(){
   seedDemo();
   showView('pipeline');
   updateNavBadges();
-  // Sync depuis Sheet au démarrage (après 3s) puis toutes les 30s
   setTimeout(autoSyncFromSheet, 3000);
-  setInterval(autoSyncFromSheet, 30000);
+  setInterval(autoSyncFromSheet, HEUREKA_CONFIG.SYNC_INTERVAL_MS);
 }
 document.addEventListener('DOMContentLoaded', init);
 // Close modals on overlay click
