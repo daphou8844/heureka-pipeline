@@ -1578,8 +1578,7 @@ async function createDriveFolderForProjet(p){
   showToast('📁 Création du dossier Drive en cours...');
   const res = await scriptPost({
     action: 'createChantierFolder',
-    clientNom, ville, projetId: p.id,
-    email: client.email || ''
+    clientNom, ville, projetId: p.id
   });
   if(res && res.status === 'ok'){
     const projets = DB.get('projets');
