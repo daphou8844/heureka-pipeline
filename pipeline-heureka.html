@@ -4139,9 +4139,9 @@ function setBadge(id, count){
 }
 
 function updateNavBadges(){
-  // Pipeline : projets actifs (hors perdu / terminé)
+  // Pipeline : projets actifs (hors gagné / perdu)
   const projets = DB.get('projets');
-  const actifs  = projets.filter(p=>!['perdu','termine'].includes(p.statut)).length;
+  const actifs  = projets.filter(p=>!['gagne','perdu'].includes(p.statut)).length;
   setBadge('badge-pipeline', actifs);
 
   // Courriels : courriels non envoyés (local ou erreur)
