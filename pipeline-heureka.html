@@ -1479,6 +1479,7 @@ function markFromPanel(actId, projetId){
   acts[idx].done = true;
   acts[idx].dateDone = todayStr();
   DB.set('activites', acts);
+  syncActiviteToSheets(acts[idx], true);
   closeActivityPanel();
   renderPipeline();
   setTimeout(()=>{ openFollowUpModal(acts[idx], 'proj'); }, 150);
@@ -1780,6 +1781,7 @@ function markActiviteComplete(id, ctx){
   activites[idx].done = true;
   activites[idx].dateDone = todayStr();
   DB.set('activites', activites);
+  syncActiviteToSheets(activites[idx], true);
   const a = activites[idx];
   if(ctx==='proj'){ renderProjetActivities(currentProjetId); if(currentView==='pipeline') renderPipeline(); }
   else { renderChantierActivites(currentChantierId); }
@@ -2595,8 +2597,9 @@ async function syncProjetToSheets(p, isUpdate=false){
   else await scriptPost({action:'addRow',sheet:'Projets',data});
 }
 async function syncChantierToSheets(ch, isUpdate=false){
+  const proj=DB.get('projets').find(p=>p.id===ch.projetId)||{};
   const data={
-    ID_Chantier:ch.id, Nom_Chantier:ch.name||ch.nom||'', Client_ID:ch.clientId||'',
+    ID_Chantier:ch.id, Nom_Chantier:ch.name||ch.nom||proj.nom||'', Client_ID:ch.clientId||'',
     Adresse:ch.adresse||'', Statut:ch.statut||'',
     'Date_Début':ch.dateDebut||'', 'Date_Fin_Prévue':ch.dateFin||'',
     Budget:ch.budget||'', Notes:ch.notes||'', 'Type_Équipe_Associée':ch.typeEquipe||''
@@ -2619,7 +2622,27 @@ async function addMarketingContentEntry(ch, proj) {
     Statut_Contenu:'En attente de contenu'
   }});
 }
-async function syncActiviteToSheets(a){ await scriptPost({action:'createActivite',...a}); }
+async function syncCourrielToSheets(c){
+  const data={
+    'ID_Courriel':c.id, 'Projet_ID':c.projetId||'', 'Client_ID':'',
+    'Destinataire':c.to||'', 'Sujet':c.subject||'',
+    'Message':(c.body||'').substring(0,500),
+    'Template':c.templateId||'', 'Date_Envoi':c.dateSent||''
+  };
+  await scriptPost({action:'addRow',sheet:'Courriels',data});
+}
+
+async function syncActiviteToSheets(a, isUpdate=false){
+  const data={
+    'ID_Activité':a.id, 'Projet_ID':a.projetId||'', 'Client_ID':'',
+    'Type':a.type||'', 'Date':a.date||'',
+    'Description':a.description||a.desc||'',
+    'Complétée':a.done?'Oui':'Non',
+    'Date_Créé':a.dateCreation||a.createdAt||''
+  };
+  if(isUpdate) await scriptPost({action:'updateRow',sheet:'Activités',id:a.id,data});
+  else await scriptPost({action:'addRow',sheet:'Activités',data});
+}
 
 async function syncSheets(){
   const url=getScriptUrl();
@@ -2685,6 +2708,48 @@ async function syncSheets(){
     for(const ch of DB.get('chantiers')){
       if(!sheetChIds.has(ch.id)) await syncChantierToSheets(ch, false);
     }
+
+    // ── ACTIVITÉS : tire du Sheet puis pousse ce qui manque ──
+    try{
+      const ra=await fetch(url+'?action=getData&sheet=Activités',{redirect:'follow'});
+      const da=await ra.json();
+      const rowsA=Array.isArray(da.data)?da.data:[];
+      const sheetAIds=new Set(rowsA.map(r=>r['ID_Activité']).filter(Boolean));
+      if(rowsA.length){
+        const sheetActs=rowsA.map(row=>({
+          id:row['ID_Activité']||'', projetId:row.Projet_ID||'',
+          type:row.Type||'', date:row.Date||'',
+          description:row.Description||'', desc:row.Description||'',
+          done:row['Complétée']==='Oui', dateCreation:row['Date_Créé']||''
+        })).filter(a=>a.id);
+        const localOnlyA=DB.get('activites').filter(a=>!sheetAIds.has(a.id));
+        DB.set('activites',[...sheetActs,...localOnlyA]);
+      }
+      for(const a of DB.get('activites')){
+        if(!sheetAIds.has(a.id)) await syncActiviteToSheets(a, false);
+      }
+    }catch(e){}
+
+    // ── COURRIELS : tire du Sheet puis pousse ce qui manque ──
+    try{
+      const rc2=await fetch(url+'?action=getData&sheet=Courriels',{redirect:'follow'});
+      const dc2=await rc2.json();
+      const rowsC2=Array.isArray(dc2.data)?dc2.data:[];
+      const sheetCIds=new Set(rowsC2.map(r=>r.ID_Courriel).filter(Boolean));
+      if(rowsC2.length){
+        const sheetC=rowsC2.map(row=>({
+          id:row.ID_Courriel||'', projetId:row.Projet_ID||'',
+          to:row.Destinataire||'', subject:row.Sujet||'',
+          body:row.Message||'', templateId:row.Template||'',
+          dateSent:row.Date_Envoi||'', status:'sent'
+        })).filter(c=>c.id);
+        const localOnlyC=DB.get('courriels').filter(c=>!sheetCIds.has(c.id));
+        DB.set('courriels',[...sheetC,...localOnlyC]);
+      }
+      for(const c of DB.get('courriels')){
+        if(!sheetCIds.has(c.id)) await syncCourrielToSheets(c);
+      }
+    }catch(e){}
 
     showToast('✓ Sync terminée');
     if(currentView==='pipeline') renderPipeline();
@@ -3059,6 +3124,7 @@ async function sendEmail(){
 
   const courriel = { id:uid(), projetId, chantierId, to, subject, body, attachment, status, dateSent:new Date().toISOString(), templateId:_lastTemplateId||'' };
   const courriels = DB.get('courriels'); courriels.unshift(courriel); DB.set('courriels',courriels);
+  syncCourrielToSheets(courriel);
   logHistory(projetId,'courriel',`Courriel envoyé à ${to} — "${subject}"`);
 
   closeModal('modal-email');
@@ -4133,15 +4199,52 @@ async function autoSyncFromSheet(){
     const rows=Array.isArray(d.data)?d.data:[];
     if(rows.length){
       const sheetCh=rows.map(row=>({
-        id:row.ID_Chantier, projetId:row.Projet_ID||'', clientId:row.Client_ID||'',
+        id:row.ID_Chantier, name:row.Nom_Chantier||'', nom:row.Nom_Chantier||'',
+        projetId:row.Projet_ID||'', clientId:row.Client_ID||'',
         adresse:row.Adresse||'', statut:row.Statut||'',
         dateDebut:row['Date_Début']||'', dateFin:row['Date_Fin_Prévue']||'',
-        notes:row.Notes||''
+        notes:row.Notes||'',
+        driveId:row.Drive_ID||'', driveUrl:row.Drive_URL||''
       })).filter(c=>c.id);
       const sheetIds=new Set(sheetCh.map(c=>c.id));
       const localOnly=DB.get('chantiers').filter(c=>!sheetIds.has(c.id));
       DB.set('chantiers',[...sheetCh,...localOnly]);
       if(currentView==='chantiers') renderChantiers();
+    }
+  }catch(e){}
+  // Sync activités — Sheet gagne
+  try{
+    const r=await fetch(url+'?action=getData&sheet=Activités',{redirect:'follow'});
+    const d=await r.json();
+    const rows=Array.isArray(d.data)?d.data:[];
+    if(rows.length){
+      const sheetActs=rows.map(row=>({
+        id:row['ID_Activité']||row.ID_Activit||'', projetId:row.Projet_ID||'',
+        type:row.Type||'', date:row.Date||'',
+        description:row.Description||'', desc:row.Description||'',
+        done:row['Complétée']==='Oui', dateDone:'',
+        dateCreation:row['Date_Créé']||''
+      })).filter(a=>a.id);
+      const sheetIds=new Set(sheetActs.map(a=>a.id));
+      const localOnly=DB.get('activites').filter(a=>!sheetIds.has(a.id));
+      DB.set('activites',[...sheetActs,...localOnly]);
+    }
+  }catch(e){}
+  // Sync courriels — Sheet gagne
+  try{
+    const r=await fetch(url+'?action=getData&sheet=Courriels',{redirect:'follow'});
+    const d=await r.json();
+    const rows=Array.isArray(d.data)?d.data:[];
+    if(rows.length){
+      const sheetC=rows.map(row=>({
+        id:row.ID_Courriel||'', projetId:row.Projet_ID||'',
+        to:row.Destinataire||'', subject:row.Sujet||'',
+        body:row.Message||'', templateId:row.Template||'',
+        dateSent:row.Date_Envoi||'', status:'sent'
+      })).filter(c=>c.id);
+      const sheetIds=new Set(sheetC.map(c=>c.id));
+      const localOnly=DB.get('courriels').filter(c=>!sheetIds.has(c.id));
+      DB.set('courriels',[...sheetC,...localOnly]);
     }
   }catch(e){}
 }
