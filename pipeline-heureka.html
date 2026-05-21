@@ -2534,7 +2534,7 @@ function saveCfgUrl(){
 /* ═══════════════════════════════════════════════════════════════════════════
    GOOGLE SHEETS SYNC
 ═══════════════════════════════════════════════════════════════════════════ */
-function getScriptUrl(){ return DB.getStr('appsScriptUrl'); }
+function getScriptUrl(){ return DB.getStr('appsScriptUrl') || HEUREKA_CONFIG.APPS_SCRIPT_URL; }
 
 async function scriptPost(body){
   const url=getScriptUrl(); if(!url) return null;
@@ -4113,6 +4113,7 @@ function toggleSidebar(){
 }
 function init(){
   clearDemoData();
+  DB.setStr('appsScriptUrl', HEUREKA_CONFIG.APPS_SCRIPT_URL);
   if(localStorage.getItem('ph_sb_col')) document.getElementById('sidebar').classList.add('collapsed');
   showView('pipeline');
   updateNavBadges();
