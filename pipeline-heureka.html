@@ -1566,7 +1566,7 @@ function moveProjet(projetId, newStatut){
   suggestEmailOnStatut(projets[idx], old);
   DB.set('projets',projets);
   renderPipeline();
-  syncProjetToSheets(projets[idx]);
+  syncProjetToSheets(projets[idx], true);
   if(newStatut==='gagne') showToast('🏗 Projet gagné ! Chantier créé automatiquement.');
 }
 
@@ -1879,7 +1879,7 @@ function saveEditProjet(){
   closeModal('modal-edit-projet');
   renderProjetDetail();
   if(currentView==='pipeline') renderPipeline();
-  syncProjetToSheets(p);
+  syncProjetToSheets(p, true);
   showToast('Projet mis à jour ✓');
 }
 
@@ -2554,7 +2554,19 @@ async function syncClientToSheets(c, isUpdate=false){
   if(isUpdate) await scriptPost({action:'updateRow',sheet:'Clients',id:c.id,data});
   else await scriptPost({action:'addRow',sheet:'Clients',data});
 }
-async function syncProjetToSheets(p){ await scriptPost({action:'createProjet',...p}); }
+async function syncProjetToSheets(p, isUpdate=false){
+  const data={
+    ID_Projet:p.id, Client_ID:p.clientId||'', Nom_Projet:p.nom||'',
+    Statut:p.statut||'', 'Priorité':p.priorite||'', Type_Projet:p.typeProjet||'',
+    'Source_Référence':p.source||'', 'Prix_Estimé':p.prix||'',
+    'Coût_Matériaux':p.coutMateriaux||'', 'Coût_MO':p.coutMainOeuvre||'',
+    Lien_Soumission:p.soumissionUrl||'', Notes:p.notes||'',
+    'Date_Créé':p.dateCreation?p.dateCreation.split('T')[0]:'',
+    Date_RDV:p.dateProchainRDV||''
+  };
+  if(isUpdate) await scriptPost({action:'updateRow',sheet:'Projets',id:p.id,data});
+  else await scriptPost({action:'addRow',sheet:'Projets',data});
+}
 async function syncChantierToSheets(ch){ await scriptPost({action:'createChantier',...ch}); }
 async function addMarketingContentEntry(ch, proj) {
   const clients=DB.get('clients');
@@ -2592,6 +2604,24 @@ async function syncSheets(){
       const sheetCIds=new Set(sheetClients.map(c=>c.id));
       const localOnlyC=DB.get('clients').filter(c=>!sheetCIds.has(c.id));
       DB.set('clients',[...sheetClients,...localOnlyC]);
+    }
+    // Projets
+    const rp=await fetch(url+'?action=getData&sheet=Projets',{redirect:'follow'});
+    const dp=await rp.json();
+    const rowsP=Array.isArray(dp.data)?dp.data:[];
+    if(rowsP.length){
+      const sheetProjets=rowsP.map(row=>({
+        id:row.ID_Projet, clientId:row.Client_ID||'', nom:row.Nom_Projet||'',
+        statut:row.Statut||'', priorite:row['Priorité']||'',
+        typeProjet:row.Type_Projet||'', source:row['Source_Référence']||'',
+        prix:row['Prix_Estimé']||'', coutMateriaux:row['Coût_Matériaux']||'',
+        coutMainOeuvre:row['Coût_MO']||'', soumissionUrl:row.Lien_Soumission||'',
+        notes:row.Notes||'', dateCreation:row['Date_Créé']||'',
+        dateProchainRDV:row.Date_RDV||''
+      })).filter(p=>p.id);
+      const sheetPIds=new Set(sheetProjets.map(p=>p.id));
+      const localOnlyP=DB.get('projets').filter(p=>!sheetPIds.has(p.id));
+      DB.set('projets',[...sheetProjets,...localOnlyP]);
     }
     showToast('✓ Synchronisation réussie');
     if(currentView==='pipeline') renderPipeline();
