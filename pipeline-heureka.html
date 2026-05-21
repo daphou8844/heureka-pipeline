@@ -1561,6 +1561,7 @@ function moveProjet(projetId, newStatut){
   if(old===newStatut) return;
   projets[idx].statut = newStatut;
   projets[idx].dateMiseAJour = new Date().toISOString();
+  if(newStatut==='rdv_pris' && old!=='rdv_pris') createDriveFolderForProjet(projets[idx]);
   if(newStatut==='gagne' && old!=='gagne'){ createChantierFromProjet(projets[idx]); offerPostProjetSuivi(projets[idx]); }
   logHistory(projetId,'statut',`${old} → ${newStatut}`);
   suggestEmailOnStatut(projets[idx], old);
@@ -1568,6 +1569,32 @@ function moveProjet(projetId, newStatut){
   renderPipeline();
   syncProjetToSheets(projets[idx], true);
   if(newStatut==='gagne') showToast('🏗 Projet gagné ! Chantier créé automatiquement.');
+}
+
+async function createDriveFolderForProjet(p){
+  const client = getClient(p.clientId) || {};
+  const clientNom = client.nom || p.nom || 'Client';
+  const ville = client.ville || (client.adresse||'').split(',').pop().trim() || '';
+  showToast('📁 Création du dossier Drive en cours...');
+  const res = await scriptPost({
+    action: 'createChantierFolder',
+    clientNom, ville, projetId: p.id,
+    email: client.email || ''
+  });
+  if(res && res.status === 'ok'){
+    const projets = DB.get('projets');
+    const idx = projets.findIndex(pp=>pp.id===p.id);
+    if(idx !== -1){
+      projets[idx].driveId  = res.driveId;
+      projets[idx].driveUrl = res.driveUrl;
+      projets[idx].chanId   = res.chanId;
+      DB.set('projets', projets);
+    }
+    showToast(`📁 Dossier Drive créé : ${res.chanId}`);
+    if(currentProjetId === p.id) renderProjetDetail();
+  } else {
+    showToast('⚠ Erreur création dossier Drive: ' + (res&&res.message||'inconnu'));
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -1667,6 +1694,7 @@ function renderProjetDetail(){
         ${infoRow('Dernier contact', `<span style="${alertStyle}">${fmtDate(p.dateDernierContact)}${days>0?` (${days}j)`:''}</span>`)}
         ${infoRow('Prochain RDV', p.dateProchainRDV?`<span style="color:var(--teal)">${fmtDate(p.dateProchainRDV)}</span>`:'—')}
         ${p.soumissionUrl?infoRow('Soumission', `<a href="${escHtml(p.soumissionUrl)}" target="_blank">📎 ${escHtml(p.soumissionNom||'Voir le document')}</a>`):''}
+        ${p.driveUrl?infoRow('Dossier Drive', `<a href="${escHtml(p.driveUrl)}" target="_blank" style="color:#D4AF37;font-weight:600">📁 ${escHtml(p.chanId||'Ouvrir le dossier')}</a>`):''}
       </div>
     </div>
     ${margeDisplay(p)}
