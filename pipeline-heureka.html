@@ -1491,8 +1491,10 @@ function addActivityFromPanel(projetId){
   const desc = (document.getElementById('amp-desc')?.value||'').trim();
   if(!type||!date){ showToast('Choisissez un type et une date.'); return; }
   const acts = DB.get('activites');
-  acts.push({ id:uid(), projetId, type, date, desc, done:false, createdAt:new Date().toISOString() });
+  const newAct = { id:uid(), projetId, type, date, desc, done:false, createdAt:new Date().toISOString() };
+  acts.push(newAct);
   DB.set('activites', acts);
+  syncActiviteToSheets(newAct);
   const projets = DB.get('projets');
   const pi = projets.findIndex(p=>p.id===projetId);
   if(pi!==-1){ projets[pi].dateDernierContact=todayStr(); DB.set('projets',projets); }
@@ -1537,8 +1539,8 @@ function renderCard(p){
 
 function confirmDeleteFromCard(projetId){
   if(!confirm('Supprimer ce projet définitivement ?')) return;
-  const projets = DB.get('projets').filter(p=>p.id!==projetId);
-  DB.set('projets',projets);
+  DB.set('projets', DB.get('projets').filter(p=>p.id!==projetId));
+  scriptPost({action:'deleteRow', sheet:'Projets', id:projetId});
   renderPipeline();
   showToast('Projet supprimé.');
 }
@@ -1850,8 +1852,8 @@ function addActivite(ctx, refId){
 }
 
 function deleteActivite(id, ctx, projetId, chantierId){
-  const activites = DB.get('activites').filter(a=>a.id!==id);
-  DB.set('activites', activites);
+  DB.set('activites', DB.get('activites').filter(a=>a.id!==id));
+  scriptPost({action:'deleteRow', sheet:'Activités', id});
   const pid = projetId || currentProjetId;
   const cid = chantierId || currentChantierId;
   if(ctx==='proj'){ renderProjetActivities(pid); if(currentView==='pipeline') renderPipeline(); }
@@ -1914,8 +1916,10 @@ function saveEditProjet(){
 
 function deleteProjet(){
   if(!confirm('Supprimer ce projet définitivement ?')) return;
-  const projets = DB.get('projets').filter(p=>p.id!==currentProjetId);
+  const deletedId = currentProjetId;
+  const projets = DB.get('projets').filter(p=>p.id!==deletedId);
   DB.set('projets',projets);
+  scriptPost({action:'deleteRow', sheet:'Projets', id:deletedId});
   closeModal('modal-edit-projet');
   closeModal('modal-projet');
   renderPipeline();
@@ -2085,7 +2089,7 @@ function deleteChantier(){
   DB.set('chantiers', chantiers);
   closeModal('modal-chantier');
   renderChantiers();
-  scriptPost({action:'deleteChantier', id:currentChantierId});
+  scriptPost({action:'deleteRow', sheet:'Chantiers', id:currentChantierId});
   showToast('Chantier supprimé.');
 }
 
