@@ -1334,6 +1334,7 @@ function renderPipeline(){
   document.getElementById('topbar-sub').textContent = `${actifs.length} projet${actifs.length!==1?'s':''} actifs`;
   renderPipelineTotals(projets);
   renderInactivityAlerts();
+  updateNavBadges();
 }
 
 function renderPipelineTotals(projets){
@@ -2059,6 +2060,7 @@ function renderChantiers(){
       </div>
     </div>`;
   }).join('');
+  updateNavBadges();
 }
 
 function setChantiersFilter(f){ chantiersFilter=f; renderChantiers(); }
