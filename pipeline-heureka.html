@@ -165,8 +165,8 @@ a{color:inherit;text-decoration:none}
 .acti-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;border:1px solid rgba(255,255,255,.06)}
 /* Icon status colors */
 .acti-icon.ico-late{background:rgba(239,68,68,.25)}
-.acti-icon.ico-today{background:rgba(34,197,94,.25)}
-.acti-icon.ico-future{background:rgba(107,114,128,.18)}
+.acti-icon.ico-today{background:rgba(234,179,8,.25)}
+.acti-icon.ico-future{background:rgba(34,197,94,.18)}
 .acti-icon.ico-done{background:rgba(107,114,128,.12)}
 .acti-content{flex:1;min-width:0}
 .acti-type{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
@@ -1235,7 +1235,7 @@ let activeTab = 'overview';
    UTILS
 ═══════════════════════════════════════════════════════════════════════════ */
 function uid(){ return crypto.randomUUID(); }
-function todayStr(){ return new Date().toISOString().split('T')[0]; }
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function daysSince(d){ if(!d) return 999; return Math.floor((Date.now()-new Date(d).getTime())/86400000); }
 function fmtDate(d){ if(!d||d===''||d==='undefined'||d==='null') return '—'; try{ const p=d.split('T')[0].split('-'); if(p.length<3||!p[0]||!p[1]||!p[2]) return '—'; return p[2]+'/'+p[1]+'/'+p[0]; }catch(e){ return '—'; } }
 function fmtMoney(n){ if(!n||n===0||n==='') return '—'; return '$'+Number(n).toLocaleString('fr-CA'); }
@@ -1759,7 +1759,7 @@ function renderActiItem(a, ctx){
   const s = isDone ? 'done' : actiStatus(a.date);
   const icoClass = isDone ? 'ico-done' : s==='late' ? 'ico-late' : s==='today' ? 'ico-today' : 'ico-future';
   const sLabel = isDone ? '✓ Complété' : s==='late' ? '⬤ En retard' : s==='today' ? '⬤ Aujourd\'hui' : '⬤ À venir';
-  const sColor = isDone ? 'var(--muted2)' : s==='late' ? 'var(--red)' : s==='today' ? 'var(--green)' : 'var(--muted2)';
+  const sColor = isDone ? 'var(--muted2)' : s==='late' ? 'var(--red)' : s==='today' ? '#EAB308' : 'var(--green)';
   const completeBtn = !isDone
     ? `<button class="btn-complete" onclick="markActiviteComplete('${a.id}','${ctx}')" title="Marquer comme complété">✓ Complété</button>`
     : '';
