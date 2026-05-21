@@ -2300,6 +2300,7 @@ function deleteEtape(chantierId,index){
   if(idx===-1) return;
   chantiers[idx].etapes.splice(index,1);
   DB.set('chantiers',chantiers);
+  syncChantierToSheets(chantiers[idx], true);
   renderEcheancier(chantiers[idx]);
 }
 
@@ -2386,6 +2387,7 @@ function deleteTache(chantierId,index){
   chantiers[idx].taches.splice(index,1);
   updateProgression_calc(chantiers[idx]);
   DB.set('chantiers',chantiers);
+  syncChantierToSheets(chantiers[idx], true);
   renderTaches(chantiers[idx]);
 }
 
@@ -2495,6 +2497,8 @@ function deleteClient(id){
   if(!confirm(msg)) return;
   DB.set('clients', DB.get('clients').filter(c=>c.id!==id));
   if(projets.length>0) DB.set('projets', DB.get('projets').filter(p=>p.clientId!==id));
+  scriptPost({action:'deleteRow', sheet:'Clients', id});
+  projets.forEach(p => scriptPost({action:'deleteRow', sheet:'Projets', id:p.id}));
   selectedClientId = null;
   document.getElementById('client-detail').innerHTML='<div class="empty-state"><div class="empty-ico">👥</div><div class="empty-text">Sélectionne un client</div></div>';
   renderClientList();
@@ -3164,14 +3168,14 @@ function renderEmailTab(ctx, refId){
 }
 
 function deleteCourriel(id, ctx, refId){
-  const courriels = DB.get('courriels');
-  DB.set('courriels', courriels.filter(e=>e.id!==id));
+  DB.set('courriels', DB.get('courriels').filter(e=>e.id!==id));
+  scriptPost({action:'deleteRow', sheet:'Courriels', id});
   renderEmailTab(ctx, refId);
 }
 
 function deleteCourrielGlobal(id){
-  const courriels = DB.get('courriels');
-  DB.set('courriels', courriels.filter(e=>e.id!==id));
+  DB.set('courriels', DB.get('courriels').filter(e=>e.id!==id));
+  scriptPost({action:'deleteRow', sheet:'Courriels', id});
   renderAllCourriels();
 }
 
