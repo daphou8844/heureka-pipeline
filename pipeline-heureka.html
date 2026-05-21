@@ -420,6 +420,7 @@ textarea.form-control{resize:vertical;min-height:72px}
       <div class="nav-item" onclick="showView('chantiers')" id="nav-chantiers">
         <span class="nav-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-5h6v5"/></svg></span>
         Chantiers
+        <span class="nav-badge" id="badge-chantiers" style="display:none"></span>
       </div>
       <div class="nav-item" onclick="showView('soumissions')" id="nav-soumissions">
         <span class="nav-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg></span>
@@ -4143,6 +4144,11 @@ function updateNavBadges(){
   const projets = DB.get('projets');
   const actifs  = projets.filter(p=>!['gagne','perdu'].includes(p.statut)).length;
   setBadge('badge-pipeline', actifs);
+
+  // Chantiers : chantiers actifs (hors terminé)
+  const chantiers = DB.get('chantiers');
+  const chantiersActifs = chantiers.filter(c=>c.statut!=='termine').length;
+  setBadge('badge-chantiers', chantiersActifs);
 
   // Courriels : courriels non envoyés (local ou erreur)
   const courriels = DB.get('courriels');
