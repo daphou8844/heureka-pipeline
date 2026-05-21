@@ -2079,7 +2079,7 @@ function updateChantierStatut(){
     addMarketingContentEntry(chantiers[idx], proj);
   }
   renderChantiers();
-  syncChantierToSheets(chantiers[idx]);
+  syncChantierToSheets(chantiers[idx], true);
   showToast('Statut mis à jour ✓');
 }
 
@@ -2175,7 +2175,7 @@ function updateChantierField(field,value){
   if(idx===-1) return;
   chantiers[idx][field]=value;
   DB.set('chantiers',chantiers);
-  syncChantierToSheets(chantiers[idx]);
+  syncChantierToSheets(chantiers[idx], true);
 }
 
 /* ─── Échéancier ─────────────────────────────────────────────────────────── */
@@ -2567,7 +2567,16 @@ async function syncProjetToSheets(p, isUpdate=false){
   if(isUpdate) await scriptPost({action:'updateRow',sheet:'Projets',id:p.id,data});
   else await scriptPost({action:'addRow',sheet:'Projets',data});
 }
-async function syncChantierToSheets(ch){ await scriptPost({action:'createChantier',...ch}); }
+async function syncChantierToSheets(ch, isUpdate=false){
+  const data={
+    ID_Chantier:ch.id, Nom_Chantier:ch.name||ch.nom||'', Client_ID:ch.clientId||'',
+    Adresse:ch.adresse||'', Statut:ch.statut||'',
+    'Date_Début':ch.dateDebut||'', 'Date_Fin_Prévue':ch.dateFin||'',
+    Budget:ch.budget||'', Notes:ch.notes||'', 'Type_Équipe_Associée':ch.typeEquipe||''
+  };
+  if(isUpdate) await scriptPost({action:'updateRow',sheet:'Chantiers',id:ch.id,data});
+  else await scriptPost({action:'addRow',sheet:'Chantiers',data});
+}
 async function addMarketingContentEntry(ch, proj) {
   const clients=DB.get('clients');
   const client=clients.find(c=>c.id===proj.client)||{};
@@ -2622,6 +2631,21 @@ async function syncSheets(){
       const sheetPIds=new Set(sheetProjets.map(p=>p.id));
       const localOnlyP=DB.get('projets').filter(p=>!sheetPIds.has(p.id));
       DB.set('projets',[...sheetProjets,...localOnlyP]);
+    }
+    // Chantiers
+    const rch=await fetch(url+'?action=getData&sheet=Chantiers',{redirect:'follow'});
+    const dch=await rch.json();
+    const rowsCh=Array.isArray(dch.data)?dch.data:[];
+    if(rowsCh.length){
+      const sheetCh=rowsCh.map(row=>({
+        id:row.ID_Chantier, name:row.Nom_Chantier||'', clientId:row.Client_ID||'',
+        adresse:row.Adresse||'', statut:row.Statut||'',
+        dateDebut:row['Date_Début']||'', dateFin:row['Date_Fin_Prévue']||'',
+        budget:row.Budget||'', notes:row.Notes||'', typeEquipe:row['Type_Équipe_Associée']||''
+      })).filter(c=>c.id);
+      const sheetChIds=new Set(sheetCh.map(c=>c.id));
+      const localOnlyCh=DB.get('chantiers').filter(c=>!sheetChIds.has(c.id));
+      DB.set('chantiers',[...sheetCh,...localOnlyCh]);
     }
     showToast('✓ Synchronisation réussie');
     if(currentView==='pipeline') renderPipeline();
