@@ -1548,7 +1548,7 @@ function renderCard(p){
     ${actStatusIco(actStatus, p.id)}
     <div class="card-client">${escHtml(clientNom)}</div>
     <div class="card-name">${escHtml(p.nom)}</div>
-    ${p.dateDernierContact?`<div style="font-size:10px;color:var(--muted);margin:3px 0 2px">📞 ${fmtDate(p.dateDernierContact)}</div>`:'<div style="font-size:10px;color:rgba(255,255,255,.25);margin:3px 0 2px;font-style:italic">Aucun contact</div>'}
+    ${lastContact?`<div style="font-size:10px;color:var(--muted);margin:3px 0 2px">📞 ${fmtDate(lastContact)}</div>`:'<div style="font-size:10px;color:rgba(255,255,255,.25);margin:3px 0 2px;font-style:italic">Aucun contact</div>'}
     <div class="card-footer">
       ${typeHtml}
       ${alertHtml}
