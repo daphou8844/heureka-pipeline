@@ -1248,6 +1248,12 @@ function getLastContactDate(projetId){
   if(!dates.length)return null;
   return dates.sort().pop();
 }
+function getNextActivityDate(projetId){
+  const pid=String(projetId).trim();
+  const pending=(DB.get('activites')||[]).filter(a=>String(a.projetId).trim()===pid&&!a.done&&a.date);
+  if(!pending.length)return null;
+  return pending.map(a=>a.date.split('T')[0]).sort()[0];
+}
 function fmtDate(d){ if(!d||d===''||d==='undefined'||d==='null') return '—'; try{ const p=d.split('T')[0].split('-'); if(p.length<3||!p[0]||!p[1]||!p[2]) return '—'; return p[2]+'/'+p[1]+'/'+p[0]; }catch(e){ return '—'; } }
 function fmtMoney(n){ if(!n||n===0||n==='') return '—'; return '$'+Number(n).toLocaleString('fr-CA'); }
 function actiStatus(dateStr){
@@ -1328,7 +1334,15 @@ function renderPipeline(){
   board.querySelectorAll('.col-body[id]').forEach(el=>{ _colScrolls[el.id]=el.scrollTop; });
 
   board.innerHTML = cols.map(col=>{
-    const cards = projets.filter(p=>p.statut===col.id);
+    const cards = projets.filter(p=>p.statut===col.id).sort((a,b)=>{
+      const today=todayStr();
+      const da=getNextActivityDate(a.id), db=getNextActivityDate(b.id);
+      const cat=d=>!d?0:d===today?1:d<today?2:3;
+      const ca=cat(da),cb=cat(db);
+      if(ca!==cb)return ca-cb;
+      if(ca===2||ca===3)return da<db?-1:da>db?1:0;
+      return 0;
+    });
     return `<div class="kanban-col">
       <div class="col-header">
         <div class="col-title">
