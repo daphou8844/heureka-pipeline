@@ -1711,6 +1711,8 @@ function saveNewProjet(){
 ═══════════════════════════════════════════════════════════════════════════ */
 function openProjetDetail(id){
   currentProjetId = id;
+  const mpjDoc = document.getElementById('mpj-documents');
+  if(mpjDoc) mpjDoc.innerHTML = '';
   switchProjTab('info');
   openModal('modal-projet');
 }
@@ -4378,7 +4380,9 @@ async function loadProjectDocs(projetId){
     const url=getScriptUrl(); if(!url){listEl.innerHTML='<div style="color:var(--muted2);font-size:12px;text-align:center">URL Apps Script non configurée</div>';return;}
     const r=await fetch(url+'?action=getData&sheet=Documents',{redirect:'follow'});
     const d=await r.json();
-    const docs=(Array.isArray(d.data)?d.data:[]).filter(row=>row.Projet_ID===projetId);
+    const allDocs=Array.isArray(d.data)?d.data:[];
+    console.log('[Docs] projetId=',projetId,'total=',allDocs.length,'données=',allDocs.map(x=>x.Projet_ID));
+    const docs=allDocs.filter(row=>(row.Projet_ID||'').toString().trim()===String(projetId).trim());
     if(!docs.length){listEl.innerHTML='<div style="color:var(--muted2);font-size:12px;text-align:center;padding:24px">Aucun document</div>';return;}
     listEl.innerHTML=docs.map(doc=>`
       <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0d1628;border:1px solid #1e3a5f30;border-radius:6px;margin-bottom:4px">
