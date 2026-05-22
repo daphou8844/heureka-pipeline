@@ -1492,12 +1492,7 @@ function buildActivityPanelHTML(projetId){
       <div class="act-mini-add-title">+ Nouvelle activité</div>
       <div class="act-mini-row">
         <select class="act-mini-sel" id="amp-type">
-          <option value="Appel">📞 Appel</option>
-          <option value="Courriel">📧 Courriel</option>
-          <option value="Visite">🏠 Visite</option>
-          <option value="Soumission">📋 Soumission</option>
-          <option value="Suivi">🔄 Suivi</option>
-          <option value="Autre">⚡ Autre</option>
+          ${ACTI_TYPES.map(t=>`<option value="${t.id}">${t.ico} ${t.label}</option>`).join('')}
         </select>
         <input type="date" class="act-mini-inp" id="amp-date" value="${todayStr()}" style="flex:0 0 110px">
       </div>
