@@ -1241,6 +1241,14 @@ let activeTab = 'overview';
 function uid(){ return crypto.randomUUID(); }
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function daysSince(d){ if(!d) return 999; return Math.floor((Date.now()-new Date(d).getTime())/86400000); }
+function getLastContactDate(projetId){
+  const pid=String(projetId).trim();
+  const dates=[];
+  (DB.get('activites')||[]).forEach(a=>{if(String(a.projetId).trim()===pid&&a.done&&a.dateDone)dates.push(a.dateDone);});
+  (DB.get('courriels')||[]).forEach(c=>{if(String(c.projetId).trim()===pid&&c.dateSent)dates.push(c.dateSent.split('T')[0]);});
+  if(!dates.length)return null;
+  return dates.sort().pop();
+}
 function fmtDate(d){ if(!d||d===''||d==='undefined'||d==='null') return '—'; try{ const p=d.split('T')[0].split('-'); if(p.length<3||!p[0]||!p[1]||!p[2]) return '—'; return p[2]+'/'+p[1]+'/'+p[0]; }catch(e){ return '—'; } }
 function fmtMoney(n){ if(!n||n===0||n==='') return '—'; return '$'+Number(n).toLocaleString('fr-CA'); }
 function actiStatus(dateStr){
@@ -1520,10 +1528,12 @@ function renderCard(p){
   const client = getClient(p.clientId);
   const clientNom = client ? client.nom : '—';
   const pri = PRIORITES[p.priorite]||PRIORITES.normale;
-  const days = daysSince(p.dateDernierContact);
+  const lastContact = getLastContactDate(p.id);
+  const days = daysSince(lastContact);
   let alertHtml = '';
-  if(p.dateDernierContact && days>=10) alertHtml=`<span class="card-alert alert-red">⚠ ${days}j sans suivi</span>`;
-  else if(p.dateDernierContact && days>=5) alertHtml=`<span class="card-alert alert-orange">⏰ ${days}j</span>`;
+  if(!lastContact) alertHtml=`<span class="card-alert" style="color:#888">⚪ Aucun contact</span>`;
+  else if(days>30) alertHtml=`<span class="card-alert alert-red">🔴 ${days}j sans suivi</span>`;
+  else if(days>=8) alertHtml=`<span class="card-alert alert-orange">🟡 ${days}j</span>`;
 
   const rdvHtml = p.dateProchainRDV ? `<span class="card-rdv">📅 ${fmtDate(p.dateProchainRDV)}</span>` : '';
   const prixHtml = p.prix ? `<span class="card-prix">${fmtMoney(p.prix)}</span>` : '';
@@ -1731,8 +1741,9 @@ function renderProjetDetail(){
   document.getElementById('mpj-subtitle').textContent = client ? client.nom : '—';
 
   // Left panel: info
-  const days = daysSince(p.dateDernierContact);
-  const alertStyle = days>=10?'color:var(--red);font-weight:700':days>=5?'color:var(--orange);font-weight:700':'';
+  const lastContact = getLastContactDate(p.id);
+  const days = daysSince(lastContact);
+  const alertStyle = days>30?'color:var(--red);font-weight:700':days>=8?'color:var(--orange);font-weight:700':lastContact?'color:#4CAF50;font-weight:600':'color:#888';
   document.getElementById('mpj-info').innerHTML = `
     <div>
       <div class="section-title">Informations</div>
@@ -1743,7 +1754,7 @@ function renderProjetDetail(){
         ${infoRow('Type', TYPES_LABEL[p.typeProjet]||'—')}
         ${infoRow('Source', SOURCES_LABEL[p.source]||'—')}
         ${infoRow('Prix estimé', fmtMoney(p.prix))}
-        ${infoRow('Dernier contact', `<span style="${alertStyle}">${fmtDate(p.dateDernierContact)}${days>0?` (${days}j)`:''}</span>`)}
+        ${infoRow('Dernier contact', `<span style="${alertStyle}">${lastContact?fmtDate(lastContact)+` (${days}j)`:'Aucun contact enregistré'}</span>`)}
         ${infoRow('Prochain RDV', p.dateProchainRDV?`<span style="color:var(--teal)">${fmtDate(p.dateProchainRDV)}</span>`:'—')}
         ${p.soumissionUrl?infoRow('Soumission', `<a href="${escHtml(p.soumissionUrl)}" target="_blank">📎 ${escHtml(p.soumissionNom||'Voir le document')}</a>`):''}
         ${p.driveUrl?infoRow('Dossier Chantier', `<a href="${escHtml(p.driveUrl)}" target="_blank" style="color:#D4AF37;font-weight:600">📁 ${escHtml(p.chanId||'Ouvrir le dossier')}</a>`):''}
