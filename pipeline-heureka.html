@@ -4246,12 +4246,13 @@ async function autoSyncFromSheet(){
   };
 
   // Tous les fetches en parallèle
-  const [rowsC, rowsP, rowsCh, rowsA, rowsCou] = await Promise.all([
+  const [rowsC, rowsP, rowsCh, rowsA, rowsCou, rowsDocs] = await Promise.all([
     fetchSheet('Clients'),
     fetchSheet('Projets'),
     fetchSheet('Chantiers'),
     fetchSheet('Activités'),
     fetchSheet('Courriels'),
+    fetchSheet('Documents'),
   ]);
 
   // Clients
@@ -4340,6 +4341,19 @@ async function autoSyncFromSheet(){
     const localOnly=DB.get('courriels').filter(c=>!sheetIds.has(c.id));
     DB.set('courriels',[...sheetC,...localOnly]);
   }
+
+  // Documents
+  if(rowsDocs.length){
+    const sheetDocs=rowsDocs.map(row=>({
+      id:row.ID_Document||'', projetId:row.Projet_ID||'',
+      nomFichier:row.Nom_Fichier||'', categorie:row['Catégorie']||'',
+      sousDossier:row.Sous_Dossier||'', fileId:row.File_ID||'',
+      fileUrl:row.File_URL||'', mimeType:row.MIME_Type||'',
+      dateUpload:row.Date_Upload||''
+    })).filter(d=>d.id);
+    DB.set('documents', sheetDocs);
+    if(currentProjTab==='documents') loadProjectDocs(currentProjetId);
+  }
 }
 /* ═══════════════════════════════════════════════════════════════════════════
    DOCUMENTS — Dépôt et liste dans la fiche projet
@@ -4365,7 +4379,7 @@ function getFileIcon(mime){
 
 let _docRenderToken = 0;
 
-async function renderProjectDocuments(projetId){
+function renderProjectDocuments(projetId){
   const el=document.getElementById('mpj-documents');
   if(!el) return;
   const token = ++_docRenderToken;
@@ -4388,11 +4402,9 @@ async function renderProjectDocuments(projetId){
         <button class="btn btn-sm" style="width:100%;background:#D4AF37;color:#000;font-weight:700"
           onclick="submitDocUpload('${projetId}')">📤 Uploader</button>
       </div>
-      <div id="doc-list-${projetId}">
-        <div style="color:var(--muted2);font-size:12px;text-align:center;padding:24px">Chargement...</div>
-      </div>
+      <div id="doc-list-${projetId}"></div>
     </div>`;
-  await loadProjectDocs(projetId, token);
+  loadProjectDocs(projetId, token);
 }
 
 function toggleDocUploadForm(projetId){
@@ -4400,36 +4412,25 @@ function toggleDocUploadForm(projetId){
   if(f) f.style.display=f.style.display==='none'?'block':'none';
 }
 
-async function loadProjectDocs(projetId, token){
+function loadProjectDocs(projetId, token){
   if(token===undefined) token=_docRenderToken;
+  if(token!==_docRenderToken) return;
   const listEl=document.getElementById('doc-list-'+projetId);
   if(!listEl) return;
-  try{
-    const url=getScriptUrl(); if(!url){listEl.innerHTML='<div style="color:var(--muted2);font-size:12px;text-align:center">URL Apps Script non configurée</div>';return;}
-    const r=await fetch(url+'?action=getData&sheet=Documents',{redirect:'follow'});
-    if(token!==_docRenderToken) return;
-    const d=await r.json();
-    if(token!==_docRenderToken) return;
-    const allDocs=Array.isArray(d.data)?d.data:[];
-    const docs=allDocs.filter(row=>(row.Projet_ID||'').toString().trim()===String(projetId).trim());
-    const listEl2=document.getElementById('doc-list-'+projetId);
-    if(!listEl2||token!==_docRenderToken) return;
-    if(!docs.length){listEl2.innerHTML='<div style="color:var(--muted2);font-size:12px;text-align:center;padding:24px">Aucun document</div>';return;}
-    listEl2.innerHTML=docs.map(doc=>`
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0d1628;border:1px solid #1e3a5f30;border-radius:6px;margin-bottom:4px">
-        <span style="font-size:20px;flex-shrink:0">${getFileIcon(doc.MIME_Type)}</span>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(doc.Nom_Fichier||'')}</div>
-          <div style="font-size:11px;color:var(--muted2)">${escHtml(doc['Catégorie']||'')} · ${fmtDate(doc.Date_Upload||'')}</div>
-        </div>
-        <a href="${escHtml(doc.File_URL||'#')}" target="_blank" class="btn btn-sm btn-outline" style="padding:4px 10px;font-size:11px;white-space:nowrap">Ouvrir</a>
-        <button class="btn btn-sm" style="padding:4px 8px;font-size:11px;background:#2a0a0a;color:#ef4444;border:1px solid #ef444440;white-space:nowrap;flex-shrink:0"
-          onclick="deleteDocument('${doc.ID_Document}','${doc.File_ID}','${projetId}')">✕</button>
-      </div>`).join('');
-  }catch(e){
-    const listEl2=document.getElementById('doc-list-'+projetId);
-    if(listEl2&&token===_docRenderToken) listEl2.innerHTML='<div style="color:var(--red);font-size:12px;text-align:center">Erreur chargement</div>';
-  }
+  const allDocs=DB.get('documents')||[];
+  const docs=allDocs.filter(d=>(d.projetId||'').trim()===String(projetId).trim());
+  if(!docs.length){listEl.innerHTML='<div style="color:var(--muted2);font-size:12px;text-align:center;padding:24px">Aucun document</div>';return;}
+  listEl.innerHTML=docs.map(doc=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0d1628;border:1px solid #1e3a5f30;border-radius:6px;margin-bottom:4px">
+      <span style="font-size:20px;flex-shrink:0">${getFileIcon(doc.mimeType)}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(doc.nomFichier||'')}</div>
+        <div style="font-size:11px;color:var(--muted2)">${escHtml(doc.categorie||'')} · ${fmtDate(doc.dateUpload||'')}</div>
+      </div>
+      <a href="${escHtml(doc.fileUrl||'#')}" target="_blank" class="btn btn-sm btn-outline" style="padding:4px 10px;font-size:11px;white-space:nowrap">Ouvrir</a>
+      <button class="btn btn-sm" style="padding:4px 8px;font-size:11px;background:#2a0a0a;color:#ef4444;border:1px solid #ef444440;white-space:nowrap;flex-shrink:0"
+        onclick="deleteDocument('${escHtml(doc.id)}','${escHtml(doc.fileId)}','${escHtml(projetId)}')">✕</button>
+    </div>`).join('');
 }
 
 async function submitDocUpload(projetId){
@@ -4458,17 +4459,24 @@ async function submitDocUpload(projetId){
     const b64=ev.target.result.split(',')[1];
     const res=await scriptPost({action:'uploadFile',driveId,subfolder,fileName:file.name,mimeType:file.type,content:b64});
     if(res&&res.status==='ok'){
-      await scriptPost({action:'addRow',sheet:'Documents',data:{
+      const addRes=await scriptPost({action:'addRow',sheet:'Documents',data:{
         Projet_ID:projetId, Nom_Fichier:file.name,
         'Catégorie':cat, Sous_Dossier:subfolder,
         File_ID:res.fileId, File_URL:res.fileUrl,
         MIME_Type:file.type,
         Date_Upload:new Date().toISOString().split('T')[0],
       }});
+      const newDoc={
+        id:addRes&&addRes.id||'', projetId,
+        nomFichier:file.name, categorie:cat, sousDossier:subfolder,
+        fileId:res.fileId, fileUrl:res.fileUrl, mimeType:file.type,
+        dateUpload:new Date().toISOString().split('T')[0]
+      };
+      const docs=DB.get('documents')||[]; docs.push(newDoc); DB.set('documents',docs);
       showToast('✅ Document uploadé');
       catEl.value=''; fileEl.value='';
       document.getElementById('doc-upload-form-'+projetId).style.display='none';
-      await loadProjectDocs(projetId);
+      loadProjectDocs(projetId);
     } else {
       showToast('⚠ Erreur upload: '+(res&&res.message||'inconnu'));
     }
@@ -4480,8 +4488,10 @@ async function deleteDocument(docId, fileId, projetId){
   if(!confirm('Supprimer ce document du Drive et du Sheet ?')) return;
   const res=await scriptPost({action:'deleteDocument',docId,fileId});
   if(res&&res.status==='ok'){
+    const docs=(DB.get('documents')||[]).filter(d=>d.id!==docId);
+    DB.set('documents',docs);
     showToast('Document supprimé');
-    await loadProjectDocs(projetId);
+    loadProjectDocs(projetId);
   } else {
     showToast('⚠ Erreur suppression');
   }
