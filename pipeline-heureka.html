@@ -1592,13 +1592,17 @@ async function createSoumissionFolderForProjet(p){
   const client=getClient(p.clientId)||{};
   const clientNom=client.nom||p.nom||'Client';
   const ville=client.ville||(client.adresse||'').split(',').pop().trim()||'';
-  showToast('📁 Création dossier soumission...');
-  const res=await scriptPost({action:'createSoumissionFolder',clientNom,ville,projetId:p.id,existingDriveId:p.dossierDriveId||''});
-  if(res&&res.status==='ok'&&!res.exists){
+  const res=await scriptPost({action:'createSoumissionFolder',clientNom,ville,projetId:p.id});
+  if(res&&res.status==='ok'&&res.driveId){
     const projets=DB.get('projets');
     const idx=projets.findIndex(pp=>pp.id===p.id);
-    if(idx!==-1){projets[idx].dossierDriveId=res.driveId;projets[idx].dossierDriveUrl=res.driveUrl;projets[idx].dossierNumero=res.souId;DB.set('projets',projets);}
-    showToast(`📁 Dossier soumission créé : ${res.souId}`);
+    if(idx!==-1){
+      projets[idx].dossierDriveId=res.driveId;
+      projets[idx].dossierDriveUrl=res.driveUrl;
+      if(!res.exists) projets[idx].dossierNumero=res.souId;
+      DB.set('projets',projets);
+    }
+    if(!res.exists) showToast(`📁 Dossier créé : ${res.souId}`);
     if(currentProjetId===p.id) renderProjetDetail();
   }
 }
