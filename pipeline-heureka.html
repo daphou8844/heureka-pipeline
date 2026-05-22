@@ -721,6 +721,7 @@ textarea.form-control{resize:vertical;min-height:72px}
         <button class="tab-btn" onclick="switchProjTab('courriels')" id="pjtab-courriels">📧 Courriels</button>
         <button class="tab-btn" onclick="switchProjTab('historique')" id="pjtab-historique">📜 Historique</button>
         <button class="tab-btn" onclick="switchProjTab('soumission')" id="pjtab-soumission" style="color:var(--gold)">📐 Soumission</button>
+        <button class="tab-btn" onclick="switchProjTab('documents')" id="pjtab-documents">📎 Documents</button>
       </div>
       <div id="pjtab-content-info" class="tab-content active" style="flex:1;overflow-y:auto">
         <div class="proj-detail-grid"><div class="proj-info-panel" id="mpj-info"></div><div class="proj-activity-panel" id="mpj-activities"></div></div>
@@ -736,6 +737,9 @@ textarea.form-control{resize:vertical;min-height:72px}
       </div>
       <div id="pjtab-content-soumission" class="tab-content" style="flex:1;overflow-y:auto;padding:0">
         <div id="rev-soum-container" style="height:100%"></div>
+      </div>
+      <div id="pjtab-content-documents" class="tab-content" style="flex:1;overflow-y:auto;padding:4px 0">
+        <div id="mpj-documents"></div>
       </div>
     </div>
   </div>
@@ -1312,6 +1316,10 @@ function renderPipeline(){
     : COLUMNS.filter(c=>c.id!=='perdu' && c.id!=='gagne');
 
   const board = document.getElementById('kanban-scroll');
+  const _scrollLeft = board.scrollLeft;
+  const _colScrolls = {};
+  board.querySelectorAll('.col-body[id]').forEach(el=>{ _colScrolls[el.id]=el.scrollTop; });
+
   board.innerHTML = cols.map(col=>{
     const cards = projets.filter(p=>p.statut===col.id);
     return `<div class="kanban-col">
@@ -1329,6 +1337,9 @@ function renderPipeline(){
       </div>
     </div>`;
   }).join('');
+
+  board.scrollLeft = _scrollLeft;
+  Object.entries(_colScrolls).forEach(([id,top])=>{ const el=document.getElementById(id); if(el) el.scrollTop=top; });
 
   const actifs = projets.filter(p=>p.statut!=='perdu'&&p.statut!=='gagne');
   document.getElementById('topbar-sub').textContent = `${actifs.length} projet${actifs.length!==1?'s':''} actifs`;
@@ -1566,7 +1577,8 @@ function moveProjet(projetId, newStatut){
   if(old===newStatut) return;
   projets[idx].statut = newStatut;
   projets[idx].dateMiseAJour = new Date().toISOString();
-  if(newStatut==='rdv_pris' && old!=='rdv_pris') createDriveFolderForProjet(projets[idx]);
+  if(newStatut==='gagne' && old!=='gagne' && projets[idx].dossierDriveId) moveDossierForProjet(projets[idx], 'gagne');
+  if(newStatut==='perdu' && old!=='perdu' && projets[idx].dossierDriveId) moveDossierForProjet(projets[idx], 'perdu');
   if(newStatut==='gagne' && old!=='gagne'){ createChantierFromProjet(projets[idx]); offerPostProjetSuivi(projets[idx]); }
   logHistory(projetId,'statut',`${old} → ${newStatut}`);
   suggestEmailOnStatut(projets[idx], old);
@@ -1574,6 +1586,36 @@ function moveProjet(projetId, newStatut){
   renderPipeline();
   syncProjetToSheets(projets[idx], true);
   if(newStatut==='gagne') showToast('🏗 Projet gagné ! Chantier créé automatiquement.');
+}
+
+async function createSoumissionFolderForProjet(p){
+  const client=getClient(p.clientId)||{};
+  const clientNom=client.nom||p.nom||'Client';
+  const ville=client.ville||(client.adresse||'').split(',').pop().trim()||'';
+  showToast('📁 Création dossier soumission...');
+  const res=await scriptPost({action:'createSoumissionFolder',clientNom,ville,projetId:p.id,existingDriveId:p.dossierDriveId||''});
+  if(res&&res.status==='ok'&&!res.exists){
+    const projets=DB.get('projets');
+    const idx=projets.findIndex(pp=>pp.id===p.id);
+    if(idx!==-1){projets[idx].dossierDriveId=res.driveId;projets[idx].dossierDriveUrl=res.driveUrl;projets[idx].dossierNumero=res.souId;DB.set('projets',projets);}
+    showToast(`📁 Dossier soumission créé : ${res.souId}`);
+    if(currentProjetId===p.id) renderProjetDetail();
+  }
+}
+
+async function moveDossierForProjet(p, newStatut){
+  if(!p.dossierDriveId) return;
+  const res=await scriptPost({action:'moveDossierSoumission',driveId:p.dossierDriveId,newStatut,projetId:p.id});
+  if(res&&res.status==='ok'){
+    const projets=DB.get('projets');
+    const idx=projets.findIndex(pp=>pp.id===p.id);
+    if(idx!==-1){
+      if(res.chanId){projets[idx].dossierNumero=res.chanId;projets[idx].dossierDriveUrl=res.driveUrl;}
+      DB.set('projets',projets);
+    }
+    if(res.chanId) showToast(`📁 Dossier renommé : ${res.chanId}`);
+    if(currentProjetId===p.id) renderProjetDetail();
+  }
 }
 
 async function createDriveFolderForProjet(p){
@@ -1698,7 +1740,8 @@ function renderProjetDetail(){
         ${infoRow('Dernier contact', `<span style="${alertStyle}">${fmtDate(p.dateDernierContact)}${days>0?` (${days}j)`:''}</span>`)}
         ${infoRow('Prochain RDV', p.dateProchainRDV?`<span style="color:var(--teal)">${fmtDate(p.dateProchainRDV)}</span>`:'—')}
         ${p.soumissionUrl?infoRow('Soumission', `<a href="${escHtml(p.soumissionUrl)}" target="_blank">📎 ${escHtml(p.soumissionNom||'Voir le document')}</a>`):''}
-        ${p.driveUrl?infoRow('Dossier Drive', `<a href="${escHtml(p.driveUrl)}" target="_blank" style="color:#D4AF37;font-weight:600">📁 ${escHtml(p.chanId||'Ouvrir le dossier')}</a>`):''}
+        ${p.driveUrl?infoRow('Dossier Chantier', `<a href="${escHtml(p.driveUrl)}" target="_blank" style="color:#D4AF37;font-weight:600">📁 ${escHtml(p.chanId||'Ouvrir le dossier')}</a>`):''}
+        ${p.dossierDriveUrl?infoRow('Dossier Soumission', `<a href="${escHtml(p.dossierDriveUrl)}" target="_blank" style="color:#F59E0B;font-weight:600">📁 ${escHtml(p.dossierNumero||'Ouvrir le dossier')}</a>`):''}
       </div>
     </div>
     ${margeDisplay(p)}
@@ -2138,7 +2181,7 @@ function switchTab(tab){
 let currentProjTab = 'info';
 function switchProjTab(tab){
   currentProjTab = tab;
-  ['info','activites','courriels','historique','soumission'].forEach(t=>{
+  ['info','activites','courriels','historique','soumission','documents'].forEach(t=>{
     const btn=document.getElementById('pjtab-'+t); const cnt=document.getElementById('pjtab-content-'+t);
     if(btn) btn.classList.toggle('active',t===tab);
     if(cnt) cnt.classList.toggle('active',t===tab);
@@ -2148,6 +2191,7 @@ function switchProjTab(tab){
   else if(tab==='courriels') renderEmailTab('proj', currentProjetId);
   else if(tab==='historique') renderHistoriqueTab('proj', currentProjetId);
   else if(tab==='soumission') renderSoumissionTab(currentProjetId);
+  else if(tab==='documents') renderProjectDocuments(currentProjetId);
 }
 
 function renderChantierOverview(ch){
@@ -2728,11 +2772,15 @@ async function syncSheets(){
       const sheetAIds=new Set(rowsA.map(r=>r['ID_Activité']).filter(Boolean));
       if(rowsA.length){
         const sheetActs=rowsA.map(row=>({
-          id:row['ID_Activité']||'', projetId:row.Projet_ID||'',
-          type:row.Type||'', date:row.Date||'',
+          id:row['ID_Activité']||row['ID_Activite']||row.ID_Activit||'',
+          projetId:row.Projet_ID||'',
+          type:row.Type||'',
+          date:(row.Date||'').split('T')[0],
           description:row.Description||'', desc:row.Description||'',
-          done:row['Complétée']==='Oui', dateCreation:row['Date_Créé']||''
-        })).filter(a=>a.id);
+          done:row['Complétée']==='Oui'||row['Completee']==='Oui'||row.Completee==='Oui',
+          chantierId:'', dateDone:'',
+          dateCreation:row['Date_Créé']||row['Date_Cree']||''
+        })).filter(a=>a.id&&a.projetId);
         const localOnlyA=DB.get('activites').filter(a=>!sheetAIds.has(a.id));
         DB.set('activites',[...sheetActs,...localOnlyA]);
       }
@@ -4172,98 +4220,237 @@ function updateNavBadges(){
 async function autoSyncFromSheet(){
   const url=DB.getStr('appsScriptUrl')||HEUREKA_CONFIG.APPS_SCRIPT_URL;
   if(!url) return;
-  // Sync clients — Sheet gagne
-  try{
-    const r=await fetch(url+'?action=getData&sheet=Clients',{redirect:'follow'});
-    const d=await r.json();
-    const rows=Array.isArray(d.data)?d.data:[];
-    if(rows.length){
-      const sheetClients=rows.map(row=>({
-        id:row.ID_Client, nom:row.Nom||'', telephone:row['Téléphone']||'',
-        email:row.Courriel||'', adresse:row.Adresse||'', ville:row.Ville||'',
-        referredBy:row['Référé_Par']||'', notes:row.Notes||'',
-        dateCreation:row['Date_Créé']||''
-      })).filter(c=>c.id);
-      const sheetIds=new Set(sheetClients.map(c=>c.id));
-      const localOnly=DB.get('clients').filter(c=>!sheetIds.has(c.id));
-      DB.set('clients',[...sheetClients,...localOnly]);
-      if(currentView==='clients') renderClientList();
-    }
-  }catch(e){}
-  // Sync projets — Sheet gagne
-  try{
-    const r=await fetch(url+'?action=getData&sheet=Projets',{redirect:'follow'});
-    const d=await r.json();
-    const rows=Array.isArray(d.data)?d.data:[];
-    if(rows.length){
-      const sheetProjets=rows.map(row=>({
-        id:row.ID_Projet, clientId:row.Client_ID, nom:row.Nom_Projet,
-        statut:row.Statut, typeProjet:row.Type_Projet, prix:row['Prix_Estimé']||'',
-        notes:row.Notes||'', source:row['Source_Référence']||'',
-        priorite:row['Priorité']||'', dateCreation:row['Date_Créé']||''
-      })).filter(p=>p.id);
-      const sheetIds=new Set(sheetProjets.map(p=>p.id));
-      const localOnly=DB.get('projets').filter(p=>!sheetIds.has(p.id));
-      DB.set('projets',[...sheetProjets,...localOnly]);
-      if(currentView==='pipeline') renderPipeline();
-    }
-  }catch(e){}
-  // Sync chantiers — Sheet gagne
-  try{
-    const r=await fetch(url+'?action=getData&sheet=Chantiers',{redirect:'follow'});
-    const d=await r.json();
-    const rows=Array.isArray(d.data)?d.data:[];
-    if(rows.length){
-      const sheetCh=rows.map(row=>({
-        id:row.ID_Chantier, name:row.Nom_Chantier||'', nom:row.Nom_Chantier||'',
-        projetId:row.Projet_ID||'', clientId:row.Client_ID||'',
-        adresse:row.Adresse||'', statut:row.Statut||'',
-        dateDebut:row['Date_Début']||'', dateFin:row['Date_Fin_Prévue']||'',
-        notes:row.Notes||'',
-        driveId:row.Drive_ID||'', driveUrl:row.Drive_URL||''
-      })).filter(c=>c.id);
-      const sheetIds=new Set(sheetCh.map(c=>c.id));
-      const localOnly=DB.get('chantiers').filter(c=>!sheetIds.has(c.id));
-      DB.set('chantiers',[...sheetCh,...localOnly]);
-      if(currentView==='chantiers') renderChantiers();
-    }
-  }catch(e){}
-  // Sync activités — Sheet gagne
-  try{
-    const r=await fetch(url+'?action=getData&sheet=Activités',{redirect:'follow'});
-    const d=await r.json();
-    const rows=Array.isArray(d.data)?d.data:[];
-    if(rows.length){
-      const sheetActs=rows.map(row=>({
-        id:row['ID_Activité']||row.ID_Activit||'', projetId:row.Projet_ID||'',
-        type:row.Type||'', date:row.Date||'',
-        description:row.Description||'', desc:row.Description||'',
-        done:row['Complétée']==='Oui', dateDone:'',
-        dateCreation:row['Date_Créé']||''
-      })).filter(a=>a.id);
-      const sheetIds=new Set(sheetActs.map(a=>a.id));
-      const localOnly=DB.get('activites').filter(a=>!sheetIds.has(a.id));
-      DB.set('activites',[...sheetActs,...localOnly]);
-    }
-  }catch(e){}
-  // Sync courriels — Sheet gagne
-  try{
-    const r=await fetch(url+'?action=getData&sheet=Courriels',{redirect:'follow'});
-    const d=await r.json();
-    const rows=Array.isArray(d.data)?d.data:[];
-    if(rows.length){
-      const sheetC=rows.map(row=>({
-        id:row.ID_Courriel||'', projetId:row.Projet_ID||'',
-        to:row.Destinataire||'', subject:row.Sujet||'',
-        body:row.Message||'', templateId:row.Template||'',
-        dateSent:row.Date_Envoi||'', status:'sent'
-      })).filter(c=>c.id);
-      const sheetIds=new Set(sheetC.map(c=>c.id));
-      const localOnly=DB.get('courriels').filter(c=>!sheetIds.has(c.id));
-      DB.set('courriels',[...sheetC,...localOnly]);
-    }
-  }catch(e){}
+
+  const fetchSheet = async (sheet) => {
+    try{
+      const r=await fetch(url+'?action=getData&sheet='+encodeURIComponent(sheet),{redirect:'follow'});
+      const d=await r.json();
+      return Array.isArray(d.data)?d.data:[];
+    }catch(e){ return []; }
+  };
+
+  // Tous les fetches en parallèle
+  const [rowsC, rowsP, rowsCh, rowsA, rowsCou] = await Promise.all([
+    fetchSheet('Clients'),
+    fetchSheet('Projets'),
+    fetchSheet('Chantiers'),
+    fetchSheet('Activités'),
+    fetchSheet('Courriels'),
+  ]);
+
+  // Clients
+  if(rowsC.length){
+    const sheetClients=rowsC.map(row=>({
+      id:row.ID_Client, nom:row.Nom||'', telephone:row['Téléphone']||'',
+      email:row.Courriel||'', adresse:row.Adresse||'', ville:row.Ville||'',
+      referredBy:row['Référé_Par']||'', notes:row.Notes||'',
+      dateCreation:row['Date_Créé']||''
+    })).filter(c=>c.id);
+    const sheetIds=new Set(sheetClients.map(c=>c.id));
+    const localOnly=DB.get('clients').filter(c=>!sheetIds.has(c.id));
+    DB.set('clients',[...sheetClients,...localOnly]);
+    if(currentView==='clients') renderClientList();
+  }
+
+  // Projets
+  if(rowsP.length){
+    const sheetProjets=rowsP.map(row=>({
+      id:row.ID_Projet, clientId:row.Client_ID, nom:row.Nom_Projet,
+      statut:row.Statut, typeProjet:row.Type_Projet, prix:row['Prix_Estimé']||'',
+      notes:row.Notes||'', source:row['Source_Référence']||'',
+      priorite:row['Priorité']||'', dateCreation:row['Date_Créé']||''
+    })).filter(p=>p.id);
+    const sheetIds=new Set(sheetProjets.map(p=>p.id));
+    const localOnly=DB.get('projets').filter(p=>!sheetIds.has(p.id));
+    DB.set('projets',[...sheetProjets,...localOnly]);
+    if(currentView==='pipeline') renderPipeline();
+  }
+
+  // Chantiers
+  if(rowsCh.length){
+    const sheetCh=rowsCh.map(row=>({
+      id:row.ID_Chantier, name:row.Nom_Chantier||'', nom:row.Nom_Chantier||'',
+      projetId:row.Projet_ID||'', clientId:row.Client_ID||'',
+      adresse:row.Adresse||'', statut:row.Statut||'',
+      dateDebut:row['Date_Début']||'', dateFin:row['Date_Fin_Prévue']||'',
+      notes:row.Notes||'',
+      driveId:row.Drive_ID||'', driveUrl:row.Drive_URL||''
+    })).filter(c=>c.id);
+    const sheetIds=new Set(sheetCh.map(c=>c.id));
+    const localOnly=DB.get('chantiers').filter(c=>!sheetIds.has(c.id));
+    DB.set('chantiers',[...sheetCh,...localOnly]);
+    if(currentView==='chantiers') renderChantiers();
+  }
+
+  // Activités — re-render systématique après mise à jour
+  if(rowsA.length){
+    const sheetActs=rowsA.map(row=>({
+      id:row['ID_Activité']||row['ID_Activite']||row.ID_Activit||'',
+      projetId:row.Projet_ID||'',
+      type:row.Type||'',
+      date:(row.Date||'').split('T')[0],
+      description:row.Description||'', desc:row.Description||'',
+      done:row['Complétée']==='Oui'||row['Completee']==='Oui'||row.Completee==='Oui',
+      chantierId:'', dateDone:'',
+      dateCreation:row['Date_Créé']||row['Date_Cree']||''
+    })).filter(a=>a.id&&a.projetId);
+    const sheetIds=new Set(sheetActs.map(a=>a.id));
+    const localOnly=DB.get('activites').filter(a=>!sheetIds.has(a.id));
+    DB.set('activites',[...sheetActs,...localOnly]);
+    if(currentView==='pipeline') renderPipeline();
+    else if(currentView==='chantiers') renderChantiers();
+    updateNavBadges();
+  }
+
+  // Courriels
+  if(rowsCou.length){
+    const sheetC=rowsCou.map(row=>({
+      id:row.ID_Courriel||'', projetId:row.Projet_ID||'',
+      to:row.Destinataire||'', subject:row.Sujet||'',
+      body:row.Message||'', templateId:row.Template||'',
+      dateSent:row.Date_Envoi||'', status:'sent'
+    })).filter(c=>c.id);
+    const sheetIds=new Set(sheetC.map(c=>c.id));
+    const localOnly=DB.get('courriels').filter(c=>!sheetIds.has(c.id));
+    DB.set('courriels',[...sheetC,...localOnly]);
+  }
 }
+/* ═══════════════════════════════════════════════════════════════════════════
+   DOCUMENTS — Dépôt et liste dans la fiche projet
+═══════════════════════════════════════════════════════════════════════════ */
+const DOC_SUBFOLDER = {
+  'Plans & Devis': 'Plans & Devis',
+  'Photo':         'Photos',
+  'Contrat':       'Contrats & Permis',
+  'Permis':        'Contrats & Permis',
+  'Facture':       'Factures & Paiements',
+  'Heures':        'Heures',
+  'Autre':         '',
+};
+
+function getFileIcon(mime){
+  if(!mime) return '📎';
+  if(mime.includes('pdf')) return '📄';
+  if(mime.includes('word')||mime.includes('document')) return '📝';
+  if(mime.includes('sheet')||mime.includes('excel')) return '📊';
+  if(mime.startsWith('image/')) return '🖼';
+  return '📎';
+}
+
+async function renderProjectDocuments(projetId){
+  const el=document.getElementById('mpj-documents');
+  if(!el) return;
+  el.innerHTML=`
+    <div style="padding:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="section-title" style="margin:0">Documents</div>
+        <button class="btn btn-sm" style="background:#D4AF3722;border:1px solid #D4AF3744;color:#D4AF37" onclick="toggleDocUploadForm('${projetId}')">📎 Déposer</button>
+      </div>
+      <div id="doc-upload-form-${projetId}" style="display:none;background:#0d1628;border:1px solid #1e3a5f;border-radius:8px;padding:12px;margin-bottom:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <select id="doc-cat-${projetId}" style="background:#0a1220;border:1px solid #1e3a5f;border-radius:6px;color:#ccc;padding:8px;font-size:13px">
+            <option value="">Catégorie...</option>
+            <option>Plans & Devis</option><option>Photo</option><option>Contrat</option>
+            <option>Permis</option><option>Facture</option><option>Heures</option><option>Autre</option>
+          </select>
+          <input type="file" id="doc-file-${projetId}" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp"
+            style="background:#0a1220;border:1px solid #1e3a5f;border-radius:6px;color:#ccc;padding:7px;font-size:12px">
+        </div>
+        <button class="btn btn-sm" style="width:100%;background:#D4AF37;color:#000;font-weight:700"
+          onclick="submitDocUpload('${projetId}')">📤 Uploader</button>
+      </div>
+      <div id="doc-list-${projetId}">
+        <div style="color:var(--muted2);font-size:12px;text-align:center;padding:24px">Chargement...</div>
+      </div>
+    </div>`;
+  await loadProjectDocs(projetId);
+}
+
+function toggleDocUploadForm(projetId){
+  const f=document.getElementById('doc-upload-form-'+projetId);
+  if(f) f.style.display=f.style.display==='none'?'block':'none';
+}
+
+async function loadProjectDocs(projetId){
+  const listEl=document.getElementById('doc-list-'+projetId);
+  if(!listEl) return;
+  try{
+    const url=getScriptUrl(); if(!url){listEl.innerHTML='<div style="color:var(--muted2);font-size:12px;text-align:center">URL Apps Script non configurée</div>';return;}
+    const r=await fetch(url+'?action=getData&sheet=Documents',{redirect:'follow'});
+    const d=await r.json();
+    const docs=(Array.isArray(d.data)?d.data:[]).filter(row=>row.Projet_ID===projetId);
+    if(!docs.length){listEl.innerHTML='<div style="color:var(--muted2);font-size:12px;text-align:center;padding:24px">Aucun document</div>';return;}
+    listEl.innerHTML=docs.map(doc=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0d1628;border:1px solid #1e3a5f30;border-radius:6px;margin-bottom:4px">
+        <span style="font-size:20px;flex-shrink:0">${getFileIcon(doc.MIME_Type)}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(doc.Nom_Fichier||'')}</div>
+          <div style="font-size:11px;color:var(--muted2)">${escHtml(doc['Catégorie']||'')} · ${fmtDate(doc.Date_Upload||'')}</div>
+        </div>
+        <a href="${escHtml(doc.File_URL||'#')}" target="_blank" class="btn btn-sm btn-outline" style="padding:4px 10px;font-size:11px;white-space:nowrap">Ouvrir</a>
+        <button class="btn btn-sm" style="padding:4px 8px;font-size:11px;background:#2a0a0a;color:#ef4444;border:1px solid #ef444440;white-space:nowrap;flex-shrink:0"
+          onclick="deleteDocument('${doc.ID_Document}','${doc.File_ID}','${projetId}')">✕</button>
+      </div>`).join('');
+  }catch(e){
+    listEl.innerHTML='<div style="color:var(--red);font-size:12px;text-align:center">Erreur chargement</div>';
+  }
+}
+
+async function submitDocUpload(projetId){
+  const catEl=document.getElementById('doc-cat-'+projetId);
+  const fileEl=document.getElementById('doc-file-'+projetId);
+  if(!catEl||!fileEl||!fileEl.files[0]){showToast('⚠ Sélectionne une catégorie et un fichier');return;}
+  const cat=catEl.value; if(!cat){showToast('⚠ Choisis une catégorie');return;}
+  const file=fileEl.files[0];
+
+  // Obtenir ou créer le dossier Drive du projet
+  let p=DB.get('projets').find(pp=>pp.id===projetId);
+  if(!p) return;
+  let driveId=p.dossierDriveId||p.driveId||'';
+  if(!driveId){
+    showToast('📁 Création du dossier Drive...');
+    await createSoumissionFolderForProjet(p);
+    p=DB.get('projets').find(pp=>pp.id===projetId)||p;
+    driveId=p.dossierDriveId||p.driveId||'';
+    if(!driveId){showToast('⚠ Impossible de créer le dossier Drive');return;}
+  }
+
+  showToast('📤 Upload en cours...');
+  const subfolder=DOC_SUBFOLDER[cat]!==undefined?DOC_SUBFOLDER[cat]:'';
+  const reader=new FileReader();
+  reader.onload=async function(ev){
+    const b64=ev.target.result.split(',')[1];
+    const res=await scriptPost({action:'uploadFile',driveId,subfolder,fileName:file.name,mimeType:file.type,content:b64});
+    if(res&&res.status==='ok'){
+      await scriptPost({action:'addRow',sheet:'Documents',data:{
+        Projet_ID:projetId, Nom_Fichier:file.name,
+        'Catégorie':cat, Sous_Dossier:subfolder,
+        File_ID:res.fileId, File_URL:res.fileUrl,
+        MIME_Type:file.type,
+        Date_Upload:new Date().toISOString().split('T')[0],
+      }});
+      showToast('✅ Document uploadé');
+      catEl.value=''; fileEl.value='';
+      document.getElementById('doc-upload-form-'+projetId).style.display='none';
+      await loadProjectDocs(projetId);
+    } else {
+      showToast('⚠ Erreur upload: '+(res&&res.message||'inconnu'));
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function deleteDocument(docId, fileId, projetId){
+  if(!confirm('Supprimer ce document du Drive et du Sheet ?')) return;
+  const res=await scriptPost({action:'deleteDocument',docId,fileId});
+  if(res&&res.status==='ok'){
+    showToast('Document supprimé');
+    await loadProjectDocs(projetId);
+  } else {
+    showToast('⚠ Erreur suppression');
+  }
+}
+
 function toggleSidebar(){
   const sb=document.getElementById('sidebar');
   const col=sb.classList.toggle('collapsed');
