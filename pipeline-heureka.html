@@ -1244,8 +1244,7 @@ function daysSince(d){ if(!d) return 999; return Math.floor((Date.now()-new Date
 function getLastContactDate(projetId){
   const pid=String(projetId).trim();
   const dates=[];
-  (DB.get('activites')||[]).forEach(a=>{if(String(a.projetId).trim()===pid&&a.done&&a.dateDone)dates.push(a.dateDone);});
-  (DB.get('courriels')||[]).forEach(c=>{if(String(c.projetId).trim()===pid&&c.dateSent)dates.push(c.dateSent.split('T')[0]);});
+  (DB.get('activites')||[]).forEach(a=>{if(String(a.projetId).trim()===pid&&a.date)dates.push(a.date.split('T')[0]);});
   if(!dates.length)return null;
   return dates.sort().pop();
 }
@@ -1531,9 +1530,8 @@ function renderCard(p){
   const lastContact = getLastContactDate(p.id);
   const days = daysSince(lastContact);
   let alertHtml = '';
-  if(!lastContact) alertHtml=`<span class="card-alert" style="color:#888">⚪ Aucun contact</span>`;
-  else if(days>30) alertHtml=`<span class="card-alert alert-red">🔴 ${days}j sans suivi</span>`;
-  else if(days>=8) alertHtml=`<span class="card-alert alert-orange">🟡 ${days}j</span>`;
+  if(lastContact && days>30) alertHtml=`<span class="card-alert alert-red">🔴 ${days}j sans suivi</span>`;
+  else if(lastContact && days>=8) alertHtml=`<span class="card-alert alert-orange">🟡 ${days}j</span>`;
 
   const rdvHtml = p.dateProchainRDV ? `<span class="card-rdv">📅 ${fmtDate(p.dateProchainRDV)}</span>` : '';
   const prixHtml = p.prix ? `<span class="card-prix">${fmtMoney(p.prix)}</span>` : '';
