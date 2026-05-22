@@ -1598,6 +1598,7 @@ async function createSoumissionFolderForProjet(p){
     const projets=DB.get('projets');
     const idx=projets.findIndex(pp=>pp.id===p.id);
     if(idx!==-1){projets[idx].dossierDriveId=res.driveId;projets[idx].dossierDriveUrl=res.driveUrl;projets[idx].dossierNumero=res.souId;DB.set('projets',projets);}
+    scriptPost({action:'updateProjetDossierSOU',projetId:p.id,driveId:res.driveId,driveUrl:res.driveUrl});
     showToast(`📁 Dossier soumission créé : ${res.souId}`);
     if(currentProjetId===p.id) renderProjetDetail();
   }
@@ -2744,7 +2745,8 @@ async function syncSheets(){
           dateProchainRDV:row.Date_RDV||'',
           dateDernierContact:loc.dateDernierContact||'',
           soumissionNom:loc.soumissionNom||'',
-          dossierDriveId:loc.dossierDriveId||'', dossierDriveUrl:loc.dossierDriveUrl||'',
+          dossierDriveId:row.Dossier_SOU_ID||loc.dossierDriveId||'',
+          dossierDriveUrl:row.Dossier_SOU_URL||loc.dossierDriveUrl||'',
           dossierNumero:loc.dossierNumero||'',
           driveId:loc.driveId||'', driveUrl:loc.driveUrl||'', chanId:loc.chanId||'',
         };
@@ -4275,7 +4277,8 @@ async function autoSyncFromSheet(){
         priorite:row['Priorité']||'', dateCreation:row['Date_Créé']||'',
         dateDernierContact:loc.dateDernierContact||'', dateProchainRDV:loc.dateProchainRDV||'',
         soumissionUrl:loc.soumissionUrl||'', soumissionNom:loc.soumissionNom||'',
-        dossierDriveId:loc.dossierDriveId||'', dossierDriveUrl:loc.dossierDriveUrl||'',
+        dossierDriveId:row.Dossier_SOU_ID||loc.dossierDriveId||'',
+        dossierDriveUrl:row.Dossier_SOU_URL||loc.dossierDriveUrl||'',
         dossierNumero:loc.dossierNumero||'',
         driveId:loc.driveId||'', driveUrl:loc.driveUrl||'', chanId:loc.chanId||'',
       };
