@@ -2731,16 +2731,25 @@ async function syncSheets(){
     const rowsP=Array.isArray(dp.data)?dp.data:[];
     const sheetPIds=new Set(rowsP.map(r=>r.ID_Projet).filter(Boolean));
     if(rowsP.length){
-      const sheetProjets=rowsP.map(row=>({
-        id:row.ID_Projet, clientId:row.Client_ID||'', nom:row.Nom_Projet||'',
-        statut:row.Statut||'', priorite:row['Priorité']||'',
-        typeProjet:row.Type_Projet||'', source:row['Source_Référence']||'',
-        prix:row['Prix_Estimé']||'', coutMateriaux:row['Coût_Matériaux']||'',
-        coutMainOeuvre:row['Coût_MO']||'', soumissionUrl:row.Lien_Soumission||'',
-        notes:row.Notes||'', dateCreation:row['Date_Créé']||'',
-        dateProchainRDV:row.Date_RDV||''
-      })).filter(p=>p.id);
-      const localOnlyP=DB.get('projets').filter(p=>!sheetPIds.has(p.id));
+      const localProjets2=DB.get('projets');
+      const sheetProjets=rowsP.map(row=>{
+        const loc=localProjets2.find(p=>p.id===row.ID_Projet)||{};
+        return {
+          id:row.ID_Projet, clientId:row.Client_ID||'', nom:row.Nom_Projet||'',
+          statut:row.Statut||'', priorite:row['Priorité']||'',
+          typeProjet:row.Type_Projet||'', source:row['Source_Référence']||'',
+          prix:row['Prix_Estimé']||'', coutMateriaux:row['Coût_Matériaux']||'',
+          coutMainOeuvre:row['Coût_MO']||'', soumissionUrl:row.Lien_Soumission||'',
+          notes:row.Notes||'', dateCreation:row['Date_Créé']||'',
+          dateProchainRDV:row.Date_RDV||'',
+          dateDernierContact:loc.dateDernierContact||'',
+          soumissionNom:loc.soumissionNom||'',
+          dossierDriveId:loc.dossierDriveId||'', dossierDriveUrl:loc.dossierDriveUrl||'',
+          dossierNumero:loc.dossierNumero||'',
+          driveId:loc.driveId||'', driveUrl:loc.driveUrl||'', chanId:loc.chanId||'',
+        };
+      }).filter(p=>p.id);
+      const localOnlyP=localProjets2.filter(p=>!sheetPIds.has(p.id));
       DB.set('projets',[...sheetProjets,...localOnlyP]);
     }
     for(const p of DB.get('projets')){
@@ -4256,14 +4265,23 @@ async function autoSyncFromSheet(){
 
   // Projets
   if(rowsP.length){
-    const sheetProjets=rowsP.map(row=>({
-      id:row.ID_Projet, clientId:row.Client_ID, nom:row.Nom_Projet,
-      statut:row.Statut, typeProjet:row.Type_Projet, prix:row['Prix_Estimé']||'',
-      notes:row.Notes||'', source:row['Source_Référence']||'',
-      priorite:row['Priorité']||'', dateCreation:row['Date_Créé']||''
-    })).filter(p=>p.id);
+    const localProjets=DB.get('projets');
+    const sheetProjets=rowsP.map(row=>{
+      const loc=localProjets.find(p=>p.id===row.ID_Projet)||{};
+      return {
+        id:row.ID_Projet, clientId:row.Client_ID, nom:row.Nom_Projet,
+        statut:row.Statut, typeProjet:row.Type_Projet, prix:row['Prix_Estimé']||'',
+        notes:row.Notes||'', source:row['Source_Référence']||'',
+        priorite:row['Priorité']||'', dateCreation:row['Date_Créé']||'',
+        dateDernierContact:loc.dateDernierContact||'', dateProchainRDV:loc.dateProchainRDV||'',
+        soumissionUrl:loc.soumissionUrl||'', soumissionNom:loc.soumissionNom||'',
+        dossierDriveId:loc.dossierDriveId||'', dossierDriveUrl:loc.dossierDriveUrl||'',
+        dossierNumero:loc.dossierNumero||'',
+        driveId:loc.driveId||'', driveUrl:loc.driveUrl||'', chanId:loc.chanId||'',
+      };
+    }).filter(p=>p.id);
     const sheetIds=new Set(sheetProjets.map(p=>p.id));
-    const localOnly=DB.get('projets').filter(p=>!sheetIds.has(p.id));
+    const localOnly=localProjets.filter(p=>!sheetIds.has(p.id));
     DB.set('projets',[...sheetProjets,...localOnly]);
     if(currentView==='pipeline') renderPipeline();
   }
