@@ -75,7 +75,7 @@ html, body{
 #screen-chat{
   display:none; flex-direction:column;
   position:fixed; inset:0;
-  background:var(--bg); overflow:hidden;
+  background:var(--bg2); overflow:hidden;
 }
 
 /* Header */
@@ -118,9 +118,11 @@ html, body{
 
 /* Messages */
 #msgs-area{
-  flex:1; overflow-y:auto; overflow-x:hidden;
+  flex:1; min-height:0;
+  overflow-y:auto; overflow-x:hidden;
   padding:12px 12px 6px;
   display:flex; flex-direction:column; gap:7px;
+  background:var(--bg);
 }
 #msgs-area::-webkit-scrollbar{ width:3px }
 #msgs-area::-webkit-scrollbar-track{ background:transparent }
