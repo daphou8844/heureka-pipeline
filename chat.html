@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Heureka Chat</title>
+<meta name="theme-color" content="#D4AF37">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Heureka Chat">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ─── Reset & Variables ───────────────────────────────────────────────── */
+*{ margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent }
+:root{
+  --bg:#0A0A0A; --bg2:#141414; --bg3:#1A1A1A;
+  --border:#2A2A2A;
+  --gold:#D4AF37; --gold2:#F2C96E;
+  --text:#F0F0F0; --muted:#9A9A9A; --muted2:#5A5A5A;
+  --green:#22C55E;
+  --me-bg:rgba(34,197,94,.12); --me-brd:rgba(34,197,94,.28); --me-text:#86efac;
+  --other-bg:#1e1e1e; --other-brd:#2A2A2A; --other-text:#d4d4d4;
+  --rad:14px; --tr:all .18s ease;
+}
+html, body{
+  height:100%; overflow:hidden;
+  background:var(--bg); color:var(--text);
+  font-family:'Inter',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ─── Screen Select ───────────────────────────────────────────────────── */
+#screen-select{
+  display:flex; flex-direction:column; align-items:center;
+  min-height:100dvh; min-height:100vh;
+  padding:48px 28px calc(40px + env(safe-area-inset-bottom,0px));
+  background:var(--bg); gap:11px; overflow-y:auto;
+}
+.sel-logo{
+  width:80px; height:80px; border-radius:20px;
+  object-fit:cover; margin-bottom:4px;
+  box-shadow:0 4px 24px rgba(212,175,55,.25);
+}
+.sel-title{ font-size:24px; font-weight:800; color:var(--gold2); letter-spacing:-.4px }
+.sel-sub{ font-size:13px; color:var(--muted); margin-bottom:10px }
+.sel-who{
+  font-size:11px; font-weight:700; color:var(--muted2);
+  text-transform:uppercase; letter-spacing:.9px;
+  align-self:flex-start; width:100%; max-width:340px;
+  margin-bottom:2px;
+}
+.sel-btn{
+  width:100%; max-width:340px;
+  padding:15px 18px; border-radius:13px;
+  border:1px solid var(--border); background:var(--bg3);
+  color:var(--text); cursor:pointer;
+  font-family:inherit; text-align:left;
+  display:flex; align-items:center; gap:14px;
+  transition:var(--tr);
+}
+.sel-btn:hover, .sel-btn:active{ border-color:var(--gold); background:#1c1700 }
+.sel-avatar{
+  width:42px; height:42px; border-radius:50%; flex-shrink:0;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  display:flex; align-items:center; justify-content:center;
+  font-size:17px; font-weight:800; color:#000;
+}
+.sel-info-name{ font-size:15px; font-weight:700; color:var(--gold2) }
+.sel-info-role{ font-size:11px; color:var(--muted); margin-top:3px }
+
+/* ─── Screen Chat ─────────────────────────────────────────────────────── */
+#screen-chat{
+  display:none; flex-direction:column;
+  height:100dvh; height:100vh;
+  max-width:430px; margin:0 auto;
+  background:var(--bg); overflow:hidden;
+}
+
+/* Header */
+.chat-hdr{
+  flex-shrink:0; display:flex; align-items:center;
+  justify-content:space-between;
+  padding:10px 14px;
+  padding-top:calc(10px + env(safe-area-inset-top,0px));
+  background:var(--bg2); border-bottom:1px solid var(--border);
+}
+.hdr-left{ display:flex; align-items:center; gap:10px }
+.hdr-logo{ width:36px; height:36px; border-radius:9px; object-fit:cover }
+.hdr-names{ display:flex; flex-direction:column; gap:1px }
+.hdr-app{ font-size:13px; font-weight:800; color:var(--gold2) }
+.hdr-user{
+  font-size:11px; font-weight:700; color:var(--green);
+  display:flex; align-items:center; gap:4px;
+}
+.hdr-dot{
+  width:6px; height:6px; border-radius:50%;
+  background:var(--green); display:inline-block; flex-shrink:0;
+}
+.hdr-right{ display:flex; align-items:center; gap:5px }
+
+#notif-btn{
+  background:none; border:none; cursor:pointer;
+  font-size:17px; padding:6px; border-radius:8px;
+  line-height:1; transition:opacity .15s; opacity:.5;
+}
+#notif-btn.active{ opacity:1 }
+#notif-btn:hover{ opacity:1 }
+
+.btn-change{
+  background:none; border:1px solid var(--border);
+  color:var(--muted2); font-size:10px; font-weight:600;
+  padding:5px 9px; border-radius:20px; cursor:pointer;
+  font-family:inherit; transition:var(--tr); white-space:nowrap;
+}
+.btn-change:hover{ border-color:var(--gold); color:var(--gold) }
+
+/* Messages */
+#msgs-area{
+  flex:1; overflow-y:auto; overflow-x:hidden;
+  padding:12px 12px 6px;
+  display:flex; flex-direction:column; gap:7px;
+}
+#msgs-area::-webkit-scrollbar{ width:3px }
+#msgs-area::-webkit-scrollbar-track{ background:transparent }
+#msgs-area::-webkit-scrollbar-thumb{ background:var(--border); border-radius:3px }
+
+.bbl{
+  max-width:80%; border-radius:14px;
+  padding:9px 13px; font-size:13.5px; line-height:1.5;
+  word-break:break-word; animation:popIn .15s ease;
+}
+@keyframes popIn{ from{ opacity:0; transform:scale(.96) } to{ opacity:1; transform:none } }
+.bbl-me{
+  align-self:flex-end;
+  background:var(--me-bg); border:1px solid var(--me-brd); color:var(--me-text);
+}
+.bbl-other{
+  align-self:flex-start;
+  background:var(--other-bg); border:1px solid var(--other-brd); color:var(--other-text);
+}
+.bbl-author{ font-size:10px; font-weight:700; color:var(--muted); margin-bottom:3px }
+.bbl-time{
+  font-size:9.5px; margin-top:5px;
+  color:var(--muted2); text-align:right;
+}
+.bbl-me .bbl-time{ color:rgba(34,197,94,.45) }
+
+.date-sep{
+  align-self:center; font-size:10px; color:var(--muted2);
+  background:var(--bg2); padding:3px 11px; border-radius:20px;
+  margin:5px 0; flex-shrink:0;
+}
+.msgs-empty{
+  color:var(--muted); font-size:13px; text-align:center;
+  padding:48px 24px; line-height:1.7; align-self:center;
+}
+.msgs-loading{ color:var(--muted2); font-size:12px; text-align:center; padding:20px; align-self:center }
+
+/* Input */
+.chat-foot{
+  flex-shrink:0; display:flex; align-items:flex-end; gap:8px;
+  padding:10px 12px;
+  padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));
+  border-top:1px solid var(--border); background:var(--bg2);
+}
+.chat-inp{
+  flex:1; background:var(--bg3); border:1px solid var(--border);
+  border-radius:22px; padding:10px 15px; color:var(--text);
+  font-size:14px; outline:none; font-family:inherit; line-height:1.3;
+  transition:border-color .15s; resize:none; max-height:100px;
+  overflow-y:auto;
+}
+.chat-inp:focus{ border-color:var(--gold) }
+.chat-inp::placeholder{ color:var(--muted2) }
+.chat-snd{
+  width:40px; height:40px; flex-shrink:0; border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:opacity .15s;
+}
+.chat-snd:hover{ opacity:.85 }
+.chat-snd:disabled{ opacity:.4; cursor:default }
+
+/* Toast */
+#toast{
+  position:fixed; bottom:90px; left:50%;
+  transform:translateX(-50%) translateY(12px);
+  background:#2a2a2a; color:var(--text);
+  padding:10px 18px; border-radius:22px; font-size:12.5px;
+  opacity:0; transition:all .22s; z-index:999;
+  pointer-events:none; white-space:nowrap;
+  box-shadow:0 4px 20px rgba(0,0,0,.6);
+}
+#toast.show{ opacity:1; transform:translateX(-50%) translateY(0) }
+
+/* iOS install hint (shown only on iOS non-standalone) */
+#ios-hint{
+  display:none; position:fixed; bottom:0; left:0; right:0;
+  background:var(--bg2); border-top:1px solid var(--border);
+  padding:12px 16px; padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  font-size:12px; color:var(--muted); text-align:center;
+  z-index:100;
+}
+#ios-hint span{ color:var(--gold2) }
+#ios-hint-close{
+  position:absolute; top:10px; right:14px;
+  background:none; border:none; color:var(--muted); cursor:pointer; font-size:16px;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ÉCRAN 1 — Sélection utilisateur
+════════════════════════════════════════════════════════════ -->
+<div id="screen-select">
+  <img src="logo.png" alt="Heuréka" class="sel-logo">
+  <div class="sel-title">Heureka Chat</div>
+  <div class="sel-sub">Messagerie interne de l'équipe</div>
+
+  <div class="sel-who">Qui êtes-vous ?</div>
+
+  <button class="sel-btn" onclick="pickUser('Maxime')">
+    <span class="sel-avatar">M</span>
+    <div>
+      <div class="sel-info-name">Maxime</div>
+      <div class="sel-info-role">Direction</div>
+    </div>
+  </button>
+  <button class="sel-btn" onclick="pickUser('Daphnée')">
+    <span class="sel-avatar">D</span>
+    <div>
+      <div class="sel-info-name">Daphnée</div>
+      <div class="sel-info-role">Adjointe direction</div>
+    </div>
+  </button>
+  <button class="sel-btn" onclick="pickUser('Anabelle')">
+    <span class="sel-avatar">A</span>
+    <div>
+      <div class="sel-info-name">Anabelle</div>
+      <div class="sel-info-role">Service aux ventes</div>
+    </div>
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ÉCRAN 2 — Chat
+════════════════════════════════════════════════════════════ -->
+<div id="screen-chat">
+
+  <header class="chat-hdr">
+    <div class="hdr-left">
+      <img src="logo.png" alt="Heuréka" class="hdr-logo">
+      <div class="hdr-names">
+        <div class="hdr-app">Heureka Chat</div>
+        <div class="hdr-user">
+          <span class="hdr-dot"></span>
+          <span id="hdr-username"></span>
+        </div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <button id="notif-btn" onclick="requestNotifPermission()" title="Activer les notifications">&#128276;</button>
+      <button class="btn-change" onclick="changeUser()">&#8644; Changer</button>
+    </div>
+  </header>
+
+  <div id="msgs-area">
+    <div class="msgs-loading">Chargement…</div>
+  </div>
+
+  <div class="chat-foot">
+    <input
+      type="text"
+      inputmode="text"
+      class="chat-inp"
+      id="msg-inp"
+      placeholder="Écrire un message…"
+      autocomplete="off"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"
+    >
+    <button class="chat-snd" id="send-btn" onclick="sendMsg()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"/>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- Hint iOS install (masqué par défaut) -->
+<div id="ios-hint">
+  <button id="ios-hint-close" onclick="document.getElementById('ios-hint').style.display='none'">&#10005;</button>
+  Pour recevoir des notifications : <span>Partager &#8599; → Sur l'écran d'accueil</span>
+</div>
+
+<div id="toast"></div>
+
+<!-- Firebase SDK (async — requis uniquement pour les notifications push FCM) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" async></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js" async></script>
+<script src="config.js"></script>
+<script>
+/* ════════════════════════════════════════════════════════════════════════
+   HEUREKA CHAT — app.js (inline)
+   Stack: Google Sheets "Messages" via Apps Script + FCM push (optionnel)
+   ════════════════════════════════════════════════════════════════════════ */
+
+// ──────────────────────────────────────────────────────────────────────────
+//  🔥  CONFIGURATION FIREBASE — À remplir pour les notifications push
+//
+//  Étapes :
+//  1. Aller sur https://console.firebase.google.com → Créer un projet
+//  2. Ajouter une app Web → copier la config dans FIREBASE_CONFIG ci-dessous
+//  3. Cloud Messaging → Paramètres Web → Certificats Web push → copier VAPID_KEY
+//  4. Cloud Messaging → Paramètres → Clés du serveur → copier dans Google Sheet
+//     onglet "Config", ligne :  FCM_SERVER_KEY  |  [votre clé serveur]
+//  5. Copier la même FIREBASE_CONFIG dans firebase-messaging-sw.js
+//
+//  Laisser 'REPLACE_ME' = app fonctionne sans notifications push (polling uniquement).
+// ──────────────────────────────────────────────────────────────────────────
+const FIREBASE_CONFIG = {
+  apiKey:            'REPLACE_ME',
+  authDomain:        'REPLACE_ME.firebaseapp.com',
+  projectId:         'REPLACE_ME',
+  storageBucket:     'REPLACE_ME.appspot.com',
+  messagingSenderId: 'REPLACE_ME',
+  appId:             'REPLACE_ME'
+};
+const VAPID_KEY = 'REPLACE_ME'; // Cloud Messaging → Certificats Web push
+
+// ──────────────────────────────────────────────────────────────────────────
+
+const GAS_URL   = HEUREKA_CONFIG.APPS_SCRIPT_URL;
+const POLL_MS   = 8000;   // intervalle de rafraîchissement (ms)
+const MSGS_MAX  = 80;     // messages max en cache
+
+const S_USER    = 'hchat_user';     // localStorage : utilisateur
+const S_CACHE   = 'hchat_msgs';     // localStorage : cache messages
+const S_FCM_TOK = 'hchat_fcm_tok';  // localStorage : token FCM
+
+let _msgs      = JSON.parse(localStorage.getItem(S_CACHE) || '[]');
+let _pollTimer = null;
+let _fcmReady  = false;
+let _swReg     = null;
+
+// ─── Utilitaires ──────────────────────────────────────────────────────────
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function getUser(){ return localStorage.getItem(S_USER) || ''; }
+function setUser(n){ localStorage.setItem(S_USER, n); }
+
+async function post(body){
+  if(!GAS_URL) return null;
+  try{
+    const r = await fetch(GAS_URL, {
+      method: 'POST', redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(body)
+    });
+    return await r.json();
+  } catch(e){ return null; }
+}
+
+function localDateStr(d){
+  // YYYY-MM-DD en heure locale (pas UTC)
+  const dt = d || new Date();
+  return dt.getFullYear() + '-' +
+    String(dt.getMonth()+1).padStart(2,'0') + '-' +
+    String(dt.getDate()).padStart(2,'0');
+}
+
+function fmtTime(iso){
+  if(!iso) return '';
+  try{
+    const d = new Date(iso);
+    if(isNaN(d)) return iso.substring(11,16);
+    const time = d.toLocaleTimeString('fr-CA', { hour:'2-digit', minute:'2-digit' });
+    if(localDateStr(d) === localDateStr()) return time;
+    return d.toLocaleDateString('fr-CA', { day:'2-digit', month:'2-digit' }) + ' ' + time;
+  } catch(e){ return iso.toString().substring(11,16); }
+}
+
+// ─── Navigation ───────────────────────────────────────────────────────────
+function showSelect(){
+  stopPolling();
+  document.getElementById('screen-select').style.display = 'flex';
+  document.getElementById('screen-chat').style.display   = 'none';
+}
+
+function showChat(user){
+  document.getElementById('screen-select').style.display = 'none';
+  const chat = document.getElementById('screen-chat');
+  chat.style.display = 'flex';
+  document.getElementById('hdr-username').textContent = user;
+  loadMsgs();
+  startPolling();
+  updateNotifBtn();
+  // Propose les notifications après 3s (non intrusif)
+  setTimeout(() => {
+    if('Notification' in window && Notification.permission === 'default') {
+      showToast('Appuyez sur la cloche pour les notifications push', 4000);
+    }
+  }, 3500);
+  showIOSHint();
+}
+
+function pickUser(name){
+  setUser(name);
+  showChat(name);
+  initFCM().catch(()=>{});
+}
+
+function changeUser(){
+  if(!confirm('Changer d\'utilisateur ?')) return;
+  localStorage.removeItem(S_USER);
+  stopPolling();
+  showSelect();
+}
+
+// ─── Messages ─────────────────────────────────────────────────────────────
+async function loadMsgs(){
+  try{
+    const r = await fetch(GAS_URL + '?action=getData&sheet=Messages', { redirect:'follow' });
+    const d = await r.json();
+    if(Array.isArray(d.data) && d.data.length){
+      _msgs = d.data.slice(-MSGS_MAX);
+      localStorage.setItem(S_CACHE, JSON.stringify(_msgs));
+    }
+  } catch(e){
+    _msgs = JSON.parse(localStorage.getItem(S_CACHE) || '[]');
+  }
+  renderMsgs();
+}
+
+function renderMsgs(){
+  const el = document.getElementById('msgs-area');
+  if(!el) return;
+  const me = getUser();
+  // Garder la position si l'utilisateur est remonté dans le fil
+  const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 90;
+
+  if(!_msgs.length){
+    el.innerHTML = '<div class="msgs-empty">Aucun message encore.<br>Soyez le premier à écrire !</div>';
+    return;
+  }
+
+  let html = '';
+  let lastDate = '';
+  for(const m of _msgs){
+    const mine    = m.auteur === me;
+    const msgDate = localDateStr(new Date(m.heure || Date.now()));
+
+    if(msgDate !== lastDate){
+      const label = msgDate === localDateStr() ? "Aujourd'hui"
+        : msgDate === localDateStr(new Date(Date.now() - 86400000)) ? "Hier"
+        : msgDate.slice(5).replace('-','/'); // MM/DD
+      html += `<div class="date-sep">${esc(label)}</div>`;
+      lastDate = msgDate;
+    }
+
+    html += `<div class="bbl ${mine ? 'bbl-me' : 'bbl-other'}">
+      ${!mine ? `<div class="bbl-author">${esc(m.auteur||'—')}</div>` : ''}
+      <div>${esc(m.texte||'')}</div>
+      <div class="bbl-time">${esc(fmtTime(m.heure))}</div>
+    </div>`;
+  }
+  el.innerHTML = html;
+  if(nearBottom) el.scrollTop = el.scrollHeight;
+}
+
+async function sendMsg(){
+  const inp   = document.getElementById('msg-inp');
+  const texte = (inp?.value || '').trim();
+  if(!texte) return;
+  const auteur = getUser();
+  if(!auteur){ showToast('Identifiez-vous d\'abord'); return; }
+
+  const btn = document.getElementById('send-btn');
+  if(btn) btn.disabled = true;
+
+  const msg = { ID: uid(), auteur, texte, heure: new Date().toISOString(), lu: 'non' };
+  _msgs.push(msg);
+  inp.value = '';
+  renderMsgs();
+  localStorage.setItem(S_CACHE, JSON.stringify(_msgs.slice(-MSGS_MAX)));
+
+  // Persister dans Sheets
+  await post({ action:'addRow', sheet:'Messages', data:{ ID:msg.ID, auteur, texte, heure:msg.heure, lu:'non' } });
+
+  // Déclencher notifications FCM vers les autres via Apps Script
+  post({ action:'sendChatNotification', auteur, texte }).catch(()=>{});
+
+  if(btn) btn.disabled = false;
+}
+
+// ─── Polling (auto-refresh) ────────────────────────────────────────────────
+function startPolling(){
+  stopPolling();
+  _pollTimer = setInterval(async () => {
+    const prevCount = _msgs.length;
+    const me = getUser();
+    await loadMsgs();
+    // Notification locale si appli en arrière-plan (fallback quand FCM non configuré)
+    if(_msgs.length > prevCount && document.hidden && Notification.permission === 'granted'){
+      const newFromOthers = _msgs.slice(prevCount).filter(m => m.auteur !== me);
+      if(newFromOthers.length){
+        const last = newFromOthers[newFromOthers.length - 1];
+        try{
+          new Notification(esc(last.auteur) + ' — Heureka Chat', {
+            body: last.texte, icon: 'logo.png', tag: 'hchat'
+          });
+        } catch(e){}
+      }
+    }
+  }, POLL_MS);
+}
+
+function stopPolling(){
+  if(_pollTimer){ clearInterval(_pollTimer); _pollTimer = null; }
+}
+
+document.addEventListener('visibilitychange', () => {
+  const u = getUser();
+  const chatShown = document.getElementById('screen-chat')?.style.display !== 'none';
+  if(!document.hidden && u && chatShown){
+    loadMsgs(); // refresh immédiat au retour
+    startPolling();
+  } else if(document.hidden){
+    stopPolling();
+  }
+});
+
+// ─── Firebase FCM ──────────────────────────────────────────────────────────
+function firebaseConfigured(){ return FIREBASE_CONFIG.apiKey !== 'REPLACE_ME'; }
+
+async function initFCM(){
+  if(_fcmReady || !firebaseConfigured()) return;
+  if(!('Notification' in window) || !('serviceWorker' in navigator)) return;
+  try{
+    // Attendre que le SDK Firebase soit chargé (async)
+    let tries = 0;
+    while(typeof firebase === 'undefined' && tries++ < 25){
+      await new Promise(r => setTimeout(r, 200));
+    }
+    if(typeof firebase === 'undefined') return;
+
+    if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+
+    if(!_swReg) _swReg = await navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' });
+
+    _fcmReady = true;
+
+    // Écouter les messages en premier plan
+    firebase.messaging().onMessage(() => {
+      if(getUser()) loadMsgs();
+    });
+
+    if(Notification.permission === 'granted') await getFCMToken();
+  } catch(e){ console.warn('[FCM] init:', e.message); }
+}
+
+async function requestNotifPermission(){
+  if(!('Notification' in window)){
+    showToast('Notifications non supportées sur cet appareil');
+    return;
+  }
+  const perm = await Notification.requestPermission();
+  updateNotifBtn();
+  if(perm === 'granted'){
+    showToast('Notifications activées');
+    if(firebaseConfigured()){
+      if(!_fcmReady) await initFCM();
+      await getFCMToken();
+    }
+  } else {
+    showToast('Notifications refusées dans les réglages');
+  }
+}
+
+async function getFCMToken(){
+  if(!_fcmReady || !VAPID_KEY || VAPID_KEY === 'REPLACE_ME') return;
+  try{
+    const token = await firebase.messaging().getToken({
+      vapidKey: VAPID_KEY,
+      serviceWorkerRegistration: _swReg
+    });
+    if(token && token !== localStorage.getItem(S_FCM_TOK)){
+      localStorage.setItem(S_FCM_TOK, token);
+      await post({ action:'saveFCMToken', user: getUser(), token });
+    }
+  } catch(e){ console.warn('[FCM] getToken:', e.message); }
+}
+
+function updateNotifBtn(){
+  const btn = document.getElementById('notif-btn');
+  if(!btn) return;
+  const p = ('Notification' in window) ? Notification.permission : 'denied';
+  btn.textContent = p === 'granted' ? '🔔' : '🔕';
+  btn.title       = p === 'granted' ? 'Notifications actives'
+    : p === 'denied'  ? 'Notifications bloquées — vérifier les réglages'
+    : 'Activer les notifications';
+  btn.classList.toggle('active', p === 'granted');
+}
+
+// ─── Hint iOS ──────────────────────────────────────────────────────────────
+function showIOSHint(){
+  // Afficher seulement sur iOS Safari hors mode standalone
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if(isIOS && !standalone && !localStorage.getItem('hchat_ios_hint_dismissed')){
+    document.getElementById('ios-hint').style.display = 'block';
+  }
+}
+document.getElementById('ios-hint-close').addEventListener('click', () => {
+  localStorage.setItem('hchat_ios_hint_dismissed', '1');
+});
+
+// ─── Toast ─────────────────────────────────────────────────────────────────
+function showToast(msg, dur){ dur = dur || 2500;
+  const t = document.getElementById('toast');
+  if(!t) return;
+  t.textContent = msg;
+  t.className = 'toast show';
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => { t.className = 'toast'; }, dur);
+}
+
+// ─── Init ──────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  // Enregistrer le service worker pour PWA + FCM
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' })
+      .then(reg => { _swReg = reg; })
+      .catch(() => {});
+  }
+
+  const u = getUser();
+  if(u){
+    showChat(u);
+    if(firebaseConfigured()) initFCM().catch(()=>{});
+  } else {
+    showSelect();
+  }
+});
+</script>
+</body>
+</html>
