@@ -74,8 +74,7 @@ html, body{
 /* ─── Screen Chat ─────────────────────────────────────────────────────── */
 #screen-chat{
   display:none; flex-direction:column;
-  position:fixed; top:0; left:0; right:0;
-  height:100dvh; height:100vh;
+  position:fixed; inset:0;
   background:var(--bg); overflow:hidden;
 }
 
@@ -633,15 +632,28 @@ function showToast(msg, dur){ dur = dur || 2500;
 }
 
 // ─── Stabilité clavier mobile (visualViewport) ────────────────────────────
+let _maxVH = 0; // hauteur max observée = clavier fermé
+
 function resizeChatToViewport() {
   const chat = document.getElementById('screen-chat');
   if (!chat || chat.style.display === 'none') return;
   const vv = window.visualViewport;
   if (!vv) return;
-  // Ancre le container sur le visual viewport (pas le layout viewport)
-  // → le footer reste visible juste au-dessus du clavier
-  chat.style.height = Math.round(vv.height) + 'px';
-  chat.style.top    = Math.round(vv.offsetTop) + 'px';
+
+  // Mémorise la hauteur max (clavier fermé = viewport au maximum)
+  if (vv.height > _maxVH) _maxVH = vv.height;
+
+  const keyboardOpen = _maxVH > 0 && vv.height < _maxVH - 100;
+  if (keyboardOpen) {
+    // Clavier ouvert : force la hauteur au visual viewport pour coller le footer au clavier
+    chat.style.height = Math.round(vv.height) + 'px';
+    chat.style.top    = Math.round(vv.offsetTop) + 'px';
+  } else {
+    // Clavier fermé : CSS inset:0 gère tout, pas de hauteur inline → pas de bande noire
+    chat.style.height = '';
+    chat.style.top    = '';
+  }
+
   const msgs = document.getElementById('msgs-area');
   if (msgs) {
     const nearBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 120;
