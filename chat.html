@@ -427,6 +427,9 @@ function changeUser(){
 
 // ─── Messages ─────────────────────────────────────────────────────────────
 async function loadMsgs(){
+  // Cache-first : afficher le localStorage immédiatement, pas d'attente
+  if(_msgs.length) renderMsgs();
+
   try{
     const r = await fetch(GAS_URL + '?action=getData&sheet=Messages', { redirect:'follow' });
     const d = await r.json();
@@ -435,7 +438,7 @@ async function loadMsgs(){
       localStorage.setItem(S_CACHE, JSON.stringify(_msgs));
     }
   } catch(e){
-    _msgs = JSON.parse(localStorage.getItem(S_CACHE) || '[]');
+    if(!_msgs.length) _msgs = JSON.parse(localStorage.getItem(S_CACHE) || '[]');
   }
   renderMsgs();
 }
