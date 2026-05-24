@@ -11,12 +11,12 @@ importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
 
 const FIREBASE_CONFIG = {
-  apiKey:            'REPLACE_ME',
-  authDomain:        'REPLACE_ME.firebaseapp.com',
-  projectId:         'REPLACE_ME',
-  storageBucket:     'REPLACE_ME.appspot.com',
-  messagingSenderId: 'REPLACE_ME',
-  appId:             'REPLACE_ME'
+  apiKey:            'AIzaSyDNDiaX6CLiqPGUeSex_3FAvZGk9oZZ7fU',
+  authDomain:        'heureka-chat.firebaseapp.com',
+  projectId:         'heureka-chat',
+  storageBucket:     'heureka-chat.firebasestorage.app',
+  messagingSenderId: '285008693591',
+  appId:             '1:285008693591:web:051d00c5ffa3c42dba9612'
 };
 
 // Init Firebase seulement si la config est remplie
