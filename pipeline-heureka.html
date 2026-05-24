@@ -379,6 +379,77 @@ textarea.form-control{resize:vertical;min-height:72px}
 .lock-btn:disabled{opacity:.45;cursor:not-allowed}
 .lock-error{color:#EF4444;font-size:12.5px;text-align:center;min-height:16px;font-weight:500}
 </style>
+<style>
+/* ─── Dashboard ──────────────────────────────────────────────────────────────── */
+#view-dashboard{height:100%;overflow-y:auto;padding:4px 0 32px}
+.dash-row{display:grid;grid-template-columns:3fr 2fr;gap:16px;margin-bottom:16px}
+.dash-full{margin-bottom:16px}
+.dash-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);padding:18px}
+.dash-box-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.dash-box-ttl{font-size:13px;font-weight:800;color:var(--gold2);display:flex;align-items:center;gap:7px}
+/* Alerts */
+.d-alert{display:flex;align-items:flex-start;gap:9px;padding:9px 12px;border-radius:8px;border:1px solid;margin-bottom:7px;font-size:12.5px;line-height:1.45}
+.d-alert:last-child{margin-bottom:0}
+.dal-red{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.07);color:#fca5a5}
+.dal-orange{border-color:rgba(249,115,22,.35);background:rgba(249,115,22,.07);color:#fdba74}
+.dal-gold{border-color:rgba(212,175,55,.35);background:rgba(212,175,55,.07);color:var(--gold2)}
+.dal-green{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.06);color:#86efac}
+/* Morning note */
+.note-meta-r{display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap}
+#morning-note-ta{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:#fff;font-size:13px;resize:vertical;min-height:88px;outline:none;font-family:inherit;transition:border-color .15s;display:block;box-sizing:border-box}
+#morning-note-ta:focus{border-color:var(--gold)}
+.prev-note{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:9px 11px;margin-bottom:5px;font-size:12px}
+.prev-note-m{font-size:10px;color:var(--muted);margin-bottom:3px}
+/* Tasks */
+.task-fr{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap}
+.tf-btn{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:var(--tr)}
+.tf-btn.active{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
+.d-task{display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;transition:border-color .15s}
+.d-task:last-child{margin-bottom:0}
+.d-task:hover{border-color:rgba(212,175,55,.2)}
+.tst{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;user-select:none;flex-shrink:0;border-width:1px;border-style:solid;transition:opacity .12s;white-space:nowrap}
+.tst:hover{opacity:.75}
+.tst-u{background:rgba(239,68,68,.13);border-color:rgba(239,68,68,.35);color:#fca5a5}
+.tst-s{background:rgba(212,175,55,.1);border-color:rgba(212,175,55,.3);color:var(--gold2)}
+.tst-f{background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.3);color:#93c5fd}
+.tst-a{background:rgba(107,114,128,.1);border-color:rgba(107,114,128,.3);color:#9ca3af}
+.tdel{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:14px;opacity:0;transition:opacity .15s;padding:2px 5px;border-radius:4px;flex-shrink:0;line-height:1}
+.d-task:hover .tdel{opacity:1}
+.tdel:hover{color:var(--red)!important}
+/* Recap */
+.rc-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12.5px;color:#ccc}
+.rc-row:last-child{border-bottom:none}
+.rc-val{font-weight:700;color:var(--gold2)}
+.rc-tl{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
+.rc-tl:last-child{border-bottom:none}
+/* ─── Chat Bubble ────────────────────────────────────────────────────────────── */
+#chat-fab{position:fixed;bottom:24px;right:24px;width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;cursor:pointer;z-index:820;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(0,0,0,.55);transition:transform .15s;flex-shrink:0}
+#chat-fab:hover{transform:scale(1.08)}
+#chat-fab-badge{position:absolute;top:-3px;right:-3px;min-width:20px;height:20px;background:var(--red);border-radius:10px;font-size:11px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);padding:0 4px;pointer-events:none}
+#chat-win{position:fixed;bottom:88px;right:24px;width:320px;max-height:440px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 48px rgba(0,0,0,.72);z-index:820;display:flex;flex-direction:column;overflow:hidden;animation:chatPop .15s ease}
+#chat-win.hidden{display:none!important}
+@keyframes chatPop{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+.chat-hdr{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;cursor:move;user-select:none}
+.chat-hdr-ttl{font-size:13px;font-weight:800;color:var(--gold2)}
+.chat-hdr-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.chat-hdr-x{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:2px 6px;border-radius:5px;pointer-events:auto}
+.chat-hdr-x:hover{color:#fff;background:var(--border)}
+.chat-msgs{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:7px;min-height:80px}
+.chat-bbl{max-width:83%;border-radius:12px;padding:8px 12px;font-size:12px;line-height:1.45}
+.chat-bbl-me{align-self:flex-end;background:var(--gold-dim);border:1px solid rgba(212,175,55,.25);color:var(--gold2)}
+.chat-bbl-other{align-self:flex-start;background:var(--bg3);border:1px solid var(--border);color:#ddd}
+.chat-bbl-author{font-size:10px;font-weight:700;color:var(--muted);margin-bottom:3px}
+.chat-bbl-time{font-size:9px;color:var(--muted2);margin-top:4px}
+.chat-foot{display:flex;gap:7px;padding:10px 12px;border-top:1px solid var(--border);flex-shrink:0}
+.chat-inp{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:8px 14px;color:#fff;font-size:12px;outline:none;font-family:inherit;transition:border-color .15s}
+.chat-inp:focus{border-color:var(--gold)}
+.chat-snd{background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;color:#000;font-size:13px;width:34px;height:34px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .12s}
+.chat-snd:hover{opacity:.85}
+.chat-pick{padding:16px;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px}
+.chat-pick-ttl{font-size:13px;font-weight:700;color:var(--gold2);text-align:center;margin-bottom:3px}
+.chat-pick-btn{width:100%;padding:9px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:#ccc;cursor:pointer;font-size:13px;font-weight:600;transition:var(--tr);text-align:left}
+.chat-pick-btn:hover{border-color:var(--gold);color:var(--gold)}
+</style>
 </head>
 <body>
 
@@ -410,9 +481,16 @@ textarea.form-control{resize:vertical;min-height:72px}
     </div>
 
     <nav class="sb-nav">
+      <!-- ACCUEIL -->
+      <div class="sb-section" style="padding-top:4px">Accueil</div>
+      <div class="nav-item active" onclick="showView('dashboard')" id="nav-dashboard">
+        <span class="nav-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></span>
+        Dashboard
+        <span class="nav-badge" id="badge-dashboard" style="display:none"></span>
+      </div>
       <!-- VENTES -->
       <div class="sb-section">Ventes</div>
-      <div class="nav-item active" onclick="showView('pipeline')" id="nav-pipeline">
+      <div class="nav-item" onclick="showView('pipeline')" id="nav-pipeline">
         <span class="nav-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="4" height="18" rx="1"/><rect x="10" y="3" width="4" height="13" rx="1"/><rect x="17" y="3" width="4" height="16" rx="1"/></svg></span>
         Pipeline
         <span class="nav-badge" id="badge-pipeline" style="display:none"></span>
@@ -489,6 +567,87 @@ textarea.form-control{resize:vertical;min-height:72px}
       </div>
     </div>
     <div id="content">
+
+      <!-- VIEW: DASHBOARD -->
+      <div id="view-dashboard" class="hidden">
+        <!-- Ligne 1 : Alertes + Note du matin -->
+        <div class="dash-row">
+          <div class="dash-box">
+            <div class="dash-box-hdr">
+              <div class="dash-box-ttl">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Alertes du jour
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="refreshDashAlerts()">↻ Actualiser</button>
+            </div>
+            <div id="dash-alerts-list"><div style="color:var(--muted);font-size:12px;text-align:center;padding:16px">Chargement...</div></div>
+          </div>
+          <div class="dash-box">
+            <div class="dash-box-hdr">
+              <div class="dash-box-ttl">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                Note du matin
+              </div>
+              <span id="note-saved-lbl" style="font-size:11px;color:var(--green);display:none">✓ Sauvegardée</span>
+            </div>
+            <div class="note-meta-r">
+              <select id="note-author-sel" class="form-control" style="width:auto;font-size:12px;padding:5px 9px" onchange="saveActiveUser(this.value)">
+                <option value="">— Qui êtes-vous ? —</option>
+                <option value="Maxime">Maxime</option>
+                <option value="Daphnée">Daphnée</option>
+                <option value="Anabelle">Anabelle</option>
+              </select>
+              <span id="note-date-lbl" style="margin-left:auto;font-size:11px;color:var(--muted)"></span>
+            </div>
+            <textarea id="morning-note-ta" placeholder="Bonjour l'équipe ! Points importants du jour..."></textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:8px">
+              <button class="btn btn-gold btn-sm" onclick="saveMorningNote()">💾 Sauvegarder</button>
+            </div>
+            <div id="prev-notes-list" style="margin-top:12px"></div>
+          </div>
+        </div>
+        <!-- Ligne 2 : Tâches -->
+        <div class="dash-full">
+          <div class="dash-box">
+            <div class="dash-box-hdr">
+              <div class="dash-box-ttl">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                Tâches de la semaine
+              </div>
+              <div style="display:flex;gap:6px">
+                <button class="btn btn-outline btn-sm" onclick="toggleTaskArchives()" title="Tâches archivées">📦 Archives</button>
+                <button class="btn btn-gold btn-sm" onclick="openNewTaskModal()">+ Ajouter</button>
+              </div>
+            </div>
+            <div class="task-fr">
+              <button class="tf-btn active" data-tf="toutes" onclick="setTaskFilter('toutes')">Toutes</button>
+              <button class="tf-btn" data-tf="Maxime" onclick="setTaskFilter('Maxime')">Maxime</button>
+              <button class="tf-btn" data-tf="Daphnée" onclick="setTaskFilter('Daphnée')">Daphnée</button>
+              <button class="tf-btn" data-tf="Anabelle" onclick="setTaskFilter('Anabelle')">Anabelle</button>
+            </div>
+            <div id="dash-tasks-list"></div>
+            <div id="task-archives-panel" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+              <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Tâches archivées — jours précédents</div>
+              <div id="dash-archived-list"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Ligne 3 : Récap -->
+        <div class="dash-full">
+          <div class="dash-box">
+            <div class="dash-box-hdr">
+              <div class="dash-box-ttl">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Récapitulatif — semaine dernière
+              </div>
+              <span id="recap-week-range" style="font-size:11px;color:var(--muted)"></span>
+            </div>
+            <div id="dash-recap-content">
+              <div style="color:var(--muted);text-align:center;padding:20px;font-size:12px">Généré automatiquement chaque lundi.</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- VIEW: PIPELINE -->
       <div id="view-pipeline" class="hidden">
@@ -613,6 +772,78 @@ textarea.form-control{resize:vertical;min-height:72px}
     </div><!-- /content -->
   </div><!-- /main -->
 </div><!-- /app -->
+
+<!-- ═══════════════════ CHAT BUBBLE ══════════════════════════════════════════ -->
+<button id="chat-fab" onclick="toggleChatWin()" title="Messages équipe">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  <span id="chat-fab-badge" style="display:none">0</span>
+</button>
+<div id="chat-win" class="hidden">
+  <div class="chat-hdr" id="chat-drag-hdr">
+    <div>
+      <div class="chat-hdr-ttl">💬 Messages équipe</div>
+      <div class="chat-hdr-sub" id="chat-hdr-sub">Maxime · Daphnée · Anabelle</div>
+    </div>
+    <button class="chat-hdr-x" onclick="toggleChatWin()">✕</button>
+  </div>
+  <div id="chat-picker-area" class="chat-pick" style="display:none">
+    <div class="chat-pick-ttl">Qui êtes-vous ?</div>
+    <button class="chat-pick-btn" onclick="pickChatUser('Maxime')">👤 Maxime — Direction</button>
+    <button class="chat-pick-btn" onclick="pickChatUser('Daphnée')">👤 Daphnée — Adjointe direction</button>
+    <button class="chat-pick-btn" onclick="pickChatUser('Anabelle')">👤 Anabelle — Service aux ventes</button>
+  </div>
+  <div class="chat-msgs" id="chat-msgs-area"></div>
+  <div class="chat-foot" id="chat-foot-area">
+    <input type="text" class="chat-inp" id="chat-text-inp" placeholder="Écrire un message…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMsg();}">
+    <button class="chat-snd" onclick="sendChatMsg()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════ MODAL: NOUVELLE TÂCHE ════════════════════════════════ -->
+<div class="modal-overlay hidden" id="modal-new-task">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">✅ Nouvelle tâche</div>
+      <button class="modal-close" onclick="closeModal('modal-new-task')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">Description *</label>
+          <textarea class="form-control" id="nt-texte" rows="2" placeholder="Description de la tâche..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Assignée à</label>
+          <select class="form-control" id="nt-assignee">
+            <option value="">— Non assignée (Toutes) —</option>
+            <option value="Maxime">Maxime</option>
+            <option value="Daphnée">Daphnée</option>
+            <option value="Anabelle">Anabelle</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Priorité</label>
+          <select class="form-control" id="nt-priorite">
+            <option value="faire">À faire</option>
+            <option value="semaine">Cette semaine</option>
+            <option value="urgent">Urgent</option>
+            <option value="attente">En attente</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Projet associé (optionnel)</label>
+          <select class="form-control" id="nt-projet"><option value="">— Aucun —</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-new-task')">Annuler</button>
+      <button class="btn btn-gold" onclick="saveNewTask()">Créer la tâche</button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════════════ MODAL: NOUVEAU PROJET ════════════════════════════════ -->
 <div class="modal-overlay hidden" id="modal-new-projet">
@@ -1279,20 +1510,21 @@ function openModal(id){ document.getElementById(id).classList.remove('hidden'); 
 function showView(view){
   currentView = view;
   updateNavBadges();
-  ['pipeline','chantiers','clients','config','stats','courriels','soumissions'].forEach(v=>{
+  ['dashboard','pipeline','chantiers','clients','config','stats','courriels','soumissions'].forEach(v=>{
     document.getElementById('view-'+v).classList.toggle('hidden', v!==view);
     const n=document.getElementById('nav-'+v);
     if(n) n.classList.toggle('active', v===view);
   });
   const titles={
-    pipeline:'Pipeline', chantiers:'Chantiers', clients:'Clients',
+    dashboard:'Dashboard', pipeline:'Pipeline', chantiers:'Chantiers', clients:'Clients',
     config:'Configuration', stats:'Statistiques',
     courriels:'Courriels envoyés', soumissions:'Soumissions Revêtement',
   };
   document.getElementById('topbar-title').textContent = titles[view]||'';
   const acts = document.getElementById('topbar-actions');
   acts.innerHTML = '';
-  if(view==='pipeline'){
+  if(view==='dashboard'){    renderDashboard();
+  } else if(view==='pipeline'){
     acts.innerHTML=`<button class="btn btn-gold" onclick="openModalNewProjet()">+ Nouveau projet</button>`;
     renderPipeline();
   } else if(view==='chantiers'){ renderChantiers();
@@ -4265,13 +4497,15 @@ async function autoSyncFromSheet(){
   };
 
   // Tous les fetches en parallèle
-  const [rowsC, rowsP, rowsCh, rowsA, rowsCou, rowsDocs] = await Promise.all([
+  const [rowsC, rowsP, rowsCh, rowsA, rowsCou, rowsDocs, rowsTaches, rowsMsgs] = await Promise.all([
     fetchSheet('Clients'),
     fetchSheet('Projets'),
     fetchSheet('Chantiers'),
     fetchSheet('Activités'),
     fetchSheet('Courriels'),
     fetchSheet('Documents'),
+    fetchSheet('Taches'),
+    fetchSheet('Messages'),
   ]);
 
   // Clients
@@ -4372,6 +4606,27 @@ async function autoSyncFromSheet(){
     })).filter(d=>d.id);
     DB.set('documents', sheetDocs);
     if(currentProjTab==='documents') loadProjectDocs(currentProjetId);
+  }
+
+  // Tâches
+  if(rowsTaches&&rowsTaches.length){
+    const sheetT=rowsTaches.map(r=>({
+      id:r.ID||'', texte:r.texte||'', assigneeA:r.assigneeA||'',
+      statut:r.statut||'faire', projetId:r.projet||'',
+      dateCreation:r.dateCreation||'', archivee:r.archivee||'non',
+      dateTermine:r.dateTermine||''
+    })).filter(t=>t.id);
+    const stIds=new Set(sheetT.map(t=>t.id));
+    const locT=(DB.get('taches')||[]).filter(t=>!stIds.has(t.id));
+    DB.set('taches',[...sheetT,...locT]);
+    if(currentView==='dashboard') renderDashTasks();
+  }
+
+  // Messages chat
+  if(rowsMsgs&&rowsMsgs.length){
+    _chatMsgs=rowsMsgs.slice(-60);
+    localStorage.setItem('ph_chat_local',JSON.stringify(_chatMsgs));
+    updateChatBadge();
   }
 }
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -4525,11 +4780,378 @@ function init(){
   clearDemoData();
   DB.setStr('appsScriptUrl', HEUREKA_CONFIG.APPS_SCRIPT_URL);
   if(localStorage.getItem('ph_sb_col')) document.getElementById('sidebar').classList.add('collapsed');
-  showView('pipeline');
+  showView('dashboard');
   updateNavBadges();
   setTimeout(autoSyncFromSheet, 3000);
   setInterval(autoSyncFromSheet, HEUREKA_CONFIG.SYNC_INTERVAL_MS);
 }
+/* ═══════════════════════════════════════════════════════════════════════════
+   DASHBOARD — STATE & HELPERS
+═══════════════════════════════════════════════════════════════════════════ */
+let taskFilter = 'toutes';
+let _chatMsgs = [];
+let _chatOpen = false;
+
+function getActiveUser(){ return localStorage.getItem('ph_active_user')||''; }
+function saveActiveUser(n){
+  if(!n) return;
+  localStorage.setItem('ph_active_user',n);
+  const s=document.getElementById('note-author-sel');
+  if(s&&s.value!==n) s.value=n;
+}
+
+/* ─── Alertes ─────────────────────────────────────────────────────────────── */
+function refreshDashAlerts(){
+  const el=document.getElementById('dash-alerts-list');
+  if(!el) return;
+  const alerts=[], today=todayStr();
+  // Activités en retard
+  const lbp={};
+  DB.get('activites').filter(a=>!a.done&&a.date&&a.date<today).forEach(a=>{lbp[a.projetId]=(lbp[a.projetId]||0)+1;});
+  Object.entries(lbp).forEach(([pid,cnt])=>{
+    const p=getProjet(pid),c=p?getClient(p.clientId):null;
+    alerts.push({cls:'dal-red',txt:`🔴 ${cnt} activité${cnt>1?'s':''} en retard : <strong>${p?escHtml(p.nom):'—'}</strong>${c?' — '+escHtml(c.nom):''}`});
+  });
+  // Projets sans contact
+  DB.get('projets').filter(p=>!['perdu','gagne'].includes(p.statut)).forEach(p=>{
+    const d=daysSince(getLastContactDate(p.id));
+    if(d>=21){ const c=getClient(p.clientId); alerts.push({cls:d>=30?'dal-red':'dal-orange',txt:`📞 Sans contact depuis <strong>${d}j</strong> : ${escHtml(p.nom)}${c?' ('+escHtml(c.nom)+')':''}`}); }
+  });
+  // Chantiers en retard
+  DB.get('chantiers').filter(ch=>ch.statut!=='termine'&&ch.dateFin&&ch.dateFin<today).forEach(ch=>{
+    alerts.push({cls:'dal-orange',txt:`🏗 Chantier en retard : <strong>${escHtml(ch.nom||ch.name||'')}</strong> (fin prévue ${fmtDate(ch.dateFin)})`});
+  });
+  // Soumissions sans réponse
+  JSON.parse(localStorage.getItem('rev-soumissions-list')||'[]').forEach(s=>{
+    if(s.statut&&s.statut!=='en_attente') return;
+    const d=s.date?daysSince(s.date.split('T')[0]):0;
+    if(d>=14) alerts.push({cls:'dal-gold',txt:`📐 Soumission sans réponse depuis <strong>${d}j</strong> : ${escHtml(s.nomProjet||s.noSoumission||'—')}`});
+  });
+  el.innerHTML = !alerts.length
+    ? `<div class="d-alert dal-green">✅ <strong>Aucune alerte active</strong> — Tout est à jour.</div>`
+    : alerts.map(a=>`<div class="d-alert ${a.cls}">${a.txt}</div>`).join('');
+}
+
+/* ─── Note du matin ──────────────────────────────────────────────────────── */
+async function loadMorningNote(){
+  const today=todayStr();
+  const ta=document.getElementById('morning-note-ta');
+  const dateEl=document.getElementById('note-date-lbl');
+  const authorEl=document.getElementById('note-author-sel');
+  if(!ta) return;
+  if(dateEl) dateEl.textContent=fmtDate(today);
+  const u=getActiveUser(); if(authorEl&&u) authorEl.value=u;
+  try{
+    const url=DB.getStr('appsScriptUrl')||HEUREKA_CONFIG.APPS_SCRIPT_URL;
+    if(!url) throw new Error('no url');
+    const r=await fetch(url+'?action=getData&sheet=Notes',{redirect:'follow'});
+    const d=await r.json();
+    if(Array.isArray(d.data)){
+      const todayNotes=d.data.filter(n=>n.date===today);
+      if(todayNotes.length){ const lt=todayNotes[todayNotes.length-1]; ta.value=lt.texte||''; if(authorEl&&lt.auteur) authorEl.value=lt.auteur; }
+      else{ const loc=JSON.parse(localStorage.getItem('ph_note_'+today)||'null'); if(loc) ta.value=loc.texte||''; }
+      renderPrevNotes(d.data.filter(n=>n.date<today).slice(-5).reverse());
+    }
+  }catch(e){ const loc=JSON.parse(localStorage.getItem('ph_note_'+today)||'null'); if(loc) ta.value=loc.texte||''; }
+}
+
+function renderPrevNotes(notes){
+  const el=document.getElementById('prev-notes-list');
+  if(!el||!notes.length) return;
+  el.innerHTML=`<div style="font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Notes précédentes</div>`+
+    notes.map(n=>`<div class="prev-note"><div class="prev-note-m">${escHtml(n.auteur||'—')} — ${fmtDate(n.date)}</div><div style="color:#ccc;line-height:1.5">${escHtml(n.texte||'')}</div></div>`).join('');
+}
+
+async function saveMorningNote(){
+  const texte=(document.getElementById('morning-note-ta')?.value||'').trim();
+  const auteur=document.getElementById('note-author-sel')?.value||getActiveUser();
+  if(!texte){ showToast('Écrivez quelque chose d\'abord'); return; }
+  if(!auteur){ showToast('Sélectionnez votre nom'); return; }
+  saveActiveUser(auteur);
+  const today=todayStr();
+  localStorage.setItem('ph_note_'+today,JSON.stringify({texte,auteur,date:today}));
+  try{
+    await scriptPost({action:'addRow',sheet:'Notes',data:{date:today,auteur,texte}});
+    const lbl=document.getElementById('note-saved-lbl');
+    if(lbl){ lbl.style.display=''; setTimeout(()=>lbl.style.display='none',3000); }
+    showToast('Note sauvegardée ✓');
+  }catch(e){ showToast('Sauvegardée localement (hors ligne)'); }
+}
+
+/* ─── Tâches ─────────────────────────────────────────────────────────────── */
+const TST=[
+  {id:'urgent', lbl:'Urgent',        cls:'tst-u'},
+  {id:'semaine',lbl:'Cette semaine', cls:'tst-s'},
+  {id:'faire',  lbl:'À faire',       cls:'tst-f'},
+  {id:'attente',lbl:'En attente',    cls:'tst-a'},
+];
+
+function getTasks(){ return DB.get('taches')||[]; }
+function setTasks(t){ DB.set('taches',t); }
+
+function autoArchiveTasks(){
+  const today=todayStr();
+  if(localStorage.getItem('ph_arch_check')===today) return;
+  localStorage.setItem('ph_arch_check',today);
+  const tasks=getTasks(); let changed=false;
+  tasks.forEach(t=>{ if(t.statut==='termine'&&t.archivee!=='oui'&&t.dateTermine&&t.dateTermine<today){ t.archivee='oui'; changed=true; } });
+  if(changed) setTasks(tasks);
+}
+
+function setTaskFilter(f){
+  taskFilter=f;
+  document.querySelectorAll('.tf-btn').forEach(b=>b.classList.toggle('active',b.dataset.tf===f));
+  renderDashTasks();
+}
+
+function renderDashTasks(){
+  const el=document.getElementById('dash-tasks-list');
+  if(!el) return;
+  let tasks=getTasks().filter(t=>t.archivee!=='oui'&&t.statut!=='termine');
+  tasks=taskFilter==='toutes'?tasks.filter(t=>!t.assigneeA):tasks.filter(t=>t.assigneeA===taskFilter);
+  if(!tasks.length){
+    el.innerHTML=`<div class="empty-state" style="padding:24px"><div class="empty-ico">✅</div><div class="empty-text">Aucune tâche${taskFilter!=='toutes'?' pour '+taskFilter:''}</div></div>`;
+    return;
+  }
+  const ord={urgent:0,semaine:1,faire:2,attente:3};
+  tasks.sort((a,b)=>(ord[a.statut]||4)-(ord[b.statut]||4));
+  el.innerHTML=tasks.map(t=>{
+    const st=TST.find(s=>s.id===t.statut)||TST[2];
+    const proj=t.projetId?(getProjet(t.projetId)?.nom||''):'';
+    const ass=t.assigneeA?`<span style="font-size:10px;color:var(--muted);background:var(--surface);padding:2px 7px;border-radius:4px;margin-left:5px">${escHtml(t.assigneeA)}</span>`:'';
+    return `<div class="d-task" id="dt-${t.id}">
+      <span class="tst ${st.cls}" onclick="cycleTask('${t.id}')" title="Cliquer pour changer le statut">${st.lbl}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;color:#fff">${escHtml(t.texte)}${ass}</div>
+        ${proj?`<div style="font-size:11px;color:var(--muted);margin-top:1px">📁 ${escHtml(proj)}</div>`:''}
+      </div>
+      <button class="tdel" onclick="deleteTask('${t.id}')" title="Supprimer">🗑</button>
+    </div>`;
+  }).join('');
+}
+
+function cycleTask(id){
+  const tasks=getTasks(),i=tasks.findIndex(t=>t.id===id);
+  if(i===-1) return;
+  const cycle=['urgent','semaine','faire','attente','termine'];
+  const cur=tasks[i].statut||'faire';
+  const next=cycle[(cycle.indexOf(cur)+1)%cycle.length];
+  tasks[i].statut=next;
+  if(next==='termine'){ tasks[i].dateTermine=todayStr(); tasks[i].archivee='non'; }
+  setTasks(tasks); syncTaskSheet(tasks[i],true); renderDashTasks();
+  if(next==='termine') showToast('Tâche terminée — archivée demain ✓');
+}
+
+function deleteTask(id){
+  if(!confirm('Supprimer cette tâche ?')) return;
+  setTasks(getTasks().filter(t=>t.id!==id));
+  scriptPost({action:'deleteRow',sheet:'Taches',id});
+  renderDashTasks(); showToast('Tâche supprimée.');
+}
+
+function openNewTaskModal(){
+  const sel=document.getElementById('nt-projet');
+  if(sel){ const ps=DB.get('projets').filter(p=>!['perdu','gagne'].includes(p.statut)); sel.innerHTML=`<option value="">— Aucun —</option>`+ps.map(p=>`<option value="${p.id}">${escHtml(p.nom)}</option>`).join(''); }
+  const ta=document.getElementById('nt-texte'); if(ta) ta.value='';
+  openModal('modal-new-task');
+}
+
+function saveNewTask(){
+  const texte=(document.getElementById('nt-texte')?.value||'').trim();
+  if(!texte){ showToast('La description est requise'); return; }
+  const task={id:uid(),texte,assigneeA:document.getElementById('nt-assignee')?.value||'',statut:document.getElementById('nt-priorite')?.value||'faire',projetId:document.getElementById('nt-projet')?.value||'',dateCreation:todayStr(),archivee:'non'};
+  const tasks=getTasks(); tasks.push(task); setTasks(tasks);
+  syncTaskSheet(task,false); closeModal('modal-new-task'); renderDashTasks(); showToast('Tâche créée ✓');
+}
+
+function toggleTaskArchives(){
+  const panel=document.getElementById('task-archives-panel');
+  if(!panel) return;
+  const show=panel.style.display==='none';
+  panel.style.display=show?'block':'none';
+  if(show) renderArchivedTasks();
+}
+
+function renderArchivedTasks(){
+  const el=document.getElementById('dash-archived-list');
+  if(!el) return;
+  const ar=getTasks().filter(t=>t.archivee==='oui').slice().reverse().slice(0,30);
+  if(!ar.length){ el.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px">Aucune tâche archivée</div>'; return; }
+  el.innerHTML=ar.map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;margin-bottom:5px;opacity:.65">
+    <span style="color:var(--green);flex-shrink:0">✓</span>
+    <span style="flex:1;font-size:12px;color:#ccc;text-decoration:line-through">${escHtml(t.texte)}</span>
+    <span style="font-size:10px;color:var(--muted)">${fmtDate(t.dateTermine||t.dateCreation)}</span>
+    ${t.assigneeA?`<span style="font-size:10px;color:var(--muted);background:var(--surface);padding:2px 7px;border-radius:4px">${escHtml(t.assigneeA)}</span>`:''}
+  </div>`).join('');
+}
+
+async function syncTaskSheet(task,isUpdate=false){
+  const data={ID:task.id,texte:task.texte,assigneeA:task.assigneeA||'',priorite:task.statut||'faire',statut:task.statut||'faire',projet:task.projetId||'',dateCreation:task.dateCreation||todayStr(),archivee:task.archivee||'non',dateTermine:task.dateTermine||''};
+  if(isUpdate) await scriptPost({action:'updateRow',sheet:'Taches',id:task.id,data});
+  else await scriptPost({action:'addRow',sheet:'Taches',data});
+}
+
+/* ─── Récapitulatif semaine ──────────────────────────────────────────────── */
+function renderWeeklyRecap(){
+  const el=document.getElementById('dash-recap-content');
+  const rangeEl=document.getElementById('recap-week-range');
+  if(!el) return;
+  const now=new Date(),dow=now.getDay();
+  const lm=new Date(now); lm.setDate(now.getDate()-(dow===0?6:dow-1)-7);
+  const ls=new Date(lm); ls.setDate(lm.getDate()+6);
+  const ts=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const mon=ts(lm),sun=ts(ls);
+  if(rangeEl) rangeEl.textContent=`${fmtDate(mon)} → ${fmtDate(sun)}`;
+  const all=getTasks();
+  const created=all.filter(t=>t.dateCreation>=mon&&t.dateCreation<=sun);
+  const done=all.filter(t=>(t.archivee==='oui'||t.statut==='termine')&&t.dateTermine>=mon&&t.dateTermine<=sun);
+  const rep=all.filter(t=>!['termine'].includes(t.statut)&&t.archivee!=='oui'&&t.dateCreation<mon);
+  const soums=JSON.parse(localStorage.getItem('rev-soumissions-list')||'[]');
+  const wSoums=soums.filter(s=>s.date&&s.date.split('T')[0]>=mon&&s.date.split('T')[0]<=sun);
+  const wGag=DB.get('projets').filter(p=>p.statut==='gagne'&&p.dateMiseAJour&&p.dateMiseAJour.split('T')[0]>=mon&&p.dateMiseAJour.split('T')[0]<=sun);
+  const wCh=DB.get('chantiers').filter(ch=>ch.statut==='termine'&&ch.dateFin>=mon&&ch.dateFin<=sun);
+  el.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+    <div>
+      <div class="section-title" style="margin-bottom:10px">Stats</div>
+      ${[['Tâches terminées',`${done.length} / ${created.length+done.length}`],['Tâches reportées',rep.length],['Soumissions envoyées',wSoums.length],['Projets gagnés',wGag.length],['Chantiers complétés',wCh.length]].map(([l,v])=>`<div class="rc-row"><span>${l}</span><span class="rc-val">${v}</span></div>`).join('')}
+    </div>
+    <div>
+      <div class="section-title" style="margin-bottom:10px">Tâches reportées (${rep.length})</div>
+      ${!rep.length?`<div style="color:var(--green);font-size:12px">✓ Aucune tâche reportée</div>`:rep.slice(0,10).map(t=>{ const st=TST.find(s=>s.id===t.statut)||TST[2]; return `<div class="rc-tl"><span class="tst ${st.cls}" style="font-size:10px;padding:2px 8px;cursor:default">${st.lbl}</span><span style="flex:1;color:#ccc">${escHtml(t.texte)}</span>${t.assigneeA?`<span style="font-size:10px;color:var(--muted)">${escHtml(t.assigneeA)}</span>`:''}</div>`; }).join('')}
+    </div>
+  </div>`;
+}
+
+/* ─── Render Dashboard ───────────────────────────────────────────────────── */
+function renderDashboard(){
+  autoArchiveTasks();
+  refreshDashAlerts();
+  loadMorningNote();
+  renderDashTasks();
+  renderWeeklyRecap();
+  setTimeout(()=>{ if(_chatMsgs.length) updateChatBadge(); else loadChatMsgs(); },600);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CHAT
+═══════════════════════════════════════════════════════════════════════════ */
+function toggleChatWin(){
+  const win=document.getElementById('chat-win');
+  if(!win) return;
+  _chatOpen=!_chatOpen;
+  win.classList.toggle('hidden',!_chatOpen);
+  if(_chatOpen){
+    const u=getActiveUser();
+    const picker=document.getElementById('chat-picker-area');
+    const msgs=document.getElementById('chat-msgs-area');
+    const foot=document.getElementById('chat-foot-area');
+    if(!u){
+      if(picker) picker.style.display='flex';
+      if(msgs) msgs.style.display='none';
+      if(foot) foot.style.display='none';
+    } else {
+      if(picker) picker.style.display='none';
+      if(msgs) msgs.style.display='flex';
+      if(foot) foot.style.display='flex';
+      loadChatMsgs();
+      markChatRead();
+    }
+  }
+}
+
+function pickChatUser(name){
+  saveActiveUser(name);
+  document.getElementById('chat-picker-area').style.display='none';
+  document.getElementById('chat-msgs-area').style.display='flex';
+  document.getElementById('chat-foot-area').style.display='flex';
+  const sub=document.getElementById('chat-hdr-sub');
+  if(sub) sub.textContent='Connecté : '+name;
+  loadChatMsgs();
+}
+
+async function loadChatMsgs(){
+  const area=document.getElementById('chat-msgs-area');
+  if(!area) return;
+  try{
+    const url=DB.getStr('appsScriptUrl')||HEUREKA_CONFIG.APPS_SCRIPT_URL;
+    if(!url) throw new Error('no url');
+    const r=await fetch(url+'?action=getData&sheet=Messages',{redirect:'follow'});
+    const d=await r.json();
+    if(Array.isArray(d.data)) _chatMsgs=d.data.slice(-60);
+  }catch(e){ _chatMsgs=JSON.parse(localStorage.getItem('ph_chat_local')||'[]'); }
+  renderChatMsgs();
+  markChatRead();
+  area.scrollTop=area.scrollHeight;
+}
+
+function renderChatMsgs(){
+  const area=document.getElementById('chat-msgs-area');
+  if(!area) return;
+  const me=getActiveUser();
+  if(!_chatMsgs.length){ area.innerHTML=`<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px;flex:1">Aucun message</div>`; return; }
+  area.innerHTML=_chatMsgs.map(m=>{
+    const mine=m.auteur===me;
+    const t=(m.heure||'').toString().replace('T',' ').substring(0,16);
+    return `<div class="chat-bbl ${mine?'chat-bbl-me':'chat-bbl-other'}">
+      ${!mine?`<div class="chat-bbl-author">${escHtml(m.auteur||'—')}</div>`:''}
+      <div>${escHtml(m.texte||'')}</div>
+      <div class="chat-bbl-time">${escHtml(t)}</div>
+    </div>`;
+  }).join('');
+  area.scrollTop=area.scrollHeight;
+}
+
+async function sendChatMsg(){
+  const inp=document.getElementById('chat-text-inp');
+  const texte=(inp?.value||'').trim();
+  if(!texte) return;
+  const auteur=getActiveUser();
+  if(!auteur){ showToast('Identifiez-vous d\'abord'); return; }
+  const msg={id:uid(),auteur,texte,heure:new Date().toISOString(),lu:'non'};
+  _chatMsgs.push(msg); inp.value=''; renderChatMsgs();
+  localStorage.setItem('ph_chat_local',JSON.stringify(_chatMsgs.slice(-100)));
+  try{ await scriptPost({action:'addRow',sheet:'Messages',data:{ID:msg.id,auteur,texte,heure:msg.heure,lu:'non'}}); }catch(e){}
+}
+
+function markChatRead(){
+  localStorage.setItem('ph_chat_last',new Date().toISOString());
+  updateChatBadge();
+}
+
+function updateChatBadge(){
+  const badge=document.getElementById('chat-fab-badge');
+  if(!badge) return;
+  const last=localStorage.getItem('ph_chat_last')||'';
+  const me=getActiveUser();
+  const unread=_chatMsgs.filter(m=>m.auteur!==me&&(!last||m.heure>last)).length;
+  badge.textContent=unread>99?'99+':unread;
+  badge.style.display=unread>0?'flex':'none';
+}
+
+/* ─── Chat drag ──────────────────────────────────────────────────────────── */
+(function(){
+  let drag=false,ox=0,oy=0;
+  document.addEventListener('mousedown',function(e){
+    const h=document.getElementById('chat-drag-hdr');
+    if(!h||!h.contains(e.target)||e.target.closest('.chat-hdr-x')) return;
+    const p=document.getElementById('chat-win');
+    if(!p) return;
+    drag=true;
+    const r=p.getBoundingClientRect();
+    ox=e.clientX-r.left; oy=e.clientY-r.top;
+    p.style.transition='none'; e.preventDefault();
+  });
+  document.addEventListener('mousemove',function(e){
+    if(!drag) return;
+    const p=document.getElementById('chat-win'); if(!p) return;
+    const x=Math.max(0,Math.min(e.clientX-ox,window.innerWidth-p.offsetWidth));
+    const y=Math.max(0,Math.min(e.clientY-oy,window.innerHeight-p.offsetHeight));
+    p.style.right='auto'; p.style.bottom='auto';
+    p.style.left=x+'px'; p.style.top=y+'px';
+  });
+  document.addEventListener('mouseup',function(){ drag=false; });
+})();
+
 document.addEventListener('DOMContentLoaded', init);
 // Close modals on overlay click
 document.querySelectorAll('.modal-overlay').forEach(o=>{

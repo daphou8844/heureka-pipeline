@@ -60,7 +60,14 @@ var HEADERS = {
   ],
   Historique: [
     'id', 'projetId', 'chantierId', 'type', 'details', 'horodatage'
-  ]
+  ],
+  // ── Dashboard ──────────────────────────────────────────────────────────────
+  Taches: [
+    'ID', 'texte', 'assigneeA', 'priorite', 'statut',
+    'projet', 'dateCreation', 'archivee', 'dateTermine'
+  ],
+  Notes: ['date', 'auteur', 'texte'],
+  Messages: ['ID', 'auteur', 'texte', 'heure', 'lu']
 };
 
 // ─── Templates de courriels ───────────────────────────────────────────────────
@@ -179,6 +186,10 @@ function doGet(e) {
           historique: getAllRows_('Historique')
         };
         break;
+      // ── API générique (utilisée par le Dashboard) ──────────────────────────
+      case 'getData':
+        result = { status: 'ok', data: getAllRowsGeneric_(e.parameter.sheet || '') };
+        break;
       default:
         result = { error: 'Action GET inconnue : ' + action };
     }
@@ -234,6 +245,22 @@ function doPost(e) {
       // ── Envoi de courriel via Gmail ───────────────────────────────────────────
       case 'sendEmail':
         result = sendEmailAction_(body);
+        break;
+
+      // ── API générique (Dashboard : Taches, Notes, Messages) ─────────────────
+      case 'addRow':
+        result = addRowGeneric_(body.sheet, body.data);
+        break;
+      case 'updateRow':
+        result = updateRowGeneric_(body.sheet, body.id, body.data);
+        break;
+      case 'deleteRow':
+        result = deleteRowGeneric_(body.sheet, body.id);
+        break;
+      // ── Vérification code d'accès ─────────────────────────────────────────
+      case 'getConfig':
+        var cfgVal = PropertiesService.getScriptProperties().getProperty(body.key || '') || '';
+        result = { status: 'ok', value: cfgVal };
         break;
 
       default:
@@ -483,6 +510,63 @@ function activiteFields_(b) {
   };
 }
 
+// ─── Fonctions génériques pour l'API Dashboard ────────────────────────────────
+
+function getAllRowsGeneric_(sheetName) {
+  if (!sheetName) return [];
+  // Si le sheet n'est pas connu dans HEADERS, le lire dynamiquement
+  if (!HEADERS[sheetName]) {
+    var s = SS.getSheetByName(sheetName);
+    if (!s || s.getLastRow() < 1) return [];
+    var hdrs = s.getRange(1, 1, 1, s.getLastColumn()).getValues()[0];
+    if (!hdrs || !hdrs.length) return [];
+    var lastRow = s.getLastRow();
+    if (lastRow < 2) return [];
+    var data = s.getRange(2, 1, lastRow - 1, hdrs.length).getValues();
+    var rows = [];
+    for (var i = 0; i < data.length; i++) {
+      if (!data[i][0]) continue;
+      var obj = {};
+      for (var j = 0; j < hdrs.length; j++) { obj[hdrs[j]] = data[i][j] != null ? String(data[i][j]) : ''; }
+      rows.push(obj);
+    }
+    return rows;
+  }
+  return getAllRows_(sheetName);
+}
+
+function addRowGeneric_(sheetName, data) {
+  if (!sheetName || !data) return { status: 'error', message: 'sheet ou data manquant' };
+  var sheet = getSheet_(sheetName);
+  var headers = HEADERS[sheetName];
+  if (!headers) {
+    headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  }
+  var row = headers.map(function(h) { return data[h] !== undefined ? data[h] : ''; });
+  sheet.appendRow(row);
+  return { status: 'ok', id: data['ID'] || data['id'] || '' };
+}
+
+function updateRowGeneric_(sheetName, id, data) {
+  if (!sheetName || !id) return { status: 'error', message: 'sheet ou id manquant' };
+  var row = findRow_(sheetName, id);
+  if (row === -1) return addRowGeneric_(sheetName, data);
+  var sheet = getSheet_(sheetName);
+  var headers = HEADERS[sheetName];
+  if (!headers) { headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]; }
+  var rowData = headers.map(function(h) { return data[h] !== undefined ? data[h] : ''; });
+  sheet.getRange(row, 1, 1, rowData.length).setValues([rowData]);
+  return { status: 'ok' };
+}
+
+function deleteRowGeneric_(sheetName, id) {
+  if (!sheetName || !id) return { status: 'error', message: 'sheet ou id manquant' };
+  var row = findRow_(sheetName, id);
+  if (row === -1) return { status: 'ok', message: 'ligne introuvable' };
+  getSheet_(sheetName).deleteRow(row);
+  return { status: 'ok' };
+}
+
 // ─── Utilitaires feuille ───────────────────────────────────────────────────────
 
 function getSheet_(name) {
@@ -605,7 +689,7 @@ function initAllSheets() {
   SS.setSpreadsheetTimeZone(TIMEZONE);
 
   // Ordre des onglets
-  var order = ['Clients', 'Projets', 'Chantiers', 'Activites', 'Courriels', 'Historique'];
+  var order = ['Clients', 'Projets', 'Chantiers', 'Activites', 'Courriels', 'Historique', 'Taches', 'Notes', 'Messages'];
   for (var k = 0; k < order.length; k++) {
     var s = SS.getSheetByName(order[k]);
     if (s) SS.setActiveSheet(s);
@@ -616,6 +700,31 @@ function initAllSheets() {
     '✅ Pipeline Heuréka initialisé !\n\n' +
     'Onglets créés : ' + names.join(', ') + '\n' +
     'Fuseau horaire : ' + TIMEZONE
+  );
+}
+
+/**
+ * Créer uniquement les 3 nouveaux onglets Dashboard.
+ * Exécuter une seule fois après avoir mis à jour le script déployé.
+ */
+function initDashboardSheets() {
+  var newSheets = ['Taches', 'Notes', 'Messages'];
+  var created = [];
+  for (var i = 0; i < newSheets.length; i++) {
+    var name = newSheets[i];
+    var s = SS.getSheetByName(name);
+    if (!s) {
+      s = getSheet_(name); // crée avec les bons en-têtes
+      created.push(name);
+    } else {
+      created.push(name + ' (existait déjà)');
+    }
+  }
+  SpreadsheetApp.getUi().alert(
+    '✅ Onglets Dashboard créés/vérifiés :\n\n' + created.join('\n') +
+    '\n\nColonnes Taches : ID, texte, assigneeA, priorite, statut, projet, dateCreation, archivee, dateTermine' +
+    '\nColonnes Notes  : date, auteur, texte' +
+    '\nColonnes Messages : ID, auteur, texte, heure, lu'
   );
 }
 
