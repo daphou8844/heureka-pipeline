@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Heureka Chat</title>
 <meta name="theme-color" content="#D4AF37">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -74,8 +74,8 @@ html, body{
 /* ─── Screen Chat ─────────────────────────────────────────────────────── */
 #screen-chat{
   display:none; flex-direction:column;
+  position:fixed; top:0; left:0; right:0;
   height:100dvh; height:100vh;
-  max-width:430px; margin:0 auto;
   background:var(--bg); overflow:hidden;
 }
 
@@ -169,7 +169,7 @@ html, body{
 .chat-inp{
   flex:1; background:var(--bg3); border:1px solid var(--border);
   border-radius:22px; padding:10px 15px; color:var(--text);
-  font-size:14px; outline:none; font-family:inherit; line-height:1.3;
+  font-size:16px; outline:none; font-family:inherit; line-height:1.3;
   transition:border-color .15s; resize:none; max-height:100px;
   overflow-y:auto;
 }
@@ -397,6 +397,7 @@ function showChat(user){
   document.getElementById('screen-select').style.display = 'none';
   const chat = document.getElementById('screen-chat');
   chat.style.display = 'flex';
+  resizeChatToViewport();
   document.getElementById('hdr-username').textContent = user;
   loadMsgs();
   startPolling();
@@ -629,6 +630,27 @@ function showToast(msg, dur){ dur = dur || 2500;
   t.className = 'toast show';
   clearTimeout(t._tid);
   t._tid = setTimeout(() => { t.className = 'toast'; }, dur);
+}
+
+// ─── Stabilité clavier mobile (visualViewport) ────────────────────────────
+function resizeChatToViewport() {
+  const chat = document.getElementById('screen-chat');
+  if (!chat || chat.style.display === 'none') return;
+  const vv = window.visualViewport;
+  if (!vv) return;
+  // Ancre le container sur le visual viewport (pas le layout viewport)
+  // → le footer reste visible juste au-dessus du clavier
+  chat.style.height = Math.round(vv.height) + 'px';
+  chat.style.top    = Math.round(vv.offsetTop) + 'px';
+  const msgs = document.getElementById('msgs-area');
+  if (msgs) {
+    const nearBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 120;
+    if (nearBottom) msgs.scrollTop = msgs.scrollHeight;
+  }
+}
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', resizeChatToViewport);
+  window.visualViewport.addEventListener('scroll', resizeChatToViewport);
 }
 
 // ─── Init ──────────────────────────────────────────────────────────────────
