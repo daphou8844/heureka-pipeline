@@ -35,28 +35,27 @@ var SS = SpreadsheetApp.getActiveSpreadsheet();
 // ─── Colonnes par onglet ───────────────────────────────────────────────────────
 
 var HEADERS = {
+  // Noms de colonnes IDENTIQUES à ceux envoyés par syncXToSheets dans pipeline-heureka.html
   Clients: [
-    'id', 'nom', 'email', 'telephone', 'adresse', 'ville',
-    'notes', 'referredBy', 'dateCreation'
+    'ID_Client', 'Nom', 'Téléphone', 'Courriel', 'Adresse', 'Ville',
+    'Référé_Par', 'Notes', 'Date_Créé'
   ],
   Projets: [
-    'id', 'clientId', 'nom', 'statut', 'typeProjet', 'source', 'priorite',
-    'prix', 'coutMateriaux', 'coutMainOeuvre',
-    'notes', 'dateDernierContact', 'dateProchainRDV',
-    'soumissionUrl', 'soumissionNom',
-    'dateCreation', 'dateMiseAJour'
+    'ID_Projet', 'Client_ID', 'Nom_Projet', 'Statut', 'Priorité', 'Type_Projet',
+    'Source_Référence', 'Prix_Estimé', 'Coût_Matériaux', 'Coût_MO',
+    'Lien_Soumission', 'Notes', 'Date_Créé', 'Date_RDV', 'Chantier_ID'
   ],
   Chantiers: [
-    'id', 'projetId', 'clientId', 'statut', 'adresse', 'notes',
-    'dateDebut', 'dateFin', 'progression', 'dateCreation'
+    'ID_Chantier', 'Projet_ID', 'Nom_Chantier', 'Client_ID', 'Adresse', 'Statut',
+    'Date_Début', 'Date_Fin_Prévue', 'Budget', 'Notes', 'Type_Équipe_Associée'
   ],
   Activites: [
-    'id', 'projetId', 'chantierId', 'type', 'description', 'date',
-    'done', 'dateDone', 'userId', 'dateCreation'
+    'ID_Activité', 'Projet_ID', 'Client_ID', 'Type', 'Date', 'Description',
+    'Complétée', 'Date_Créé'
   ],
   Courriels: [
-    'id', 'projetId', 'chantierId', 'destinataire', 'sujet', 'message',
-    'pieceJointe', 'template', 'statut', 'dateEnvoi'
+    'ID_Courriel', 'Projet_ID', 'Client_ID', 'Destinataire', 'Sujet',
+    'Message', 'Template', 'Date_Envoi'
   ],
   Historique: [
     'id', 'projetId', 'chantierId', 'type', 'details', 'horodatage'
