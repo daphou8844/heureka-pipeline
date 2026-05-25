@@ -4795,6 +4795,17 @@ async function autoSyncFromSheet(){
     const localOnly=localChantiers.filter(c=>!sheetIds.has(c.id));
     DB.set('chantiers',[...sheetCh,...localOnly]);
     if(currentView==='chantiers') renderChantiers();
+    // Push en arrière-plan: chantiers locaux absents du Sheet, et ceux avec Projet_ID manquant
+    for(const ch of DB.get('chantiers')){
+      if(!sheetIds.has(ch.id)){
+        syncChantierToSheets(ch, false).catch(()=>{});
+      } else {
+        const sheetRow=rowsCh.find(r=>r.ID_Chantier===ch.id);
+        if(ch.projetId && sheetRow && !sheetRow.Projet_ID){
+          syncChantierToSheets(ch, true).catch(()=>{});
+        }
+      }
+    }
   }
 
   // Activités — re-render systématique après mise à jour
