@@ -345,11 +345,12 @@ const S_USER    = 'hchat_user';     // localStorage : utilisateur
 const S_CACHE   = 'hchat_msgs';     // localStorage : cache messages
 const S_FCM_TOK = 'hchat_fcm_tok';  // localStorage : token FCM
 
-let _msgs      = JSON.parse(localStorage.getItem(S_CACHE) || '[]');
-let _pollTimer = null;
-let _fcmReady  = false;
-let _swReg     = null;
-let _lastRenderSig = '';
+let _msgs             = JSON.parse(localStorage.getItem(S_CACHE) || '[]');
+let _pollTimer        = null;
+let _fcmReady         = false;
+let _swReg            = null;
+let _lastRenderedId   = null;  // ID du dernier message rendu
+let _lastRenderedDate = '';    // dernière date affichée (séparateur)
 
 // ─── Utilitaires ──────────────────────────────────────────────────────────
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
@@ -428,8 +429,8 @@ function changeUser(){
 
 // ─── Messages ─────────────────────────────────────────────────────────────
 async function loadMsgs(){
-  // Cache-first : afficher le localStorage immédiatement, pas d'attente
-  if(_msgs.length) renderMsgs();
+  // Cache-first : affiche immédiatement sans indicateur de chargement
+  renderMsgs();
 
   try{
     const r = await fetch(GAS_URL + '?action=getData&sheet=Messages', { redirect:'follow' });
@@ -441,6 +442,7 @@ async function loadMsgs(){
   } catch(e){
     if(!_msgs.length) _msgs = JSON.parse(localStorage.getItem(S_CACHE) || '[]');
   }
+  // Append silencieux — rien ne flash si pas de nouveaux messages
   renderMsgs();
 }
 
@@ -449,42 +451,68 @@ function renderMsgs(){
   if(!el) return;
   const me = getUser();
 
-  // Ne re-render que si les messages ont changé
-  const last = _msgs[_msgs.length - 1];
-  const sig = _msgs.length + '|' + (last?.ID || '') + '|' + (last?.heure || '');
-  if(sig === _lastRenderSig && _msgs.length > 0) return;
-  _lastRenderSig = sig;
-
-  // Garder la position si l'utilisateur est remonté dans le fil
-  const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 90;
-
   if(!_msgs.length){
-    el.innerHTML = '<div class="msgs-empty">Aucun message encore.<br>Soyez le premier à écrire !</div>';
+    if(!el.querySelector('.msgs-empty')){
+      el.innerHTML = '<div class="msgs-empty">Aucun message encore.<br>Soyez le premier à écrire !</div>';
+      _lastRenderedId = null; _lastRenderedDate = '';
+    }
     return;
   }
 
-  let html = '';
-  let lastDate = '';
-  for(const m of _msgs){
+  // Retirer le placeholder de chargement/vide si présent
+  const placeholder = el.querySelector('.msgs-loading, .msgs-empty');
+  if(placeholder) placeholder.remove();
+
+  const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 90;
+
+  // Trouver d'où partir : après le dernier message déjà rendu
+  let startIdx = 0;
+  let fullRebuild = false;
+  if(_lastRenderedId){
+    const lastIdx = _msgs.findIndex(m => m.ID === _lastRenderedId);
+    if(lastIdx === -1) { fullRebuild = true; }   // message disparu → rebuild
+    else { startIdx = lastIdx + 1; }
+  } else {
+    fullRebuild = true;
+  }
+
+  if(fullRebuild){
+    el.innerHTML = '';
+    startIdx = 0;
+    _lastRenderedDate = '';
+  }
+
+  const newMsgs = _msgs.slice(startIdx);
+  if(!newMsgs.length){ return; }
+
+  const frag = document.createDocumentFragment();
+  for(const m of newMsgs){
     const mine    = m.auteur === me;
     const msgDate = localDateStr(new Date(m.heure || Date.now()));
 
-    if(msgDate !== lastDate){
-      const label = msgDate === localDateStr() ? "Aujourd'hui"
-        : msgDate === localDateStr(new Date(Date.now() - 86400000)) ? "Hier"
-        : msgDate.slice(5).replace('-','/'); // MM/DD
-      html += `<div class="date-sep">${esc(label)}</div>`;
-      lastDate = msgDate;
+    if(msgDate !== _lastRenderedDate){
+      const today = localDateStr();
+      const yest  = localDateStr(new Date(Date.now() - 86400000));
+      const label = msgDate === today ? "Aujourd'hui" : msgDate === yest ? "Hier" : msgDate.slice(5).replace('-','/');
+      const sep = document.createElement('div');
+      sep.className = 'date-sep';
+      sep.textContent = label;
+      frag.appendChild(sep);
+      _lastRenderedDate = msgDate;
     }
 
-    html += `<div class="bbl ${mine ? 'bbl-me' : 'bbl-other'}">
-      ${!mine ? `<div class="bbl-author">${esc(m.auteur||'—')}</div>` : ''}
-      <div>${esc(m.texte||'')}</div>
-      <div class="bbl-time">${esc(fmtTime(m.heure))}</div>
-    </div>`;
+    const bbl = document.createElement('div');
+    bbl.className = `bbl ${mine ? 'bbl-me' : 'bbl-other'}`;
+    bbl.innerHTML = (!mine ? `<div class="bbl-author">${esc(m.auteur||'—')}</div>` : '')
+      + `<div>${esc(m.texte||'')}</div>`
+      + `<div class="bbl-time">${esc(fmtTime(m.heure))}</div>`;
+    frag.appendChild(bbl);
   }
-  el.innerHTML = html;
-  if(nearBottom) el.scrollTop = el.scrollHeight;
+
+  el.appendChild(frag);
+  _lastRenderedId = _msgs[_msgs.length - 1].ID;
+
+  if(nearBottom || fullRebuild) el.scrollTop = el.scrollHeight;
 }
 
 async function sendMsg(){
