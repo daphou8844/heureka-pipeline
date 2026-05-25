@@ -4768,10 +4768,12 @@ async function autoSyncFromSheet(){
   // Clients
   if(rowsC.length){
     const sheetClients=rowsC.map(row=>({
-      id:normId(row.ID_Client), nom:row.Nom||'', telephone:row['Téléphone']||'',
-      email:row.Courriel||'', adresse:row.Adresse||'', ville:row.Ville||'',
-      referredBy:row['Référé_Par']||'', notes:row.Notes||'',
-      dateCreation:row['Date_Créé']||'', _sheetsynced:true
+      id:normId(row.ID_Client||row.id), nom:row.Nom||row.nom||'',
+      telephone:row['Téléphone']||row.telephone||'',
+      email:row.Courriel||row.email||'', adresse:row.Adresse||row.adresse||'',
+      ville:row.Ville||row.ville||'',
+      referredBy:row['Référé_Par']||row.referredBy||'', notes:row.Notes||row.notes||'',
+      dateCreation:row['Date_Créé']||row.dateCreation||'', _sheetsynced:true
     })).filter(c=>c.id);
     const sheetIds=new Set(sheetClients.map(c=>c.id));
     const localOnly=DB.get('clients').filter(c=>!sheetIds.has(normId(c.id)));
@@ -4784,12 +4786,15 @@ async function autoSyncFromSheet(){
   if(rowsP.length){
     const localProjets=DB.get('projets');
     const sheetProjets=rowsP.map(row=>{
-      const loc=localProjets.find(p=>normId(p.id)===normId(row.ID_Projet))||{};
+      const pid=normId(row.ID_Projet||row.id);
+      const loc=localProjets.find(p=>normId(p.id)===pid)||{};
       return {
-        id:normId(row.ID_Projet), clientId:row.Client_ID, nom:row.Nom_Projet,
-        statut:row.Statut, typeProjet:row.Type_Projet, prix:row['Prix_Estimé']||'',
-        notes:row.Notes||'', source:row['Source_Référence']||'',
-        priorite:row['Priorité']||'', dateCreation:row['Date_Créé']||'',
+        id:pid, clientId:row.Client_ID||row.clientId, nom:row.Nom_Projet||row.nom,
+        statut:row.Statut||row.statut, typeProjet:row.Type_Projet||row.typeProjet,
+        prix:row['Prix_Estimé']||row.prix||'',
+        notes:row.Notes||row.notes||'', source:row['Source_Référence']||row.source||'',
+        priorite:row['Priorité']||row.priorite||'',
+        dateCreation:row['Date_Créé']||row.dateCreation||'',
         dateDernierContact:loc.dateDernierContact||'', dateProchainRDV:loc.dateProchainRDV||'',
         soumissionUrl:loc.soumissionUrl||'', soumissionNom:loc.soumissionNom||'',
         dossierDriveId:loc.dossierDriveId||'',
@@ -4812,16 +4817,19 @@ async function autoSyncFromSheet(){
     const localChantiers=DB.get('chantiers');
     if(rowsCh.length){
       const sheetCh=rowsCh.map(row=>{
-        const sid=normId(row.ID_Chantier);
+        const sid=normId(row.ID_Chantier||row.id);
         const loc=localChantiers.find(c=>normId(c.id)===sid)||{};
         const pipeProjetId=sid.startsWith('pipe-')?sid.slice(5):'';
         return {
-          id:sid, name:row.Nom_Chantier||'', nom:row.Nom_Chantier||'',
-          projetId:normId(row.Projet_ID)||loc.projetId||pipeProjetId||'',
-          clientId:row.Client_ID||'',
-          adresse:row.Adresse||'', statut:row.Statut||'',
-          dateDebut:row['Date_Début']||'', dateFin:row['Date_Fin_Prévue']||'',
-          notes:row.Notes||'',
+          id:sid,
+          name:row.Nom_Chantier||row.nom||'', nom:row.Nom_Chantier||row.nom||'',
+          projetId:normId(row.Projet_ID||row.projetId)||loc.projetId||pipeProjetId||'',
+          clientId:row.Client_ID||row.clientId||'',
+          adresse:row.Adresse||row.adresse||'',
+          statut:row.Statut||row.statut||'',
+          dateDebut:row['Date_Début']||row.dateDebut||'',
+          dateFin:row['Date_Fin_Prévue']||row.dateFin||'',
+          notes:row.Notes||row.notes||'',
           driveId:row.Drive_ID||loc.driveId||'', driveUrl:row.Drive_URL||loc.driveUrl||'',
           progression:loc.progression||0, taches:loc.taches||[],
           etapes:loc.etapes||[], dateCreation:loc.dateCreation||'',
