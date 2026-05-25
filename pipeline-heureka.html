@@ -2287,6 +2287,9 @@ function createChantierFromProjet(projet){
   };
   chantiers.push(ch); DB.set('chantiers',chantiers);
   syncChantierToSheets(ch);
+  // Sauvegarder chantierId dans le projet → pont de secours pour les autres ordinateurs
+  const projets=DB.get('projets'); const pi=projets.findIndex(p=>p.id===projet.id);
+  if(pi>=0){ projets[pi].chantierId=ch.id; DB.set('projets',projets); syncProjetToSheets(projets[pi],true); }
   syncToAdmin(projet);
 }
 
@@ -3134,7 +3137,8 @@ async function syncProjetToSheets(p, isUpdate=false){
     'Coût_Matériaux':p.coutMateriaux||'', 'Coût_MO':p.coutMainOeuvre||'',
     Lien_Soumission:p.soumissionUrl||'', Notes:p.notes||'',
     'Date_Créé':p.dateCreation?p.dateCreation.split('T')[0]:'',
-    Date_RDV:p.dateProchainRDV||''
+    Date_RDV:p.dateProchainRDV||'',
+    Chantier_ID:p.chantierId||''
   };
   const res=isUpdate
     ? await scriptPost({action:'updateRow',sheet:'Projets',id:p.id,data})
@@ -4792,6 +4796,7 @@ async function autoSyncFromSheet(){
         dossierDriveUrl:loc.dossierDriveUrl||'',
         dossierNumero:loc.dossierNumero||'',
         driveId:loc.driveId||'', driveUrl:loc.driveUrl||'', chanId:loc.chanId||'',
+        chantierId:normId(row.Chantier_ID||'')||loc.chantierId||'',
         _sheetsynced:true
       };
     }).filter(p=>p.id);
@@ -4800,6 +4805,36 @@ async function autoSyncFromSheet(){
     const toAdd=localOnly.filter(p=>p._sheetsynced===false);
     DB.set('projets',[...sheetProjets,...toAdd]);
     if(currentView==='pipeline') renderPipeline();
+    // Pont de secours : reconstruire chantiers manquants depuis Projet.chantierId
+    const allProjets=[...sheetProjets,...toAdd];
+    const localChantiersBefore=DB.get('chantiers');
+    const localChIds=new Set(localChantiersBefore.map(c=>normId(c.id)));
+    const localChProjetIds=new Set(localChantiersBefore.map(c=>normId(c.projetId)).filter(Boolean));
+    let chantiersModified=false;
+    for(const p of allProjets){
+      if(!p.chantierId) continue;
+      const cid=normId(p.chantierId);
+      if(!cid) continue;
+      // Chantier déjà présent localement ?
+      if(localChIds.has(cid)||localChProjetIds.has(normId(p.id))) continue;
+      // Créer un placeholder chantier
+      const placeholder={
+        id:cid, projetId:p.id, clientId:p.clientId||'',
+        name:p.nom||'', nom:p.nom||'',
+        statut:'a_planifier', adresse:'', notes:'',
+        dateDebut:'', dateFin:'', progression:0,
+        etapes:[], taches:[],
+        dateCreation:p.dateCreation||new Date().toISOString(),
+        _sheetsynced:false
+      };
+      localChantiersBefore.push(placeholder);
+      localChIds.add(cid);
+      chantiersModified=true;
+    }
+    if(chantiersModified){
+      DB.set('chantiers',localChantiersBefore);
+      if(currentView==='chantiers') renderChantiers();
+    }
   }
 
   // Chantiers
