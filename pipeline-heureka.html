@@ -2757,6 +2757,61 @@ function renderTaches(ch){
     html+=`</div></div>`;
   });
 
+  // ── Autres tâches (non catégorisées) ──────────────────────────────────────
+  {
+    const ct=taches.filter(t=>t.categorie==='autres');
+    const cd=ct.filter(t=>t.completee).length;
+    const open=_tacheCatOpen.has('autres');
+    html+=`<div class="tache-cat" style="border-color:rgba(148,163,184,.25)">
+      <div class="tache-cat-hdr" onclick="toggleTacheCat('autres')">
+        <span class="tache-cat-icon">📝</span>
+        <span class="tache-cat-title">Autres tâches</span>
+        <div class="tache-minibar"><div class="tache-minibar-fill" style="width:${ct.length?Math.round(cd/ct.length*100):0}%"></div></div>
+        <span class="tache-cat-count">${cd}/${ct.length}</span>
+        <span class="tache-cat-arr ${open?'open':''}">▶</span>
+      </div>
+      <div class="tache-cat-body ${open?'open':''}">`;
+
+    ct.forEach(t=>{
+      const overdue=!t.completee&&t.dateEcheance&&t.dateEcheance<today;
+      html+=`<div class="tache-row ${t.completee?'tdone':''}">
+        <div class="tache-chk ${t.completee?'tdone':''}" onclick="toggleTacheComp('${ch.id}','${t.id}')">${t.completee?'✓':''}</div>
+        <div class="tache-main">
+          <div class="tache-titre ${t.completee?'tdone':''}">${escHtml(t.titre)}</div>
+          <div class="tache-meta">
+            <select class="tache-sel" onchange="updateTacheField('${ch.id}','${t.id}','assigneA',this.value)">
+              <option value="" ${!t.assigneA?'selected':''}>👤 Assigné</option>
+              <option value="Maxime"   ${t.assigneA==='Maxime'?'selected':''}>Maxime</option>
+              <option value="Daphnée"  ${t.assigneA==='Daphnée'?'selected':''}>Daphnée</option>
+              <option value="Anabelle" ${t.assigneA==='Anabelle'?'selected':''}>Anabelle</option>
+            </select>
+            <input type="date" class="tache-inp" value="${t.dateEcheance||''}"
+              onchange="updateTacheField('${ch.id}','${t.id}','dateEcheance',this.value)">
+            ${overdue?'<span class="tache-badge-retard">⚠ Retard</span>':''}
+          </div>
+          <input type="text" class="tache-comment" placeholder="Commentaire..."
+            value="${escHtml(t.commentaire||'')}"
+            onchange="updateTacheField('${ch.id}','${t.id}','commentaire',this.value)">
+          ${t.completee&&t.dateCompletion?`<div class="tache-done-info">✓ ${fmtDate(t.dateCompletion)}${t.completePar?' · '+escHtml(t.completePar):''}</div>`:''}
+        </div>
+        <button class="tache-del" onclick="deleteTacheChantier('${ch.id}','${t.id}')" title="Supprimer">🗑</button>
+      </div>`;
+    });
+
+    if(_addingTacheIn==='autres'){
+      html+=`<div class="tache-add-form">
+        <input id="new-tache-inp" class="form-control" style="font-size:12px;flex:1" placeholder="Titre de la tâche..."
+          onkeydown="if(event.key==='Enter')confirmAddTache('${ch.id}','autres');if(event.key==='Escape'){_addingTacheIn=null;renderTaches(getChantier('${ch.id}'))}">
+        <button class="btn btn-gold btn-sm" onclick="confirmAddTache('${ch.id}','autres')">Ajouter</button>
+        <button class="btn btn-outline btn-sm" onclick="_addingTacheIn=null;renderTaches(getChantier('${ch.id}'))">✕</button>
+      </div>`;
+    } else {
+      html+=`<button class="tache-add-btn" onclick="_addingTacheIn='autres';_tacheCatOpen.add('autres');renderTaches(getChantier('${ch.id}'));setTimeout(()=>{const i=document.getElementById('new-tache-inp');if(i)i.focus()},40)">
+        ＋ Ajouter une tâche</button>`;
+    }
+    html+=`</div></div>`;
+  }
+
   // Historique
   if(_tacheShowHist){
     const hist=taches.filter(t=>t.completee).sort((a,b)=>(b.dateCompletion||'').localeCompare(a.dateCompletion||''));
