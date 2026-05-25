@@ -3124,7 +3124,7 @@ async function syncClientToSheets(c, isUpdate=false){
   const res=isUpdate
     ? await scriptPost({action:'updateRow',sheet:'Clients',id:c.id,data})
     : await scriptPost({action:'addRow',sheet:'Clients',data});
-  if(res && !isUpdate){
+  if(res && res.id && !isUpdate){
     const arr=DB.get('clients'); const i=arr.findIndex(x=>x.id===c.id);
     if(i>=0){arr[i]._sheetsynced=true; DB.set('clients',arr);}
   }
@@ -3143,7 +3143,7 @@ async function syncProjetToSheets(p, isUpdate=false){
   const res=isUpdate
     ? await scriptPost({action:'updateRow',sheet:'Projets',id:p.id,data})
     : await scriptPost({action:'addRow',sheet:'Projets',data});
-  if(res && !isUpdate){
+  if(res && res.id && !isUpdate){
     const arr=DB.get('projets'); const i=arr.findIndex(x=>x.id===p.id);
     if(i>=0){arr[i]._sheetsynced=true; DB.set('projets',arr);}
   }
@@ -3160,7 +3160,7 @@ async function syncChantierToSheets(ch, isUpdate=false){
   const res=isUpdate
     ? await scriptPost({action:'updateRow',sheet:'Chantiers',id:ch.id,data})
     : await scriptPost({action:'addRow',sheet:'Chantiers',data});
-  if(res && !isUpdate){
+  if(res && res.id && !isUpdate){
     const arr=DB.get('chantiers'); const i=arr.findIndex(x=>x.id===ch.id);
     if(i>=0){arr[i]._sheetsynced=true; DB.set('chantiers',arr);}
   }
