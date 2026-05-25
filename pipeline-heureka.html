@@ -2405,6 +2405,7 @@ function setChantiersFilter(f){ chantiersFilter=f; renderChantiers(); }
 ═══════════════════════════════════════════════════════════════════════════ */
 function openChantierDetail(id){
   currentChantierId=id; activeTab='overview'; _pipeEchState=null;
+  _tacheCatOpen=new Set(); _addingTacheIn=null; _tacheShowHist=false;
   const ch=getChantier(id); if(!ch) return;
   const proj=getProjet(ch.projetId)||{};
   const client=getClient(ch.clientId)||{};
@@ -2654,7 +2655,7 @@ const TACHE_CATEGORIES=[
   {id:'fermeture',  titre:'Fermeture chantier',         icon:'🔒',def:['Envoyer facture finale','Vérifier paiements','Archiver photos','Archiver documents','Calcul rentabilité','Demander avis Google','Prévoir suivi garantie']}
 ];
 
-let _tacheCatOpen   = new Set(['preparation']);
+let _tacheCatOpen   = new Set();
 let _addingTacheIn  = null;
 let _tacheShowHist  = false;
 
