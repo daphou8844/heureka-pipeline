@@ -4805,72 +4805,41 @@ async function autoSyncFromSheet(){
     const toAdd=localOnly.filter(p=>p._sheetsynced===false);
     DB.set('projets',[...sheetProjets,...toAdd]);
     if(currentView==='pipeline') renderPipeline();
-    // Reconstruire chantiers depuis projets gagné — fonctionne sur tous les ordis
-    const allProjets=[...sheetProjets,...toAdd];
-    const localChantiersBefore=DB.get('chantiers');
-    const localChProjetIds=new Set(localChantiersBefore.map(c=>normId(c.projetId)).filter(Boolean));
-    let chantiersModified=false;
-    for(const p of allProjets){
-      if(p.statut!=='gagne') continue;
-      if(localChProjetIds.has(normId(p.id))) continue; // chantier déjà là
-      // Utiliser chantierId du projet si dispo, sinon nouvel ID
-      const cid=normId(p.chantierId)||uid();
-      localChantiersBefore.push({
-        id:cid, projetId:p.id, clientId:p.clientId||'',
-        name:p.nom||'', nom:p.nom||'',
-        statut:'a_planifier', adresse:'', notes:'',
-        dateDebut:'', dateFin:'', progression:0,
-        etapes:[], taches:[],
-        dateCreation:p.dateCreation||new Date().toISOString(),
-        _sheetsynced:false
-      });
-      localChProjetIds.add(normId(p.id));
-      chantiersModified=true;
-    }
-    if(chantiersModified){
-      DB.set('chantiers',localChantiersBefore);
-      if(currentView==='chantiers') renderChantiers();
-    }
   }
 
   // Chantiers
-  if(rowsCh.length){
+  {
     const localChantiers=DB.get('chantiers');
-    const sheetCh=rowsCh.map(row=>{
-      const sid=normId(row.ID_Chantier);
-      const loc=localChantiers.find(c=>normId(c.id)===sid)||{};
-      const pipeProjetId=sid.startsWith('pipe-')?sid.slice(5):'';
-      return {
-        id:sid, name:row.Nom_Chantier||'', nom:row.Nom_Chantier||'',
-        projetId:normId(row.Projet_ID)||loc.projetId||pipeProjetId||'',
-        clientId:row.Client_ID||'',
-        adresse:row.Adresse||'', statut:row.Statut||'',
-        dateDebut:row['Date_Début']||'', dateFin:row['Date_Fin_Prévue']||'',
-        notes:row.Notes||'',
-        driveId:row.Drive_ID||loc.driveId||'', driveUrl:row.Drive_URL||loc.driveUrl||'',
-        progression:loc.progression||0, taches:loc.taches||[],
-        etapes:loc.etapes||[], dateCreation:loc.dateCreation||'',
-        _sheetsynced:true
-      };
-    }).filter(c=>c.id);
-    const sheetIds=new Set(sheetCh.map(c=>c.id));
-    const localOnly=localChantiers.filter(c=>!sheetIds.has(normId(c.id)));
-    const toAdd=localOnly.filter(c=>c._sheetsynced===false);
-    DB.set('chantiers',[...sheetCh,...toAdd]);
-    if(currentView==='chantiers') renderChantiers();
-    // Push nouveaux items non encore synced
-    for(const ch of toAdd){
+    if(rowsCh.length){
+      const sheetCh=rowsCh.map(row=>{
+        const sid=normId(row.ID_Chantier);
+        const loc=localChantiers.find(c=>normId(c.id)===sid)||{};
+        const pipeProjetId=sid.startsWith('pipe-')?sid.slice(5):'';
+        return {
+          id:sid, name:row.Nom_Chantier||'', nom:row.Nom_Chantier||'',
+          projetId:normId(row.Projet_ID)||loc.projetId||pipeProjetId||'',
+          clientId:row.Client_ID||'',
+          adresse:row.Adresse||'', statut:row.Statut||'',
+          dateDebut:row['Date_Début']||'', dateFin:row['Date_Fin_Prévue']||'',
+          notes:row.Notes||'',
+          driveId:row.Drive_ID||loc.driveId||'', driveUrl:row.Drive_URL||loc.driveUrl||'',
+          progression:loc.progression||0, taches:loc.taches||[],
+          etapes:loc.etapes||[], dateCreation:loc.dateCreation||'',
+          _sheetsynced:true
+        };
+      }).filter(c=>c.id);
+      const sheetIds=new Set(sheetCh.map(c=>c.id));
+      const localOnly=localChantiers.filter(c=>!sheetIds.has(normId(c.id)));
+      const toKeep=localOnly.filter(c=>c._sheetsynced===false);
+      DB.set('chantiers',[...sheetCh,...toKeep]);
+      if(currentView==='chantiers') renderChantiers();
+    }
+    // Push chantiers non-syncés — tourne toujours, même si le sheet est vide
+    for(const ch of DB.get('chantiers').filter(c=>c._sheetsynced===false)){
       const sid=normId(ch.id);
-      if(ch.projetId && !_inFlightPushIds.has(sid)){
+      if(!_inFlightPushIds.has(sid)){
         _inFlightPushIds.add(sid);
         syncChantierToSheets(ch, false).catch(()=>{}).finally(()=>_inFlightPushIds.delete(sid));
-      }
-    }
-    // Update Projet_ID manquant sur lignes existantes
-    for(const ch of sheetCh){
-      if(ch.projetId){
-        const sheetRow=rowsCh.find(r=>normId(r.ID_Chantier)===normId(ch.id));
-        if(sheetRow && !normId(sheetRow.Projet_ID)) syncChantierToSheets(ch, true).catch(()=>{});
       }
     }
   }
