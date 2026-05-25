@@ -1120,6 +1120,7 @@ textarea.form-control{resize:vertical;min-height:72px}
         <button class="tab-btn" onclick="switchTab('activites')" id="tab-activites">📋 Activités</button>
         <button class="tab-btn" onclick="switchTab('courriels')" id="tab-courriels">📧 Courriels</button>
         <button class="tab-btn" onclick="switchTab('historique')" id="tab-historique">📜 Historique</button>
+        <button class="tab-btn" onclick="switchTab('documents')" id="tab-documents">📎 Documents</button>
       </div>
       <div id="tab-content-overview" class="tab-content active" style="overflow-y:auto;height:calc(95vh - 300px)">
         <div id="mch-overview"></div>
@@ -1138,6 +1139,9 @@ textarea.form-control{resize:vertical;min-height:72px}
       </div>
       <div id="tab-content-historique" class="tab-content" style="overflow-y:auto;height:calc(95vh - 300px)">
         <div id="mch-historique"></div>
+      </div>
+      <div id="tab-content-documents" class="tab-content" style="overflow-y:auto;height:calc(95vh - 300px)">
+        <div id="mch-documents"></div>
       </div>
     </div>
   </div>
@@ -2457,7 +2461,7 @@ function updateChantierStatut(){
 
 function switchTab(tab){
   activeTab=tab;
-  ['overview','echeancier','taches','activites','courriels','historique'].forEach(t=>{
+  ['overview','echeancier','taches','activites','courriels','historique','documents'].forEach(t=>{
     const btn=document.getElementById('tab-'+t); const cnt=document.getElementById('tab-content-'+t);
     if(btn) btn.classList.toggle('active',t===tab);
     if(cnt) cnt.classList.toggle('active',t===tab);
@@ -2469,6 +2473,7 @@ function switchTab(tab){
   else if(tab==='activites') renderChantierActivites(currentChantierId);
   else if(tab==='courriels') renderEmailTab('ch', currentChantierId);
   else if(tab==='historique') renderHistoriqueTab('ch', currentChantierId);
+  else if(tab==='documents') renderChantierDocuments(currentChantierId);
 }
 
 let currentProjTab = 'info';
@@ -4869,8 +4874,140 @@ function getFileIcon(mime){
 
 let _docRenderToken = 0;
 
-function renderProjectDocuments(projetId){
-  const el=document.getElementById('mpj-documents');
+const CH_DOC_SUBFOLDER = {
+  'Photo chantier':        'Photos Chantier',
+  "Plan d'exécution":      'Plans & Devis',
+  'Rapport journalier':    'Rapports',
+  'Contrat sous-traitant': 'Contrats & Permis',
+  'Permis':                'Contrats & Permis',
+  'Facture':               'Factures & Paiements',
+  'Autre':                 '',
+};
+
+function renderChantierDocuments(chantierId){
+  const ch=getChantier(chantierId); if(!ch) return;
+  const el=document.getElementById('mch-documents'); if(!el) return;
+  el.innerHTML=`
+    <div style="padding:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="section-title" style="margin:0">Documents du chantier</div>
+        <button class="btn btn-sm" style="background:#D4AF3722;border:1px solid #D4AF3744;color:#D4AF37"
+          onclick="toggleChDocUploadForm('${chantierId}')">📎 Déposer</button>
+      </div>
+      <div id="ch-doc-upload-form-${chantierId}" style="display:none;background:#0d1628;border:1px solid #1e3a5f;border-radius:8px;padding:12px;margin-bottom:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <select id="ch-doc-cat-${chantierId}" style="background:#0a1220;border:1px solid #1e3a5f;border-radius:6px;color:#ccc;padding:8px;font-size:13px">
+            <option value="">Catégorie...</option>
+            <option>Photo chantier</option>
+            <option>Plan d'exécution</option>
+            <option>Rapport journalier</option>
+            <option>Contrat sous-traitant</option>
+            <option>Permis</option>
+            <option>Facture</option>
+            <option>Autre</option>
+          </select>
+          <input type="file" id="ch-doc-file-${chantierId}"
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp"
+            style="background:#0a1220;border:1px solid #1e3a5f;border-radius:6px;color:#ccc;padding:7px;font-size:12px">
+        </div>
+        <button class="btn btn-sm" style="width:100%;background:#D4AF37;color:#000;font-weight:700"
+          onclick="submitChantierDocUpload('${chantierId}')">📤 Uploader</button>
+      </div>
+      <div id="ch-doc-list-${chantierId}"></div>
+    </div>`;
+  loadChantierDocs(chantierId);
+}
+
+function toggleChDocUploadForm(chantierId){
+  const f=document.getElementById('ch-doc-upload-form-'+chantierId);
+  if(f) f.style.display=f.style.display==='none'?'block':'none';
+}
+
+function loadChantierDocs(chantierId){
+  const listEl=document.getElementById('ch-doc-list-'+chantierId);
+  if(!listEl) return;
+  const docs=(DB.get('documents')||[]).filter(d=>d.chantierId===chantierId);
+  if(!docs.length){
+    listEl.innerHTML='<div style="color:var(--muted2);font-size:12px;text-align:center;padding:24px">Aucun document</div>';
+    return;
+  }
+  listEl.innerHTML=docs.map(doc=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0d1628;border:1px solid #1e3a5f30;border-radius:6px;margin-bottom:4px">
+      <span style="font-size:20px;flex-shrink:0">${getFileIcon(doc.mimeType)}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(doc.nomFichier||'')}</div>
+        <div style="font-size:11px;color:var(--muted2)">${escHtml(doc.categorie||'')} · ${fmtDate(doc.dateUpload||'')}</div>
+      </div>
+      <a href="${escHtml(doc.fileUrl||'#')}" target="_blank" class="btn btn-sm btn-outline"
+        style="padding:4px 10px;font-size:11px;white-space:nowrap">Ouvrir</a>
+      <button class="btn btn-sm" style="padding:4px 8px;font-size:11px;background:#2a0a0a;color:#ef4444;border:1px solid #ef444440;white-space:nowrap;flex-shrink:0"
+        onclick="deleteChantierDocument('${escHtml(doc.id)}','${escHtml(doc.fileId||'')}','${chantierId}')">✕</button>
+    </div>`).join('');
+}
+
+async function submitChantierDocUpload(chantierId){
+  const catEl=document.getElementById('ch-doc-cat-'+chantierId);
+  const fileEl=document.getElementById('ch-doc-file-'+chantierId);
+  if(!catEl||!fileEl||!fileEl.files[0]){showToast('⚠ Sélectionne une catégorie et un fichier');return;}
+  const cat=catEl.value; if(!cat){showToast('⚠ Choisis une catégorie');return;}
+  const file=fileEl.files[0];
+  const ch=getChantier(chantierId); if(!ch) return;
+  let p=(DB.get('projets')||[]).find(pp=>pp.id===ch.projetId);
+  if(!p){showToast('⚠ Projet introuvable');return;}
+  let driveId=p.dossierDriveId||p.driveId||'';
+  if(!driveId){
+    showToast('📁 Création du dossier Drive...');
+    await createSoumissionFolderForProjet(p);
+    p=(DB.get('projets')||[]).find(pp=>pp.id===ch.projetId)||p;
+    driveId=p.dossierDriveId||p.driveId||'';
+    if(!driveId){showToast('⚠ Impossible de créer le dossier Drive');return;}
+  }
+  showToast('📤 Upload en cours...');
+  const subfolder=CH_DOC_SUBFOLDER[cat]!==undefined?CH_DOC_SUBFOLDER[cat]:'';
+  const reader=new FileReader();
+  reader.onload=async function(ev){
+    const b64=ev.target.result.split(',')[1];
+    const res=await scriptPost({action:'uploadFile',driveId,subfolder,fileName:file.name,mimeType:file.type,content:b64});
+    if(res&&res.status==='ok'){
+      const addRes=await scriptPost({action:'addRow',sheet:'Documents',data:{
+        Projet_ID:ch.projetId, Chantier_ID:chantierId,
+        Nom_Fichier:file.name, 'Catégorie':cat,
+        Sous_Dossier:subfolder, File_ID:res.fileId,
+        File_URL:res.fileUrl, MIME_Type:file.type,
+        Date_Upload:new Date().toISOString().split('T')[0],
+      }});
+      const newDoc={
+        id:(addRes&&addRes.id)||uid(), projetId:ch.projetId, chantierId,
+        nomFichier:file.name, categorie:cat, sousDossier:subfolder,
+        fileId:res.fileId, fileUrl:res.fileUrl, mimeType:file.type,
+        dateUpload:new Date().toISOString().split('T')[0]
+      };
+      const docs=DB.get('documents')||[]; docs.push(newDoc); DB.set('documents',docs);
+      showToast('✅ Document uploadé');
+      catEl.value=''; fileEl.value='';
+      document.getElementById('ch-doc-upload-form-'+chantierId).style.display='none';
+      loadChantierDocs(chantierId);
+    } else {
+      showToast('⚠ Erreur upload: '+(res&&res.message||'inconnu'));
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function deleteChantierDocument(docId, fileId, chantierId){
+  if(!confirm('Supprimer ce document du Drive et du Sheet ?')) return;
+  const res=await scriptPost({action:'deleteDocument',docId,fileId});
+  if(res&&res.status==='ok'){
+    DB.set('documents',(DB.get('documents')||[]).filter(d=>d.id!==docId));
+    showToast('Document supprimé');
+    loadChantierDocs(chantierId);
+  } else {
+    showToast('⚠ Erreur suppression');
+  }
+}
+
+function renderProjectDocuments(projetId, containerId){
+  const el=document.getElementById(containerId||'mpj-documents');
   if(!el) return;
   const token = ++_docRenderToken;
   el.innerHTML=`
