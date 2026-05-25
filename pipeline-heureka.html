@@ -1873,8 +1873,12 @@ function moveProjet(projetId, newStatut){
   if(newStatut==='gagne' && old!=='gagne'){ createChantierFromProjet(projets[idx]); offerPostProjetSuivi(projets[idx]); }
   logHistory(projetId,'statut',`${old} → ${newStatut}`);
   suggestEmailOnStatut(projets[idx], old);
+  // Re-read projets to preserve chantierId potentially set by createChantierFromProjet
+  const savedChantierId = DB.get('projets').find(p=>p.id===projetId)?.chantierId;
+  if(savedChantierId) projets[idx].chantierId = savedChantierId;
   DB.set('projets',projets);
   renderPipeline();
+  if(newStatut==='gagne') renderChantiers();
   syncProjetToSheets(projets[idx], true);
   if(newStatut==='gagne') showToast('🏗 Projet gagné ! Chantier créé automatiquement.');
 }
@@ -3262,22 +3266,24 @@ async function syncSheets(){
     const rch=await fetch(url+'?action=getData&sheet=Chantiers',{redirect:'follow'});
     const dch=await rch.json();
     const rowsCh=Array.isArray(dch.data)?dch.data:[];
-    const sheetChIds=new Set(rowsCh.map(r=>normId(r.ID_Chantier)).filter(Boolean));
+    const sheetChIds=new Set(rowsCh.map(r=>normId(r.ID_Chantier||r.id)).filter(Boolean));
     if(rowsCh.length){
       const localChantiers2=DB.get('chantiers');
       const sheetCh=rowsCh.map(row=>{
-        const sid=normId(row.ID_Chantier);
+        const sid=normId(row.ID_Chantier||row.id);
         const loc=localChantiers2.find(c=>normId(c.id)===sid)||{};
         const pipeProjetId=sid.startsWith('pipe-')?sid.slice(5):'';
         return {
-          id:sid, name:row.Nom_Chantier||'', nom:row.Nom_Chantier||'',
-          projetId:normId(row.Projet_ID)||loc.projetId||pipeProjetId||'',
-          clientId:row.Client_ID||'',
-          adresse:row.Adresse||'', statut:row.Statut||'',
-          dateDebut:row['Date_Début']||'', dateFin:row['Date_Fin_Prévue']||'',
-          budget:row.Budget||'', notes:row.Notes||'', typeEquipe:row['Type_Équipe_Associée']||'',
+          id:sid, name:row.Nom_Chantier||row.nom||'', nom:row.Nom_Chantier||row.nom||'',
+          projetId:normId(row.Projet_ID||row.projetId)||loc.projetId||pipeProjetId||'',
+          clientId:row.Client_ID||row.clientId||'',
+          adresse:row.Adresse||row.adresse||'', statut:row.Statut||row.statut||'',
+          dateDebut:row['Date_Début']||row.dateDebut||'', dateFin:row['Date_Fin_Prévue']||row.dateFin||'',
+          budget:row.Budget||row.budget||'', notes:row.Notes||row.notes||'',
+          typeEquipe:row['Type_Équipe_Associée']||row.typeEquipe||'',
           progression:loc.progression||0, taches:loc.taches||[],
           etapes:loc.etapes||[], dateCreation:loc.dateCreation||'',
+          _sheetsynced:true,
         };
       }).filter(c=>c.id);
       const localOnlyCh=localChantiers2.filter(c=>!sheetChIds.has(normId(c.id)));
@@ -4838,8 +4844,15 @@ async function autoSyncFromSheet(){
       }).filter(c=>c.id);
       const sheetIds=new Set(sheetCh.map(c=>c.id));
       const localOnly=localChantiers.filter(c=>!sheetIds.has(normId(c.id)));
-      const toKeep=localOnly.filter(c=>c._sheetsynced===false);
+      const toKeep=localOnly.filter(c=>{
+        if(c._sheetsynced===false) return true;
+        // Grace period: keep recently created items (< 3 min) even if sheet propagation is lagging
+        const age=c.dateCreation ? (Date.now()-new Date(c.dateCreation).getTime()) : Infinity;
+        return age < 180000;
+      });
       DB.set('chantiers',[...sheetCh,...toKeep]);
+      if(currentView==='chantiers') renderChantiers();
+    } else {
       if(currentView==='chantiers') renderChantiers();
     }
     // Push chantiers non-syncés — tourne toujours, même si le sheet est vide
