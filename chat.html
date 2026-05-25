@@ -349,6 +349,7 @@ let _msgs      = JSON.parse(localStorage.getItem(S_CACHE) || '[]');
 let _pollTimer = null;
 let _fcmReady  = false;
 let _swReg     = null;
+let _lastRenderSig = '';
 
 // ─── Utilitaires ──────────────────────────────────────────────────────────
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
@@ -447,6 +448,13 @@ function renderMsgs(){
   const el = document.getElementById('msgs-area');
   if(!el) return;
   const me = getUser();
+
+  // Ne re-render que si les messages ont changé
+  const last = _msgs[_msgs.length - 1];
+  const sig = _msgs.length + '|' + (last?.ID || '') + '|' + (last?.heure || '');
+  if(sig === _lastRenderSig && _msgs.length > 0) return;
+  _lastRenderSig = sig;
+
   // Garder la position si l'utilisateur est remonté dans le fil
   const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 90;
 
