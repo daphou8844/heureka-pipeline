@@ -1466,6 +1466,7 @@ let currentChantierId = null;
 let currentProjetId = null;
 let dragProjetId = null;
 let activeTab = 'overview';
+let _pipeEchState = null;
 
 /* ═══════════════════════════════════════════════════════════════════════════
    UTILS
@@ -2369,7 +2370,7 @@ function setChantiersFilter(f){ chantiersFilter=f; renderChantiers(); }
    MODAL: DÉTAIL CHANTIER
 ═══════════════════════════════════════════════════════════════════════════ */
 function openChantierDetail(id){
-  currentChantierId=id; activeTab='overview';
+  currentChantierId=id; activeTab='overview'; _pipeEchState=null;
   const ch=getChantier(id); if(!ch) return;
   const proj=getProjet(ch.projetId)||{};
   const client=getClient(ch.clientId)||{};
@@ -2516,96 +2517,93 @@ function updateChantierField(field,value){
 }
 
 /* ─── Échéancier ─────────────────────────────────────────────────────────── */
+const ECH_PHASES=['Préparation','Fondation','Structure','Finition','Livraison'];
+function _echDiffDays(from,to){if(!from||!to)return null;return Math.round((new Date(to+'T12:00:00')-new Date(from+'T12:00:00'))/86400000);}
+function _getEchState(ch){
+  if(ch&&ch.echeancier){try{return typeof ch.echeancier==='string'?JSON.parse(ch.echeancier):JSON.parse(JSON.stringify(ch.echeancier));}catch(e){}}
+  return {phases:ECH_PHASES.map(name=>({name,start:'',end:'',pct:0})),jalons:[{label:'',date:''},{label:'',date:''},{label:'',date:''}]};
+}
 function renderEcheancier(ch){
-  const etapes=ch.etapes||[];
-  const hasAnyDate=etapes.some(e=>e.dateDebut||e.dateFin)||(ch.dateDebut||ch.dateFin);
-
-  let timelineHTML='';
-  if(!hasAnyDate){
-    timelineHTML='<div class="empty-state"><div class="empty-ico">📅</div><div class="empty-text">Aucune date définie</div></div>';
-  } else if(etapes.length===0){
-    timelineHTML='<div class="empty-state"><div class="empty-ico">📅</div><div class="empty-text">Aucune étape. Ajoutes-en ci-dessous.</div></div>';
-  } else {
-    const allDates=[ch.dateDebut,...etapes.map(e=>e.dateDebut),...etapes.map(e=>e.dateFin),ch.dateFin].filter(Boolean).sort();
-    const minDate=allDates[0];
-    const maxDate=allDates[allDates.length-1];
-    const minMs=new Date(minDate).getTime();
-    const msSpan=Math.max(new Date(maxDate).getTime()-minMs, 86400000);
-    const todayMs=new Date(todayStr()).getTime();
-    const todayPct=Math.max(0,Math.min(100,((todayMs-minMs)/msSpan)*100));
-    const colors=['#C9922A','#3B82F6','#22C55E','#8B5CF6','#F59E0B','#14B8A6','#EC4899','#EF4444'];
-    const rows=etapes.map((e,i)=>{
-      const s=new Date(e.dateDebut||minDate).getTime();
-      const f=new Date(e.dateFin||e.dateDebut||maxDate).getTime();
-      const left=Math.max(0,((s-minMs)/msSpan)*100);
-      const width=Math.max(1.5,((Math.max(f,s+86400000)-s)/msSpan)*100);
-      const color=e.statut==='done'?'#4B5563':colors[i%colors.length];
-      const opacity=e.statut==='done'?'0.6':'1';
-      const labelTxt=e.dateDebut&&e.dateFin?`${fmtDate(e.dateDebut)} → ${fmtDate(e.dateFin)}`:e.dateDebut?fmtDate(e.dateDebut):'';
-      const showInBar=width>18;
-      return `<div class="timeline-row">
-        <div class="timeline-label" title="${escHtml(e.titre)}">${e.statut==='done'?'✓ ':e.statut==='in_progress'?'▶ ':''}${escHtml(e.titre)}</div>
-        <div class="timeline-track">
-          <div class="timeline-today" style="left:${todayPct}%"></div>
-          <div class="timeline-bar" style="left:${left}%;width:${width}%;opacity:${opacity}">
-            <div class="timeline-bar-inner" style="background:${color}">${showInBar?labelTxt:''}</div>
-            ${!showInBar&&labelTxt?`<span class="timeline-bar-label">${labelTxt}</span>`:''}
-          </div>
-        </div>
-        <button class="etape-del-btn" onclick="deleteEtape('${ch.id}',${i})" title="Supprimer">✕</button>
-      </div>`;
-    }).join('');
-    timelineHTML=`<div class="timeline-container"><div class="timeline-rows">${rows}</div></div>`;
+  if(!_pipeEchState) _pipeEchState=_getEchState(ch);
+  const s=_pipeEchState;
+  const totalPct=Math.round(s.phases.reduce((sum,p)=>sum+(p.pct||0),0)/s.phases.length);
+  const t=todayStr();
+  const diffEnd=_echDiffDays(t,ch.dateFin);
+  const retard=ch.dateFin&&ch.statut!=='termine'&&diffEnd!==null&&diffEnd<=3;
+  let html='<div style="padding:4px 0 8px">';
+  if(retard){
+    const msg=diffEnd<0?`Retard de ${Math.abs(diffEnd)} jour${Math.abs(diffEnd)>1?'s':''}`:diffEnd===0?`Livraison aujourd'hui`:`Livraison dans ${diffEnd} jour${diffEnd>1?'s':''}`;
+    html+=`<div style="background:#c0392b;color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;margin-bottom:12px">⚠️ ${msg}</div>`;
   }
-
-  document.getElementById('mch-echeancier').innerHTML=`
-    ${timelineHTML}
-    <div class="divider"></div>
-    <div class="section-title">Ajouter une étape</div>
-    <div class="etape-form">
-      <div class="form-group">
-        <label class="form-label">Titre</label>
-        <input class="form-control" id="etape-titre" placeholder="Ex: Démolition">
+  html+=`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:700;letter-spacing:.06em">PROGRESSION GLOBALE</div>
+  <div style="background:rgba(255,255,255,.1);border-radius:6px;height:16px;overflow:hidden;margin-bottom:4px"><div id="ech-global-bar" style="height:100%;width:${totalPct}%;background:var(--gold);border-radius:6px;transition:width .3s"></div></div>
+  <div style="text-align:right;font-size:13px;color:var(--gold);font-weight:700;margin-bottom:16px" id="ech-global-pct">${totalPct}%</div>`;
+  html+=`<div style="font-size:11px;color:var(--muted);margin-bottom:10px;font-weight:700;letter-spacing:.06em">PHASES</div>`;
+  s.phases.forEach((ph,i)=>{
+    const pct=ph.pct||0;
+    html+=`<div style="background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px">
+      <div style="font-weight:700;font-size:14px;margin-bottom:10px">${ph.name}</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div style="flex:1"><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Début</div>
+          <input type="date" value="${ph.start||''}" onchange="echPhaseChange(${i},'start',this.value)" class="form-control" style="font-size:13px;padding:5px 8px"></div>
+        <div style="flex:1"><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Fin prévue</div>
+          <input type="date" value="${ph.end||''}" onchange="echPhaseChange(${i},'end',this.value)" class="form-control" style="font-size:13px;padding:5px 8px"></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Début</label>
-        <input class="form-control" type="date" id="etape-debut">
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="range" min="0" max="100" value="${pct}" oninput="echPctLive(${i},this.value)" onchange="echPhaseChange(${i},'pct',+this.value)" style="flex:1;accent-color:var(--gold)">
+        <span id="ech-ph-pct-${i}" style="color:var(--gold);font-weight:700;font-size:13px;min-width:36px;text-align:right">${pct}%</span>
       </div>
-      <div class="form-group">
-        <label class="form-label">Fin</label>
-        <input class="form-control" type="date" id="etape-fin">
-      </div>
-      <div class="form-group">
-        <label class="form-label">&nbsp;</label>
-        <button class="btn btn-gold" onclick="addEtape('${ch.id}')">Ajouter</button>
+      <div style="background:rgba(255,255,255,.1);border-radius:4px;height:6px;overflow:hidden;margin-top:6px">
+        <div id="ech-ph-bar-${i}" style="height:100%;width:${pct}%;background:var(--gold);border-radius:4px;transition:width .2s"></div>
       </div>
     </div>`;
-}
-
-function addEtape(chantierId){
-  const titre=document.getElementById('etape-titre').value.trim();
-  if(!titre){ alert('Titre requis.'); return; }
-  const chantiers=DB.get('chantiers');
-  const idx=chantiers.findIndex(c=>c.id===chantierId);
-  if(idx===-1) return;
-  if(!chantiers[idx].etapes) chantiers[idx].etapes=[];
-  chantiers[idx].etapes.push({
-    titre, statut:'todo',
-    dateDebut:document.getElementById('etape-debut').value,
-    dateFin:document.getElementById('etape-fin').value
   });
-  DB.set('chantiers',chantiers);
-  renderEcheancier(chantiers[idx]);
+  html+=`<div style="font-size:11px;color:var(--muted);margin:16px 0 10px;font-weight:700;letter-spacing:.06em">JALONS CLÉS</div>`;
+  s.jalons.forEach((jl,i)=>{
+    html+=`<div style="display:flex;gap:8px;margin-bottom:8px">
+      <input type="text" placeholder="Jalon (ex: Inspection)" value="${(jl.label||'').replace(/"/g,'&quot;')}" oninput="echJalonChange(${i},'label',this.value)" class="form-control" style="flex:2;font-size:13px">
+      <input type="date" value="${jl.date||''}" onchange="echJalonChange(${i},'date',this.value)" class="form-control" style="flex:1;font-size:13px">
+    </div>`;
+  });
+  html+=`<button onclick="saveEcheancier()" class="btn btn-gold" style="width:100%;margin-top:12px;font-size:14px;padding:12px">💾 Enregistrer l'échéancier</button></div>`;
+  document.getElementById('mch-echeancier').innerHTML=html;
 }
-
-function deleteEtape(chantierId,index){
+function echPhaseChange(idx,field,val){
+  if(!_pipeEchState) return;
+  _pipeEchState.phases[idx][field]=field==='pct'?+val:val;
+  const el=document.getElementById(`ech-ph-pct-${idx}`);
+  const bar=document.getElementById(`ech-ph-bar-${idx}`);
+  if(el) el.textContent=_pipeEchState.phases[idx].pct+'%';
+  if(bar) bar.style.width=_pipeEchState.phases[idx].pct+'%';
+  echUpdateGlobalBar();
+}
+function echPctLive(idx,val){
+  if(!_pipeEchState) return;
+  _pipeEchState.phases[idx].pct=+val;
+  const el=document.getElementById(`ech-ph-pct-${idx}`);
+  const bar=document.getElementById(`ech-ph-bar-${idx}`);
+  if(el) el.textContent=val+'%';
+  if(bar) bar.style.width=val+'%';
+  echUpdateGlobalBar();
+}
+function echJalonChange(idx,field,val){if(_pipeEchState) _pipeEchState.jalons[idx][field]=val;}
+function echUpdateGlobalBar(){
+  if(!_pipeEchState) return;
+  const total=Math.round(_pipeEchState.phases.reduce((s,p)=>s+(p.pct||0),0)/_pipeEchState.phases.length);
+  const bar=document.getElementById('ech-global-bar');
+  const pct=document.getElementById('ech-global-pct');
+  if(bar) bar.style.width=total+'%';
+  if(pct) pct.textContent=total+'%';
+}
+function saveEcheancier(){
+  if(!currentChantierId||!_pipeEchState) return;
   const chantiers=DB.get('chantiers');
-  const idx=chantiers.findIndex(c=>c.id===chantierId);
-  if(idx===-1) return;
-  chantiers[idx].etapes.splice(index,1);
+  const idx=chantiers.findIndex(c=>c.id===currentChantierId);
+  if(idx<0) return;
+  chantiers[idx].echeancier=_pipeEchState;
   DB.set('chantiers',chantiers);
-  syncChantierToSheets(chantiers[idx], true);
-  renderEcheancier(chantiers[idx]);
+  syncChantierToSheets(chantiers[idx],true);
+  showToast('Échéancier sauvegardé ✓');
 }
 
 /* ─── Tâches ─────────────────────────────────────────────────────────────── */
