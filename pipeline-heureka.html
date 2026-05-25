@@ -3132,7 +3132,8 @@ async function syncProjetToSheets(p, isUpdate=false){
 async function syncChantierToSheets(ch, isUpdate=false){
   const proj=DB.get('projets').find(p=>p.id===ch.projetId)||{};
   const data={
-    ID_Chantier:ch.id, Nom_Chantier:ch.name||ch.nom||proj.nom||'', Client_ID:ch.clientId||'',
+    ID_Chantier:ch.id, Projet_ID:ch.projetId||'',
+    Nom_Chantier:ch.name||ch.nom||proj.nom||'', Client_ID:ch.clientId||'',
     Adresse:ch.adresse||'', Statut:ch.statut||'',
     'Date_Début':ch.dateDebut||'', 'Date_Fin_Prévue':ch.dateFin||'',
     Budget:ch.budget||'', Notes:ch.notes||'', 'Type_Équipe_Associée':ch.typeEquipe||''
@@ -3239,13 +3240,20 @@ async function syncSheets(){
     const rowsCh=Array.isArray(dch.data)?dch.data:[];
     const sheetChIds=new Set(rowsCh.map(r=>r.ID_Chantier).filter(Boolean));
     if(rowsCh.length){
-      const sheetCh=rowsCh.map(row=>({
-        id:row.ID_Chantier, name:row.Nom_Chantier||'', clientId:row.Client_ID||'',
-        adresse:row.Adresse||'', statut:row.Statut||'',
-        dateDebut:row['Date_Début']||'', dateFin:row['Date_Fin_Prévue']||'',
-        budget:row.Budget||'', notes:row.Notes||'', typeEquipe:row['Type_Équipe_Associée']||''
-      })).filter(c=>c.id);
-      const localOnlyCh=DB.get('chantiers').filter(c=>!sheetChIds.has(c.id));
+      const localChantiers2=DB.get('chantiers');
+      const sheetCh=rowsCh.map(row=>{
+        const loc=localChantiers2.find(c=>c.id===row.ID_Chantier)||{};
+        return {
+          id:row.ID_Chantier, name:row.Nom_Chantier||'', nom:row.Nom_Chantier||'',
+          projetId:row.Projet_ID||loc.projetId||'', clientId:row.Client_ID||'',
+          adresse:row.Adresse||'', statut:row.Statut||'',
+          dateDebut:row['Date_Début']||'', dateFin:row['Date_Fin_Prévue']||'',
+          budget:row.Budget||'', notes:row.Notes||'', typeEquipe:row['Type_Équipe_Associée']||'',
+          progression:loc.progression||0, taches:loc.taches||[],
+          etapes:loc.etapes||[], dateCreation:loc.dateCreation||'',
+        };
+      }).filter(c=>c.id);
+      const localOnlyCh=localChantiers2.filter(c=>!sheetChIds.has(c.id));
       DB.set('chantiers',[...sheetCh,...localOnlyCh]);
     }
     for(const ch of DB.get('chantiers')){
@@ -4769,16 +4777,22 @@ async function autoSyncFromSheet(){
 
   // Chantiers
   if(rowsCh.length){
-    const sheetCh=rowsCh.map(row=>({
-      id:row.ID_Chantier, name:row.Nom_Chantier||'', nom:row.Nom_Chantier||'',
-      projetId:row.Projet_ID||'', clientId:row.Client_ID||'',
-      adresse:row.Adresse||'', statut:row.Statut||'',
-      dateDebut:row['Date_Début']||'', dateFin:row['Date_Fin_Prévue']||'',
-      notes:row.Notes||'',
-      driveId:row.Drive_ID||'', driveUrl:row.Drive_URL||''
-    })).filter(c=>c.id);
+    const localChantiers=DB.get('chantiers');
+    const sheetCh=rowsCh.map(row=>{
+      const loc=localChantiers.find(c=>c.id===row.ID_Chantier)||{};
+      return {
+        id:row.ID_Chantier, name:row.Nom_Chantier||'', nom:row.Nom_Chantier||'',
+        projetId:row.Projet_ID||loc.projetId||'', clientId:row.Client_ID||'',
+        adresse:row.Adresse||'', statut:row.Statut||'',
+        dateDebut:row['Date_Début']||'', dateFin:row['Date_Fin_Prévue']||'',
+        notes:row.Notes||'',
+        driveId:row.Drive_ID||loc.driveId||'', driveUrl:row.Drive_URL||loc.driveUrl||'',
+        progression:loc.progression||0, taches:loc.taches||[],
+        etapes:loc.etapes||[], dateCreation:loc.dateCreation||'',
+      };
+    }).filter(c=>c.id);
     const sheetIds=new Set(sheetCh.map(c=>c.id));
-    const localOnly=DB.get('chantiers').filter(c=>!sheetIds.has(c.id));
+    const localOnly=localChantiers.filter(c=>!sheetIds.has(c.id));
     DB.set('chantiers',[...sheetCh,...localOnly]);
     if(currentView==='chantiers') renderChantiers();
   }
