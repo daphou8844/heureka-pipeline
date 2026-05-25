@@ -247,6 +247,40 @@ textarea.form-control{resize:vertical;min-height:72px}
 .task-date{font-size:11px;color:var(--muted)}
 .task-add-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;margin-top:10px}
 
+/* ─── Tâches Chantier v2 ────────────────────────────────────────────────────── */
+.tache-global{padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:14px}
+.tache-global-track{height:7px;background:var(--border);border-radius:4px;overflow:hidden;margin:7px 0 0}
+.tache-global-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:4px;transition:width .35s ease}
+.tache-cat{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:7px}
+.tache-cat-hdr{display:flex;align-items:center;gap:9px;padding:10px 13px;background:var(--bg3);cursor:pointer;user-select:none;transition:background .15s}
+.tache-cat-hdr:hover{background:var(--surface)}
+.tache-cat-icon{font-size:15px;flex-shrink:0}
+.tache-cat-title{font-size:12.5px;font-weight:700;flex:1;color:var(--text)}
+.tache-minibar{width:56px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;flex-shrink:0}
+.tache-minibar-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .3s}
+.tache-cat-count{font-size:10.5px;color:var(--muted);flex-shrink:0;min-width:32px;text-align:right}
+.tache-cat-arr{font-size:10px;color:var(--muted2);flex-shrink:0;transition:transform .2s;display:inline-block}
+.tache-cat-arr.open{transform:rotate(90deg)}
+.tache-cat-body{display:none;padding:7px 9px 9px;background:var(--bg2)}
+.tache-cat-body.open{display:block}
+.tache-row{display:flex;align-items:flex-start;gap:9px;padding:8px 10px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);margin-bottom:5px;transition:border-color .15s}
+.tache-row.tdone{opacity:.6}
+.tache-chk{width:19px;height:19px;border-radius:5px;border:2px solid var(--border2);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;transition:var(--tr);margin-top:2px}
+.tache-chk.tdone{background:var(--green);border-color:var(--green);color:#000}
+.tache-main{flex:1;min-width:0}
+.tache-titre{font-size:12.5px;font-weight:600;color:var(--text);line-height:1.3}
+.tache-titre.tdone{text-decoration:line-through;color:var(--muted)}
+.tache-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;align-items:center}
+.tache-sel,.tache-inp{font-size:11px;padding:3px 7px;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--text)}
+.tache-badge-retard{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px}
+.tache-comment{font-size:11px;margin-top:5px;width:100%;padding:4px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:5px;color:var(--text)}
+.tache-done-info{font-size:10px;color:var(--green);margin-top:3px}
+.tache-del{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px;padding:2px 3px;flex-shrink:0;transition:color .15s;margin-top:1px}
+.tache-del:hover{color:var(--red)}
+.tache-add-btn{background:none;border:1px dashed var(--border);color:var(--muted);font-size:12px;padding:6px 12px;border-radius:7px;cursor:pointer;width:100%;text-align:left;margin-top:3px;transition:var(--tr)}
+.tache-add-btn:hover{border-color:var(--gold);color:var(--gold)}
+.tache-add-form{display:flex;gap:6px;margin-top:5px}
+
 /* ─── Clients View ──────────────────────────────────────────────────────────── */
 .clients-layout{display:grid;grid-template-columns:300px 1fr;gap:0;height:100%;overflow:hidden}
 .clients-list{border-right:1px solid var(--border);overflow-y:auto;padding:0}
@@ -2348,7 +2382,7 @@ function renderChantiers(){
     const st = CH_STATUTS.find(s=>s.id===ch.statut)||CH_STATUTS[0];
     const prog = ch.progression||0;
     const taches = (ch.taches||[]);
-    const doneTaches = taches.filter(t=>t.statut==='done').length;
+    const doneTaches = taches.filter(t=>t.completee||t.statut==='done').length;
     return `<div class="chantier-card" style="border-left-color:${st.color}" onclick="openChantierDetail('${ch.id}')">
       <div class="chantier-proj-name">${escHtml(proj.nom||'Projet sans nom')}</div>
       <div class="chantier-client">${escHtml(client.nom||'—')}</div>
@@ -2474,7 +2508,7 @@ function renderChantierOverview(ch){
         oninput="updateProgression(this.value)" onchange="saveProgression(this.value)">
     </div>`;
 
-  const taches=ch.taches||[]; const done=taches.filter(t=>t.statut==='done').length;
+  const taches=ch.taches||[]; const done=taches.filter(t=>t.completee||t.statut==='done').length;
   document.getElementById('mch-overview').innerHTML=`
     <div class="form-grid" style="gap:12px;margin-bottom:20px">
       <div class="info-block">
@@ -2607,95 +2641,223 @@ function saveEcheancier(){
 }
 
 /* ─── Tâches ─────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════
+   TÂCHES CHANTIER v2 — Catégories + tâches par défaut
+══════════════════════════════════════════════════════════════════ */
+const TACHE_CATEGORIES=[
+  {id:'preparation',titre:'Préparation avant chantier',icon:'📦',def:['Commander matériaux','Vérifier délais fournisseurs','Planifier horaires équipe','Envoyer informations au client','Préparer accès chantier']},
+  {id:'ouverture',  titre:'Ouverture chantier',         icon:'📂',def:['Ajouter plans/devis','Ajouter soumission finale','Ajouter échéancier','Ajouter équipe assignée']},
+  {id:'predepart',  titre:'Pré-départ équipe',          icon:'🚗',def:['Vérifier matériaux reçus','Envoyer adresse chantier','Envoyer heure arrivée']},
+  {id:'debut',      titre:'Début chantier',             icon:'🏗',def:['Photos avant travaux','Protection des lieux','Installation chantier','Début travaux']},
+  {id:'suivi',      titre:'Suivi quotidien',            icon:'📊',def:['Vérifier avancement','Photos progression','Noter extras','Noter problèmes','Commander matériaux manquants','Communication client']},
+  {id:'fin',        titre:'Fin des travaux',            icon:'✅',def:['Inspection finale','Corrections','Nettoyage','Photos finales','Signature client']},
+  {id:'fermeture',  titre:'Fermeture chantier',         icon:'🔒',def:['Envoyer facture finale','Vérifier paiements','Archiver photos','Archiver documents','Calcul rentabilité','Demander avis Google','Prévoir suivi garantie']}
+];
+
+let _tacheCatOpen   = new Set(['preparation']);
+let _addingTacheIn  = null;
+let _tacheShowHist  = false;
+
+function getCurrentUserTache(){
+  return localStorage.getItem('hchat_user')||localStorage.getItem('ph_current_user')||'';
+}
+
+function ensureDefaultTaches(ch){
+  const t=ch.taches||[];
+  if(t.some(x=>x.categorie)) return; // already v2
+  const newT=[];
+  TACHE_CATEGORIES.forEach(cat=>cat.def.forEach(titre=>newT.push({
+    id:uid(),categorie:cat.id,titre,assigneA:'',dateEcheance:'',
+    completee:false,dateCompletion:'',completePar:'',commentaire:''
+  })));
+  // migrate old tasks
+  t.forEach(x=>{ if(!x.categorie) newT.push({
+    id:x.id||uid(),categorie:'preparation',titre:x.titre||'',assigneA:x.assigneA||'',
+    dateEcheance:x.dateEcheance||'',completee:x.statut==='done',
+    dateCompletion:'',completePar:'',commentaire:''
+  });});
+  ch.taches=newT;
+  const ch2=DB.get('chantiers'); const i=ch2.findIndex(c=>c.id===ch.id);
+  if(i!==-1){ch2[i].taches=newT; DB.set('chantiers',ch2);}
+}
+
 function renderTaches(ch){
+  ensureDefaultTaches(ch);
   const taches=ch.taches||[];
-  const done=taches.filter(t=>t.statut==='done').length;
-  document.getElementById('mch-taches').innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <span style="font-size:13px;color:var(--muted)">${done}/${taches.length} tâche${taches.length!==1?'s':''} complétées</span>
-    </div>
-    <div class="task-list">
-      ${taches.length===0?'<div class="empty-state"><div class="empty-ico">✅</div><div class="empty-text">Aucune tâche</div></div>':
-        taches.map((t,i)=>`<div class="task-item">
-          <div class="task-check ${t.statut==='done'?'done':''}" onclick="toggleTache('${ch.id}',${i})">${t.statut==='done'?'✓':''}</div>
-          <div class="task-title ${t.statut==='done'?'done':''}">${escHtml(t.titre)}</div>
-          ${t.assigneA?`<span class="task-assignee">👤 ${escHtml(t.assigneA)}</span>`:''}
-          ${t.dateEcheance?`<span class="task-date">${fmtDate(t.dateEcheance)}</span>`:''}
-          <button onclick="deleteTache('${ch.id}',${i})" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px">✕</button>
-        </div>`).join('')}
-    </div>
-    <div class="divider"></div>
-    <div class="section-title">Ajouter une tâche</div>
-    <div class="task-add-row">
-      <div class="form-group">
-        <label class="form-label">Titre *</label>
-        <input class="form-control" id="task-titre" placeholder="Description de la tâche">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Assigné à</label>
-        <select class="form-control" id="task-assign">
-          <option value="">— Choisir —</option>
-          <option value="Maxime">Maxime</option>
-          <option value="Daphnée">Daphnée</option>
-          <option value="Équipe chantier">Équipe chantier</option>
-          <option value="Anabelle">Anabelle</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Échéance</label>
-        <input class="form-control" type="date" id="task-date">
-      </div>
-      <div class="form-group">
-        <label class="form-label">&nbsp;</label>
-        <button class="btn btn-gold" onclick="addTache('${ch.id}')">Ajouter</button>
-      </div>
-    </div>`;
-}
+  const total=taches.length;
+  const done=taches.filter(t=>t.completee).length;
+  const pct=total===0?0:Math.round(done/total*100);
+  const today=todayStr();
 
-function addTache(chantierId){
-  const titre=document.getElementById('task-titre').value.trim();
-  if(!titre){ alert('Titre requis.'); return; }
-  const chantiers=DB.get('chantiers');
-  const idx=chantiers.findIndex(c=>c.id===chantierId);
-  if(idx===-1) return;
-  if(!chantiers[idx].taches) chantiers[idx].taches=[];
-  chantiers[idx].taches.push({
-    id:uid(), titre, statut:'todo',
-    assigneA:document.getElementById('task-assign').value.trim(),
-    dateEcheance:document.getElementById('task-date').value
+  let html=`<div class="tache-global">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <span style="font-size:15px;font-weight:800;color:var(--gold2)">${pct}%</span>
+        <span style="font-size:12px;color:var(--muted);margin-left:7px">${done}/${total} tâches complétées</span>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="_tacheShowHist=!_tacheShowHist;renderTaches(getChantier('${ch.id}'))">
+        📜 Historique
+      </button>
+    </div>
+    <div class="tache-global-track"><div class="tache-global-fill" style="width:${pct}%"></div></div>
+  </div>`;
+
+  TACHE_CATEGORIES.forEach(cat=>{
+    const ct=taches.filter(t=>t.categorie===cat.id);
+    const cd=ct.filter(t=>t.completee).length;
+    const cp=ct.length===0?0:Math.round(cd/ct.length*100);
+    const open=_tacheCatOpen.has(cat.id);
+    html+=`<div class="tache-cat">
+      <div class="tache-cat-hdr" onclick="toggleTacheCat('${cat.id}')">
+        <span class="tache-cat-icon">${cat.icon}</span>
+        <span class="tache-cat-title">${cat.titre}</span>
+        <div class="tache-minibar"><div class="tache-minibar-fill" style="width:${cp}%"></div></div>
+        <span class="tache-cat-count">${cd}/${ct.length}</span>
+        <span class="tache-cat-arr ${open?'open':''}">▶</span>
+      </div>
+      <div class="tache-cat-body ${open?'open':''}">`;
+
+    ct.forEach(t=>{
+      const overdue=!t.completee&&t.dateEcheance&&t.dateEcheance<today;
+      html+=`<div class="tache-row ${t.completee?'tdone':''}">
+        <div class="tache-chk ${t.completee?'tdone':''}" onclick="toggleTacheComp('${ch.id}','${t.id}')">${t.completee?'✓':''}</div>
+        <div class="tache-main">
+          <div class="tache-titre ${t.completee?'tdone':''}">${escHtml(t.titre)}</div>
+          <div class="tache-meta">
+            <select class="tache-sel" onchange="updateTacheField('${ch.id}','${t.id}','assigneA',this.value)">
+              <option value="" ${!t.assigneA?'selected':''}>👤 Assigné</option>
+              <option value="Maxime"  ${t.assigneA==='Maxime'?'selected':''}>Maxime</option>
+              <option value="Daphnée"  ${t.assigneA==='Daphnée'?'selected':''}>Daphnée</option>
+              <option value="Anabelle" ${t.assigneA==='Anabelle'?'selected':''}>Anabelle</option>
+            </select>
+            <input type="date" class="tache-inp" value="${t.dateEcheance||''}"
+              onchange="updateTacheField('${ch.id}','${t.id}','dateEcheance',this.value)">
+            ${overdue?'<span class="tache-badge-retard">⚠ Retard</span>':''}
+          </div>
+          <input type="text" class="tache-comment" placeholder="Commentaire..."
+            value="${escHtml(t.commentaire||'')}"
+            onchange="updateTacheField('${ch.id}','${t.id}','commentaire',this.value)">
+          ${t.completee&&t.dateCompletion?`<div class="tache-done-info">✓ ${fmtDate(t.dateCompletion)}${t.completePar?' · '+escHtml(t.completePar):''}</div>`:''}
+        </div>
+        <button class="tache-del" onclick="deleteTacheChantier('${ch.id}','${t.id}')" title="Supprimer">🗑</button>
+      </div>`;
+    });
+
+    if(_addingTacheIn===cat.id){
+      html+=`<div class="tache-add-form">
+        <input id="new-tache-inp" class="form-control" style="font-size:12px;flex:1" placeholder="Titre de la tâche..."
+          onkeydown="if(event.key==='Enter')confirmAddTache('${ch.id}','${cat.id}');if(event.key==='Escape'){_addingTacheIn=null;renderTaches(getChantier('${ch.id}'))}">
+        <button class="btn btn-gold btn-sm" onclick="confirmAddTache('${ch.id}','${cat.id}')">Ajouter</button>
+        <button class="btn btn-outline btn-sm" onclick="_addingTacheIn=null;renderTaches(getChantier('${ch.id}'))">✕</button>
+      </div>`;
+    } else {
+      html+=`<button class="tache-add-btn" onclick="_addingTacheIn='${cat.id}';_tacheCatOpen.add('${cat.id}');renderTaches(getChantier('${ch.id}'));setTimeout(()=>{const i=document.getElementById('new-tache-inp');if(i)i.focus()},40)">
+        ＋ Ajouter une tâche</button>`;
+    }
+    html+=`</div></div>`;
   });
-  DB.set('chantiers',chantiers);
-  updateProgression_calc(chantiers[idx]);
-  renderTaches(chantiers[idx]);
-  document.getElementById('task-titre').value='';
+
+  // Historique
+  if(_tacheShowHist){
+    const hist=taches.filter(t=>t.completee).sort((a,b)=>(b.dateCompletion||'').localeCompare(a.dateCompletion||''));
+    html+=`<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">📜 Historique</div>
+      ${hist.length===0?'<div class="empty-state" style="padding:16px"><div class="empty-text">Aucune tâche complétée</div></div>':
+        hist.map(t=>{
+          const cat=TACHE_CATEGORIES.find(c=>c.id===t.categorie)||{titre:'',icon:'✅'};
+          return `<div style="display:flex;gap:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:5px">
+            <span>${cat.icon}</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12px;font-weight:600;text-decoration:line-through;color:var(--muted)">${escHtml(t.titre)}</div>
+              <div style="font-size:10px;color:var(--muted2)">${cat.titre}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-size:11px;font-weight:700;color:var(--green)">✓ ${t.dateCompletion?fmtDate(t.dateCompletion):'—'}</div>
+              ${t.completePar?`<div style="font-size:10px;color:var(--muted)">${escHtml(t.completePar)}</div>`:''}
+            </div>
+          </div>`;
+        }).join('')}
+    </div>`;
+  }
+
+  document.getElementById('mch-taches').innerHTML=html;
 }
 
-function toggleTache(chantierId,index){
+function toggleTacheCat(catId){
+  if(_tacheCatOpen.has(catId)) _tacheCatOpen.delete(catId);
+  else _tacheCatOpen.add(catId);
+  const ch=getChantier(currentChantierId); if(ch) renderTaches(ch);
+}
+
+function toggleTacheComp(chantierId, tacheId){
   const chantiers=DB.get('chantiers');
-  const idx=chantiers.findIndex(c=>c.id===chantierId);
-  if(idx===-1) return;
-  const t=chantiers[idx].taches[index];
-  t.statut=t.statut==='done'?'todo':'done';
+  const idx=chantiers.findIndex(c=>c.id===chantierId); if(idx===-1) return;
+  const t=chantiers[idx].taches.find(t=>t.id===tacheId); if(!t) return;
+  t.completee=!t.completee;
+  if(t.completee){ t.dateCompletion=todayStr(); t.completePar=getCurrentUserTache(); }
+  else { t.dateCompletion=''; t.completePar=''; }
   updateProgression_calc(chantiers[idx]);
   DB.set('chantiers',chantiers);
+  syncTacheRow(chantierId,t);
+  syncChantierToSheets(chantiers[idx],true);
   renderTaches(chantiers[idx]);
   renderChantiers();
 }
 
-function deleteTache(chantierId,index){
+function confirmAddTache(chantierId, catId){
+  const inp=document.getElementById('new-tache-inp');
+  const titre=(inp?inp.value:'').trim(); if(!titre) return;
   const chantiers=DB.get('chantiers');
-  const idx=chantiers.findIndex(c=>c.id===chantierId);
-  if(idx===-1) return;
-  chantiers[idx].taches.splice(index,1);
+  const idx=chantiers.findIndex(c=>c.id===chantierId); if(idx===-1) return;
+  const t={id:uid(),categorie:catId,titre,assigneA:'',dateEcheance:'',
+    completee:false,dateCompletion:'',completePar:'',commentaire:''};
+  chantiers[idx].taches.push(t);
+  DB.set('chantiers',chantiers);
+  syncTacheRow(chantierId,t);
+  _addingTacheIn=null;
+  renderTaches(chantiers[idx]);
+}
+
+function deleteTacheChantier(chantierId, tacheId){
+  if(!confirm('Supprimer cette tâche ?')) return;
+  const chantiers=DB.get('chantiers');
+  const idx=chantiers.findIndex(c=>c.id===chantierId); if(idx===-1) return;
+  chantiers[idx].taches=chantiers[idx].taches.filter(t=>t.id!==tacheId);
   updateProgression_calc(chantiers[idx]);
   DB.set('chantiers',chantiers);
-  syncChantierToSheets(chantiers[idx], true);
+  scriptPost({action:'deleteRow',sheet:'TachesChantier',id:tacheId});
   renderTaches(chantiers[idx]);
+  renderChantiers();
+}
+
+function updateTacheField(chantierId, tacheId, field, value){
+  const chantiers=DB.get('chantiers');
+  const idx=chantiers.findIndex(c=>c.id===chantierId); if(idx===-1) return;
+  const t=chantiers[idx].taches.find(t=>t.id===tacheId); if(!t) return;
+  t[field]=value;
+  DB.set('chantiers',chantiers);
+  syncTacheRow(chantierId,t);
+}
+
+const _syncedTaches=new Set(JSON.parse(localStorage.getItem('ph_synced_taches')||'[]'));
+function syncTacheRow(chantierId,t){
+  const data={ID:t.id,chantierID:chantierId,categorie:t.categorie,tache:t.titre,
+    assigneA:t.assigneA||'',dateEcheance:t.dateEcheance||'',
+    completee:t.completee?'oui':'non',dateCompletion:t.dateCompletion||'',
+    completePar:t.completePar||'',commentaire:t.commentaire||''};
+  if(_syncedTaches.has(t.id)){
+    scriptPost({action:'updateRow',sheet:'TachesChantier',id:t.id,data}).catch(()=>{});
+  } else {
+    scriptPost({action:'addRow',sheet:'TachesChantier',data})
+      .then(()=>{_syncedTaches.add(t.id);localStorage.setItem('ph_synced_taches',JSON.stringify([..._syncedTaches]));})
+      .catch(()=>{});
+  }
 }
 
 function updateProgression_calc(ch){
   const t=ch.taches||[];
-  ch.progression=t.length===0?0:Math.round((t.filter(x=>x.statut==='done').length/t.length)*100);
+  if(!t.length){ch.progression=0;return;}
+  ch.progression=Math.round(t.filter(x=>x.completee||x.statut==='done').length/t.length*100);
 }
 
 /* ─── Activités chantier ─────────────────────────────────────────────────── */
