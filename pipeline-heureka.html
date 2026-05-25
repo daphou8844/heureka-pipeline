@@ -4805,20 +4805,17 @@ async function autoSyncFromSheet(){
     const toAdd=localOnly.filter(p=>p._sheetsynced===false);
     DB.set('projets',[...sheetProjets,...toAdd]);
     if(currentView==='pipeline') renderPipeline();
-    // Pont de secours : reconstruire chantiers manquants depuis Projet.chantierId
+    // Reconstruire chantiers depuis projets gagné — fonctionne sur tous les ordis
     const allProjets=[...sheetProjets,...toAdd];
     const localChantiersBefore=DB.get('chantiers');
-    const localChIds=new Set(localChantiersBefore.map(c=>normId(c.id)));
     const localChProjetIds=new Set(localChantiersBefore.map(c=>normId(c.projetId)).filter(Boolean));
     let chantiersModified=false;
     for(const p of allProjets){
-      if(!p.chantierId) continue;
-      const cid=normId(p.chantierId);
-      if(!cid) continue;
-      // Chantier déjà présent localement ?
-      if(localChIds.has(cid)||localChProjetIds.has(normId(p.id))) continue;
-      // Créer un placeholder chantier
-      const placeholder={
+      if(p.statut!=='gagne') continue;
+      if(localChProjetIds.has(normId(p.id))) continue; // chantier déjà là
+      // Utiliser chantierId du projet si dispo, sinon nouvel ID
+      const cid=normId(p.chantierId)||uid();
+      localChantiersBefore.push({
         id:cid, projetId:p.id, clientId:p.clientId||'',
         name:p.nom||'', nom:p.nom||'',
         statut:'a_planifier', adresse:'', notes:'',
@@ -4826,9 +4823,8 @@ async function autoSyncFromSheet(){
         etapes:[], taches:[],
         dateCreation:p.dateCreation||new Date().toISOString(),
         _sheetsynced:false
-      };
-      localChantiersBefore.push(placeholder);
-      localChIds.add(cid);
+      });
+      localChProjetIds.add(normId(p.id));
       chantiersModified=true;
     }
     if(chantiersModified){
