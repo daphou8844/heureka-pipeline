@@ -16,11 +16,11 @@
  * ║                                                                             ║
  * ║  MISE À JOUR : Déployer → Gérer → ✏ Nouvelle version                      ║
  * ╠══════════════════════════════════════════════════════════════════════════════╣
- * ║  ACTIONS GET   : ping · getClients · getProjets · getChantiers             ║
+ * ║  ACTIONS GET   : ping · getClients · getProjets                             ║
  * ║                  getActivites · getCourriels · getHistorique                ║
- * ║  ACTIONS POST  : createClient · createProjet · createChantier              ║
+ * ║  ACTIONS POST  : createClient · createProjet                               ║
  * ║                  createActivite · logHistorique · sendEmail                 ║
- * ║                  updateProjetStatut · updateChantierStatut                  ║
+ * ║                  updateProjetStatut                                         ║
  * ╚══════════════════════════════════════════════════════════════════════════════╝
  */
 
@@ -44,10 +44,6 @@ var HEADERS = {
     'ID_Projet', 'Client_ID', 'Nom_Projet', 'Statut', 'Priorité', 'Type_Projet',
     'Source_Référence', 'Prix_Estimé', 'Coût_Matériaux', 'Coût_MO',
     'Lien_Soumission', 'Notes', 'Date_Créé', 'Date_RDV', 'Chantier_ID'
-  ],
-  Chantiers: [
-    'ID_Chantier', 'Projet_ID', 'Nom_Chantier', 'Client_ID', 'Adresse', 'Statut',
-    'Date_Début', 'Date_Fin_Prévue', 'Budget', 'Notes', 'Type_Équipe_Associée'
   ],
   Activites: [
     'ID_Activité', 'Projet_ID', 'Client_ID', 'Type', 'Date', 'Description',
@@ -163,9 +159,6 @@ function doGet(e) {
       case 'getProjets':
         result = { projets: getAllRows_('Projets') };
         break;
-      case 'getChantiers':
-        result = { chantiers: getAllRows_('Chantiers') };
-        break;
       case 'getActivites':
         result = { activites: getAllRows_('Activites') };
         break;
@@ -179,7 +172,6 @@ function doGet(e) {
         result = {
           clients:    getAllRows_('Clients'),
           projets:    getAllRows_('Projets'),
-          chantiers:  getAllRows_('Chantiers'),
           activites:  getAllRows_('Activites'),
           courriels:  getAllRows_('Courriels'),
           historique: getAllRows_('Historique')
@@ -214,9 +206,6 @@ function doPost(e) {
       case 'createProjet':
         result = upsert_('Projets', body, projetFields_);
         break;
-      case 'createChantier':
-        result = upsert_('Chantiers', body, chantierFields_);
-        break;
       case 'createActivite':
         result = upsert_('Activites', body, activiteFields_);
         break;
@@ -227,12 +216,6 @@ function doPost(e) {
         appendHistorique_(body.projetId || body.id, '', 'statut',
           'Statut projet → ' + body.statut);
         break;
-      case 'updateChantierStatut':
-        result = updateField_('Chantiers', body.id, 'statut', body.statut);
-        appendHistorique_(body.projetId || '', body.id, 'statut',
-          'Statut chantier → ' + body.statut);
-        break;
-
       // ── Historique ────────────────────────────────────────────────────────────
       case 'logHistorique':
         result = appendHistorique_(
@@ -477,22 +460,6 @@ function projetFields_(b) {
   };
 }
 
-function chantierFields_(b) {
-  var now = new Date().toISOString();
-  return {
-    id:          b.id           || generateId_(),
-    projetId:    b.projetId     || '',
-    clientId:    b.clientId     || '',
-    statut:      b.statut       || 'a_planifier',
-    adresse:     b.adresse      || '',
-    notes:       b.notes        || '',
-    dateDebut:   b.dateDebut    || '',
-    dateFin:     b.dateFin      || '',
-    progression: b.progression  != null ? String(b.progression) : '0',
-    dateCreation: b.dateCreation || now
-  };
-}
-
 function activiteFields_(b) {
   var now = new Date().toISOString();
   return {
@@ -688,7 +655,7 @@ function initAllSheets() {
   SS.setSpreadsheetTimeZone(TIMEZONE);
 
   // Ordre des onglets
-  var order = ['Clients', 'Projets', 'Chantiers', 'Activites', 'Courriels', 'Historique', 'Taches', 'Notes', 'Messages'];
+  var order = ['Clients', 'Projets', 'Activites', 'Courriels', 'Historique', 'Taches', 'Notes', 'Messages'];
   for (var k = 0; k < order.length; k++) {
     var s = SS.getSheetByName(order[k]);
     if (s) SS.setActiveSheet(s);
@@ -697,7 +664,7 @@ function initAllSheets() {
 
   SpreadsheetApp.getUi().alert(
     '✅ Pipeline Heuréka initialisé !\n\n' +
-    'Onglets créés : ' + names.join(', ') + '\n' +
+    'Onglets créés : Clients, Projets, Activites, Courriels, Historique, Taches, Notes, Messages\n' +
     'Fuseau horaire : ' + TIMEZONE
   );
 }
@@ -762,7 +729,7 @@ function testTemplate() {
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('🏗 Pipeline Heuréka')
-    .addItem('① Initialiser les 6 onglets',      'initAllSheets')
+    .addItem('① Initialiser les onglets',         'initAllSheets')
     .addSeparator()
     .addItem('🔔 Tester ping',                    'testPing')
     .addItem('📧 Tester envoi Gmail (à moi)',     'testSendEmail')

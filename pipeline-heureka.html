@@ -179,11 +179,6 @@ a{color:inherit;text-decoration:none}
 .acti-history-sep::before,.acti-history-sep::after{content:'';flex:1;height:1px;background:var(--border)}
 .acti-add-form{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rad);padding:12px}
 .acti-add-title{font-size:12px;font-weight:700;color:var(--gold2);margin-bottom:10px}
-/* Chantiers tabs */
-.chantier-view-tabs{display:flex;gap:6px;margin-bottom:16px}
-.chantier-tab{padding:6px 16px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:var(--tr)}
-.chantier-tab.active{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
-
 /* ─── Forms ─────────────────────────────────────────────────────────────────── */
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .form-group{display:flex;flex-direction:column;gap:5px}
@@ -195,25 +190,10 @@ a{color:inherit;text-decoration:none}
 textarea.form-control{resize:vertical;min-height:72px}
 .form-row{display:flex;gap:10px}
 
-/* ─── Chantiers ─────────────────────────────────────────────────────────────── */
-.chantiers-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-.chantier-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);padding:13px 15px;border-top:2px solid transparent}
-.stat-num{font-size:22px;font-weight:800}
-.stat-label{font-size:11px;color:var(--muted);margin-top:2px}
-.chantier-filters{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
-.chantiers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
-.chantier-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad2);padding:16px;cursor:pointer;transition:var(--tr);border-left:3px solid var(--border)}
-.chantier-card:hover{border-color:var(--gold);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.4)}
-.chantier-proj-name{font-size:14px;font-weight:800;color:#fff;margin-bottom:3px}
-.chantier-client{font-size:12px;color:var(--muted);margin-bottom:10px}
+/* ─── Chantier Detail (tab system — used in Projet modal too) ────────────────── */
 .progress-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px}
 .progress-fill{height:100%;border-radius:3px;transition:width .4s}
-.chantier-meta{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--muted)}
 .status-badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:5px;font-size:11px;font-weight:700}
-
-/* ─── Chantier Detail (full) ─────────────────────────────────────────────────── */
-.chantier-detail-header{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start;margin-bottom:20px}
 .chantier-tabs{display:flex;gap:3px;border-bottom:1px solid var(--border);margin-bottom:18px}
 .tab-btn{padding:9px 16px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:var(--tr);margin-bottom:-1px}
 .tab-btn.active{color:var(--gold2);border-bottom-color:var(--gold)}
@@ -246,40 +226,6 @@ textarea.form-control{resize:vertical;min-height:72px}
 .task-assignee{font-size:11px;color:var(--muted);background:var(--surface);padding:2px 7px;border-radius:4px}
 .task-date{font-size:11px;color:var(--muted)}
 .task-add-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;margin-top:10px}
-
-/* ─── Tâches Chantier v2 ────────────────────────────────────────────────────── */
-.tache-global{padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:14px}
-.tache-global-track{height:7px;background:var(--border);border-radius:4px;overflow:hidden;margin:7px 0 0}
-.tache-global-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:4px;transition:width .35s ease}
-.tache-cat{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:7px}
-.tache-cat-hdr{display:flex;align-items:center;gap:9px;padding:10px 13px;background:var(--bg3);cursor:pointer;user-select:none;transition:background .15s}
-.tache-cat-hdr:hover{background:var(--surface)}
-.tache-cat-icon{font-size:15px;flex-shrink:0}
-.tache-cat-title{font-size:12.5px;font-weight:700;flex:1;color:var(--text)}
-.tache-minibar{width:56px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;flex-shrink:0}
-.tache-minibar-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .3s}
-.tache-cat-count{font-size:10.5px;color:var(--muted);flex-shrink:0;min-width:32px;text-align:right}
-.tache-cat-arr{font-size:10px;color:var(--muted2);flex-shrink:0;transition:transform .2s;display:inline-block}
-.tache-cat-arr.open{transform:rotate(90deg)}
-.tache-cat-body{display:none;padding:7px 9px 9px;background:var(--bg2)}
-.tache-cat-body.open{display:block}
-.tache-row{display:flex;align-items:flex-start;gap:9px;padding:8px 10px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);margin-bottom:5px;transition:border-color .15s}
-.tache-row.tdone{opacity:.6}
-.tache-chk{width:19px;height:19px;border-radius:5px;border:2px solid var(--border2);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;transition:var(--tr);margin-top:2px}
-.tache-chk.tdone{background:var(--green);border-color:var(--green);color:#000}
-.tache-main{flex:1;min-width:0}
-.tache-titre{font-size:12.5px;font-weight:600;color:var(--text);line-height:1.3}
-.tache-titre.tdone{text-decoration:line-through;color:var(--muted)}
-.tache-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;align-items:center}
-.tache-sel,.tache-inp{font-size:11px;padding:3px 7px;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--text)}
-.tache-badge-retard{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px}
-.tache-comment{font-size:11px;margin-top:5px;width:100%;padding:4px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:5px;color:var(--text)}
-.tache-done-info{font-size:10px;color:var(--green);margin-top:3px}
-.tache-del{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px;padding:2px 3px;flex-shrink:0;transition:color .15s;margin-top:1px}
-.tache-del:hover{color:var(--red)}
-.tache-add-btn{background:none;border:1px dashed var(--border);color:var(--muted);font-size:12px;padding:6px 12px;border-radius:7px;cursor:pointer;width:100%;text-align:left;margin-top:3px;transition:var(--tr)}
-.tache-add-btn:hover{border-color:var(--gold);color:var(--gold)}
-.tache-add-form{display:flex;gap:6px;margin-top:5px}
 
 /* ─── Clients View ──────────────────────────────────────────────────────────── */
 .clients-layout{display:grid;grid-template-columns:300px 1fr;gap:0;height:100%;overflow:hidden}
@@ -529,11 +475,7 @@ textarea.form-control{resize:vertical;min-height:72px}
         Pipeline
         <span class="nav-badge" id="badge-pipeline" style="display:none"></span>
       </div>
-      <div class="nav-item" onclick="showView('chantiers')" id="nav-chantiers">
-        <span class="nav-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-5h6v5"/></svg></span>
-        Chantiers
-        <span class="nav-badge" id="badge-chantiers" style="display:none"></span>
-      </div>
+
       <div class="nav-item" onclick="showView('soumissions')" id="nav-soumissions">
         <span class="nav-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg></span>
         Soumissions
@@ -717,22 +659,6 @@ textarea.form-control{resize:vertical;min-height:72px}
         <div class="pipeline-totals" id="pipeline-totals"></div>
       </div>
 
-      <!-- VIEW: CHANTIERS -->
-      <div id="view-chantiers" class="hidden">
-        <div class="chantiers-header">
-          <div><div class="tb-title">Chantiers</div></div>
-        </div>
-        <div class="chantier-view-tabs">
-          <button class="chantier-tab active" id="ch-tab-actifs" onclick="setChantiersViewTab('actifs')">⚡ Actifs</button>
-          <button class="chantier-tab" id="ch-tab-termines" onclick="setChantiersViewTab('termines')">✅ Terminés</button>
-          <button class="chantier-tab" id="ch-tab-saison" onclick="setChantiersViewTab('saison')">🗓 Saisonnalité</button>
-        </div>
-        <div id="chantiers-actifs-section">
-          <div class="chantier-stats" id="chantier-stats"></div>
-          <div class="chantier-filters" id="chantier-filters"></div>
-        </div>
-        <div class="chantiers-grid" id="chantiers-grid"></div>
-      </div>
 
       <!-- VIEW: CLIENTS -->
       <div id="view-clients" class="hidden">
@@ -1094,58 +1020,6 @@ textarea.form-control{resize:vertical;min-height:72px}
   </div>
 </div>
 
-<!-- ═══════════════════ MODAL: DÉTAIL CHANTIER ══════════════════════════════ -->
-<div class="modal-overlay hidden" id="modal-chantier">
-  <div class="modal modal-full">
-    <div class="modal-header">
-      <div>
-        <div class="modal-title" id="mch-title"></div>
-        <div class="modal-subtitle" id="mch-subtitle"></div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <select class="form-control btn-sm" id="mch-statut" style="width:150px" onchange="updateChantierStatut()"></select>
-        <button class="btn btn-sm" style="background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer" onclick="deleteChantier()">🗑 Supprimer</button>
-        <button class="modal-close" onclick="closeModal('modal-chantier')">✕</button>
-      </div>
-    </div>
-    <div class="modal-body" style="height:calc(95vh - 140px)">
-      <div class="chantier-detail-header">
-        <div id="mch-info-header"></div>
-        <div id="mch-progress-block"></div>
-      </div>
-      <div class="chantier-tabs">
-        <button class="tab-btn active" onclick="switchTab('overview')" id="tab-overview">📊 Vue d'ensemble</button>
-        <button class="tab-btn" onclick="switchTab('echeancier')" id="tab-echeancier">📅 Échéancier</button>
-        <button class="tab-btn" onclick="switchTab('taches')" id="tab-taches">✅ Tâches</button>
-        <button class="tab-btn" onclick="switchTab('activites')" id="tab-activites">📋 Activités</button>
-        <button class="tab-btn" onclick="switchTab('courriels')" id="tab-courriels">📧 Courriels</button>
-        <button class="tab-btn" onclick="switchTab('historique')" id="tab-historique">📜 Historique</button>
-        <button class="tab-btn" onclick="switchTab('documents')" id="tab-documents">📎 Documents</button>
-      </div>
-      <div id="tab-content-overview" class="tab-content active" style="overflow-y:auto;height:calc(95vh - 300px)">
-        <div id="mch-overview"></div>
-      </div>
-      <div id="tab-content-echeancier" class="tab-content" style="overflow-y:auto;height:calc(95vh - 300px)">
-        <div id="mch-echeancier"></div>
-      </div>
-      <div id="tab-content-taches" class="tab-content" style="overflow-y:auto;height:calc(95vh - 300px)">
-        <div id="mch-taches"></div>
-      </div>
-      <div id="tab-content-activites" class="tab-content" style="overflow-y:auto;height:calc(95vh - 300px)">
-        <div id="mch-activites"></div>
-      </div>
-      <div id="tab-content-courriels" class="tab-content" style="overflow-y:auto;height:calc(95vh - 300px)">
-        <div id="mch-courriels"></div>
-      </div>
-      <div id="tab-content-historique" class="tab-content" style="overflow-y:auto;height:calc(95vh - 300px)">
-        <div id="mch-historique"></div>
-      </div>
-      <div id="tab-content-documents" class="tab-content" style="overflow-y:auto;height:calc(95vh - 300px)">
-        <div id="mch-documents"></div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- ═══════════════════ MODAL: NOUVEAU CLIENT ════════════════════════════════ -->
 <div class="modal-overlay hidden" id="modal-new-client">
@@ -1475,13 +1349,6 @@ const ACTI_TYPES = [
   { id:'autre',             label:'Autre',            ico:'💬', color:'#6B7280' },
 ];
 
-const CH_STATUTS = [
-  { id:'a_planifier', label:'À planifier', color:'#6366F1' },
-  { id:'en_cours',    label:'En cours',    color:'#22C55E' },
-  { id:'en_attente',  label:'En attente',  color:'#F59E0B' },
-  { id:'termine',     label:'Terminé',     color:'#6B7280' },
-];
-
 /* ═══════════════════════════════════════════════════════════════════════════
    DB (localStorage)
 ═══════════════════════════════════════════════════════════════════════════ */
@@ -1492,21 +1359,15 @@ const DB = {
   setStr:(k,v)=>localStorage.setItem('ph_'+k,v),
 };
 function normId(id){ return String(id||'').trim(); }
-const _inFlightPushIds = new Set();
 
 /* ═══════════════════════════════════════════════════════════════════════════
    STATE
 ═══════════════════════════════════════════════════════════════════════════ */
 let currentView = 'pipeline';
 let showPerdu = false;
-let chantiersFilter = 'all';
-let chantiersViewTab = 'actifs';
 let selectedClientId = null;
-let currentChantierId = null;
 let currentProjetId = null;
 let dragProjetId = null;
-let activeTab = 'overview';
-let _pipeEchState = null;
 
 /* ═══════════════════════════════════════════════════════════════════════════
    UTILS
@@ -1537,7 +1398,6 @@ function actiStatus(dateStr){
 function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function getClient(id){ return DB.get('clients').find(c=>c.id===id)||null; }
 function getProjet(id){ return DB.get('projets').find(p=>p.id===id)||null; }
-function getChantier(id){ return DB.get('chantiers').find(c=>c.id===id)||null; }
 function showToast(msg,dur=2200){
   const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
   document.body.appendChild(t); setTimeout(()=>t.remove(),dur);
@@ -1551,13 +1411,13 @@ function openModal(id){ document.getElementById(id).classList.remove('hidden'); 
 function showView(view){
   currentView = view;
   updateNavBadges();
-  ['dashboard','pipeline','chantiers','clients','config','stats','courriels','soumissions'].forEach(v=>{
+  ['dashboard','pipeline','clients','config','stats','courriels','soumissions'].forEach(v=>{
     document.getElementById('view-'+v).classList.toggle('hidden', v!==view);
     const n=document.getElementById('nav-'+v);
     if(n) n.classList.toggle('active', v===view);
   });
   const titles={
-    dashboard:'Dashboard', pipeline:'Pipeline', chantiers:'Chantiers', clients:'Clients',
+    dashboard:'Dashboard', pipeline:'Pipeline', clients:'Clients',
     config:'Configuration', stats:'Statistiques',
     courriels:'Courriels envoyés', soumissions:'Soumissions Revêtement',
   };
@@ -1568,7 +1428,6 @@ function showView(view){
   } else if(view==='pipeline'){
     acts.innerHTML=`<button class="btn btn-gold" onclick="openModalNewProjet()">+ Nouveau projet</button>`;
     renderPipeline();
-  } else if(view==='chantiers'){ renderChantiers();
   } else if(view==='clients'){   renderClientList();
   } else if(view==='stats'){     renderStats();
   } else if(view==='courriels'){ renderAllCourriels();
@@ -1868,19 +1727,14 @@ function moveProjet(projetId, newStatut){
   if(old===newStatut) return;
   projets[idx].statut = newStatut;
   projets[idx].dateMiseAJour = new Date().toISOString();
-  if(newStatut==='gagne' && old!=='gagne' && projets[idx].dossierDriveId) moveDossierForProjet(projets[idx], 'gagne');
-  if(newStatut==='perdu' && old!=='perdu' && projets[idx].dossierDriveId) moveDossierForProjet(projets[idx], 'perdu');
-  if(newStatut==='gagne' && old!=='gagne'){ createChantierFromProjet(projets[idx]); offerPostProjetSuivi(projets[idx]); }
+  if(newStatut==='gagne' && projets[idx].dossierDriveId) moveDossierForProjet(projets[idx], 'gagne');
+  if(newStatut==='perdu' && projets[idx].dossierDriveId) moveDossierForProjet(projets[idx], 'perdu');
+  if(newStatut==='gagne') offerPostProjetSuivi(projets[idx]);
   logHistory(projetId,'statut',`${old} → ${newStatut}`);
   suggestEmailOnStatut(projets[idx], old);
-  // Re-read projets to preserve chantierId potentially set by createChantierFromProjet
-  const savedChantierId = DB.get('projets').find(p=>p.id===projetId)?.chantierId;
-  if(savedChantierId) projets[idx].chantierId = savedChantierId;
   DB.set('projets',projets);
   renderPipeline();
-  if(newStatut==='gagne') renderChantiers();
   syncProjetToSheets(projets[idx], true);
-  if(newStatut==='gagne') showToast('🏗 Projet gagné ! Chantier créé automatiquement.');
 }
 
 async function createSoumissionFolderForProjet(p){
@@ -2134,8 +1988,7 @@ function markActiviteComplete(id, ctx){
   DB.set('activites', activites);
   syncActiviteToSheets(activites[idx], true);
   const a = activites[idx];
-  if(ctx==='proj'){ renderProjetActivities(currentProjetId); if(currentView==='pipeline') renderPipeline(); }
-  else { renderChantierActivites(currentChantierId); }
+  renderProjetActivities(currentProjetId); if(currentView==='pipeline') renderPipeline();
   openFollowUpModal(a, ctx);
 }
 
@@ -2165,8 +2018,7 @@ function saveFollowUp(){
     if(idx!==-1){ projets[idx].dateDernierContact=todayStr(); DB.set('projets',projets); }
   }
   closeModal('modal-followup');
-  if(ctx==='proj'){ renderProjetActivities(projetId||currentProjetId); if(currentView==='pipeline') renderPipeline(); }
-  else { renderChantierActivites(chantierId||currentChantierId); }
+  renderProjetActivities(projetId||currentProjetId); if(currentView==='pipeline') renderPipeline();
   syncActiviteToSheets(a);
   showToast('Activité de suivi créée ✓');
 }
@@ -2178,8 +2030,8 @@ function addActivite(ctx, refId){
   const desc = document.getElementById(descId).value.trim();
   const a = {
     id:uid(),
-    projetId: ctx==='proj' ? refId : (getChantier(refId)||{}).projetId||'',
-    chantierId: ctx==='ch' ? refId : '',
+    projetId: refId,
+    chantierId: '',
     type, date, description:desc,
     userId:'', dateCreation: new Date().toISOString()
   };
@@ -2187,15 +2039,11 @@ function addActivite(ctx, refId){
   logHistory(a.projetId||'', 'activite', `${type} planifié le ${date}`);
 
   // Update dernier contact for project
-  if(ctx==='proj'){
-    const projets = DB.get('projets');
-    const idx = projets.findIndex(p=>p.id===refId);
-    if(idx!==-1){ projets[idx].dateDernierContact=date; DB.set('projets',projets); }
-    renderProjetActivities(refId);
-    if(currentView==='pipeline') renderPipeline();
-  } else {
-    renderChantierActivites(refId);
-  }
+  const projets = DB.get('projets');
+  const idx = projets.findIndex(p=>p.id===refId);
+  if(idx!==-1){ projets[idx].dateDernierContact=date; DB.set('projets',projets); }
+  renderProjetActivities(refId);
+  if(currentView==='pipeline') renderPipeline();
   document.getElementById(descId).value='';
   syncActiviteToSheets(a);
 }
@@ -2204,9 +2052,7 @@ function deleteActivite(id, ctx, projetId, chantierId){
   DB.set('activites', DB.get('activites').filter(a=>a.id!==id));
   scriptPost({action:'deleteRow', sheet:'Activités', id});
   const pid = projetId || currentProjetId;
-  const cid = chantierId || currentChantierId;
-  if(ctx==='proj'){ renderProjetActivities(pid); if(currentView==='pipeline') renderPipeline(); }
-  else renderChantierActivites(cid);
+  renderProjetActivities(pid); if(currentView==='pipeline') renderPipeline();
   showToast('Activité supprimée ✓');
 }
 
@@ -2254,7 +2100,7 @@ function saveEditProjet(){
   p.coutMainOeuvre = Number(document.getElementById('ep-cout-mo').value)||0;
   p.dateMiseAJour = new Date().toISOString();
   if(p.statut!==oldStatut){ logHistory(p.id,'statut',`${oldStatut} → ${p.statut}`); suggestEmailOnStatut(p, oldStatut); }
-  if(p.statut==='gagne' && oldStatut!=='gagne'){ createChantierFromProjet(p); offerPostProjetSuivi(p); }
+  if(p.statut==='gagne' && oldStatut!=='gagne') offerPostProjetSuivi(p);
   DB.set('projets',projets);
   closeModal('modal-edit-projet');
   renderProjetDetail();
@@ -2273,687 +2119,6 @@ function deleteProjet(){
   closeModal('modal-projet');
   renderPipeline();
   showToast('Projet supprimé.');
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   CHANTIERS
-═══════════════════════════════════════════════════════════════════════════ */
-function createChantierFromProjet(projet){
-  const chantiers = DB.get('chantiers');
-  if(chantiers.find(c=>c.projetId===projet.id || normId(c.id)==='pipe-'+projet.id)) return;
-  const ch = {
-    id:uid(), projetId:projet.id, clientId:projet.clientId,
-    statut:'a_planifier', adresse:'', notes:'',
-    dateDebut:'', dateFin:'', progression:0,
-    etapes:[], taches:[],
-    dateCreation: new Date().toISOString(),
-    _sheetsynced: false
-  };
-  chantiers.push(ch); DB.set('chantiers',chantiers);
-  syncChantierToSheets(ch);
-  // Sauvegarder chantierId dans le projet → pont de secours pour les autres ordinateurs
-  const projets=DB.get('projets'); const pi=projets.findIndex(p=>p.id===projet.id);
-  if(pi>=0){ projets[pi].chantierId=ch.id; DB.set('projets',projets); syncProjetToSheets(projets[pi],true); }
-  syncToAdmin(projet);
-}
-
-const ADMIN_GAS_URL = HEUREKA_CONFIG.APPS_SCRIPT_URL;
-
-async function syncToAdmin(projet){
-  try {
-    const clients = DB.get('clients');
-    const client = clients.find(c=>c.id===projet.clientId)||{};
-    const adresse = [client.adresse, client.ville].filter(Boolean).join(', ');
-    const payload = {
-      action: 'saveJob',
-      job: {
-        id:      'pipe-' + projet.id,
-        name:    projet.nom || '',
-        client:  client.nom || '',
-        address: adresse,
-        status:  'a_programmer',
-        start:   '',
-        end:     '',
-        budget:  Number(projet.prix) || 0,
-        foreman: '',
-        notes:   (projet.notes ? projet.notes.substring(0,300)+' | ' : '') + `Prix: ${projet.prix||'N/D'}$ | Pipeline Heuréka`
-      }
-    };
-    const resp = await fetch(ADMIN_GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
-    const data = await resp.json().catch(()=>({}));
-    if(data.status === 'error') throw new Error(data.message);
-    showToast('✅ Chantier envoyé vers Admin.');
-  } catch(err){
-    console.warn('syncToAdmin failed:', err);
-    showToast('⚠️ Synchro Admin échouée — données sauvegardées localement.');
-  }
-}
-
-function setChantiersViewTab(tab){
-  chantiersViewTab = tab;
-  ['actifs','termines','saison'].forEach(t=>{ const el=document.getElementById('ch-tab-'+t); if(el) el.classList.toggle('active',t===tab); });
-  const sec = document.getElementById('chantiers-actifs-section');
-  if(sec) sec.style.display = tab==='actifs' ? '' : 'none';
-  chantiersFilter = 'all';
-  if(tab==='saison'){
-    document.getElementById('chantiers-grid').innerHTML = renderSaisonView();
-    return;
-  }
-  renderChantiers();
-}
-
-function renderChantiers(){
-  const allChantiers = DB.get('chantiers');
-  const projets = DB.get('projets');
-  const projetMap = Object.fromEntries(projets.map(p=>[p.id,p]));
-  const clientMap = Object.fromEntries(DB.get('clients').map(c=>[c.id,c]));
-
-  const isTerminesTab = chantiersViewTab === 'termines';
-  const chantiers = isTerminesTab
-    ? allChantiers.filter(c=>c.statut==='termine')
-    : allChantiers.filter(c=>c.statut!=='termine');
-
-  if(!isTerminesTab){
-    // Stats (only active statuts)
-    const activeStatuts = CH_STATUTS.filter(s=>s.id!=='termine');
-    const statsEl = document.getElementById('chantier-stats');
-    if(statsEl) statsEl.innerHTML = activeStatuts.map(s=>{
-      const n = allChantiers.filter(c=>c.statut===s.id).length;
-      return `<div class="stat-card" style="border-top-color:${s.color}">
-        <div class="stat-num" style="color:${s.color}">${n}</div>
-        <div class="stat-label">${s.label}</div>
-      </div>`;
-    }).join('') + `<div class="stat-card" style="border-top-color:#6B7280">
-      <div class="stat-num" style="color:#6B7280">${allChantiers.filter(c=>c.statut==='termine').length}</div>
-      <div class="stat-label">Terminés</div>
-    </div>`;
-
-    // Filters
-    const filtersEl = document.getElementById('chantier-filters');
-    if(filtersEl) filtersEl.innerHTML = `<button class="filter-btn ${chantiersFilter==='all'?'active':''}" onclick="setChantiersFilter('all')">Tous (${chantiers.length})</button>`
-      + activeStatuts.map(s=>{
-          const n=chantiers.filter(c=>c.statut===s.id).length;
-          return `<button class="filter-btn ${chantiersFilter===s.id?'active':''}" onclick="setChantiersFilter('${s.id}')"
-            style="${chantiersFilter===s.id?`border-color:${s.color};color:${s.color};background:${s.color}22`:''}"
-            >${s.label} (${n})</button>`;
-        }).join('');
-  }
-
-  // Grid
-  const filtered = (!isTerminesTab && chantiersFilter!=='all')
-    ? chantiers.filter(c=>c.statut===chantiersFilter)
-    : chantiers;
-
-  const grid = document.getElementById('chantiers-grid');
-  if(filtered.length===0){
-    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-ico">🏗</div><div class="empty-text">${isTerminesTab?'Aucun chantier terminé':'Aucun chantier actif'}</div></div>`;
-    return;
-  }
-  grid.innerHTML = filtered.map(ch=>{
-    const proj = projetMap[ch.projetId]||{};
-    const client = clientMap[ch.clientId]||{};
-    const st = CH_STATUTS.find(s=>s.id===ch.statut)||CH_STATUTS[0];
-    const prog = ch.progression||0;
-    const taches = (ch.taches||[]);
-    const doneTaches = taches.filter(t=>t.completee||t.statut==='done').length;
-    return `<div class="chantier-card" style="border-left-color:${st.color}" onclick="openChantierDetail('${ch.id}')">
-      <div class="chantier-proj-name">${escHtml(proj.nom||'Projet sans nom')}</div>
-      <div class="chantier-client">${escHtml(client.nom||'—')}</div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${prog}%;background:${st.color}"></div></div>
-      <div class="chantier-meta">
-        <span class="status-badge" style="background:${st.color}22;color:${st.color}">${st.label}</span>
-        <span>${prog}%</span>
-        ${ch.dateDebut?`<span>${fmtDate(ch.dateDebut)}</span>`:''}
-        ${taches.length>0?`<span>✓ ${doneTaches}/${taches.length}</span>`:''}
-      </div>
-    </div>`;
-  }).join('');
-  updateNavBadges();
-}
-
-function setChantiersFilter(f){ chantiersFilter=f; renderChantiers(); }
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   MODAL: DÉTAIL CHANTIER
-═══════════════════════════════════════════════════════════════════════════ */
-function openChantierDetail(id){
-  currentChantierId=id; activeTab='overview'; _pipeEchState=null;
-  _tacheCatOpen=new Set(); _addingTacheIn=null; _tacheShowHist=false;
-  const ch=getChantier(id); if(!ch) return;
-  const proj=getProjet(ch.projetId)||{};
-  const client=getClient(ch.clientId)||{};
-  const st=CH_STATUTS.find(s=>s.id===ch.statut)||CH_STATUTS[0];
-
-  document.getElementById('mch-title').textContent=proj.nom||'Chantier';
-  document.getElementById('mch-subtitle').textContent=client.nom||'';
-
-  const sel=document.getElementById('mch-statut');
-  sel.innerHTML=CH_STATUTS.map(s=>`<option value="${s.id}" ${ch.statut===s.id?'selected':''}>${s.label}</option>`).join('');
-
-  switchTab('overview');
-  renderChantierOverview(ch);
-  openModal('modal-chantier');
-}
-
-function deleteChantier(){
-  if(!confirm('Supprimer ce chantier définitivement ?')) return;
-  const chantiers = DB.get('chantiers').filter(c=>c.id!==currentChantierId);
-  DB.set('chantiers', chantiers);
-  closeModal('modal-chantier');
-  renderChantiers();
-  scriptPost({action:'deleteRow', sheet:'Chantiers', id:currentChantierId});
-  showToast('Chantier supprimé.');
-}
-
-function updateChantierStatut(){
-  const chantiers=DB.get('chantiers');
-  const idx=chantiers.findIndex(c=>c.id===currentChantierId);
-  if(idx===-1) return;
-  const oldStatut=chantiers[idx].statut;
-  const newStatut=document.getElementById('mch-statut').value;
-  chantiers[idx].statut=newStatut;
-  DB.set('chantiers',chantiers);
-  const proj=getProjet(chantiers[idx].projetId)||{};
-  logHistory(chantiers[idx].projetId||'','statut',`Chantier : ${oldStatut} → ${newStatut}`);
-  if(newStatut==='termine'&&oldStatut!=='termine'){
-    offerPostProjetSuivi(proj);
-    if(confirm('Chantier terminé ! Envoyer le courriel de fin de chantier avec demande d\'avis Google ?')){
-      openEmailCompose('ch',currentChantierId);
-      setTimeout(()=>applyTemplate('fin_chantier',proj.id||'',currentChantierId),200);
-    }
-    addMarketingContentEntry(chantiers[idx], proj);
-  }
-  renderChantiers();
-  syncChantierToSheets(chantiers[idx], true);
-  showToast('Statut mis à jour ✓');
-}
-
-function switchTab(tab){
-  activeTab=tab;
-  ['overview','echeancier','taches','activites','courriels','historique','documents'].forEach(t=>{
-    const btn=document.getElementById('tab-'+t); const cnt=document.getElementById('tab-content-'+t);
-    if(btn) btn.classList.toggle('active',t===tab);
-    if(cnt) cnt.classList.toggle('active',t===tab);
-  });
-  const ch=getChantier(currentChantierId); if(!ch) return;
-  if(tab==='overview') renderChantierOverview(ch);
-  else if(tab==='echeancier') renderEcheancier(ch);
-  else if(tab==='taches') renderTaches(ch);
-  else if(tab==='activites') renderChantierActivites(currentChantierId);
-  else if(tab==='courriels') renderEmailTab('ch', currentChantierId);
-  else if(tab==='historique') renderHistoriqueTab('ch', currentChantierId);
-  else if(tab==='documents') renderChantierDocuments(currentChantierId);
-}
-
-let currentProjTab = 'info';
-function switchProjTab(tab){
-  currentProjTab = tab;
-  ['info','activites','courriels','historique','soumission','documents'].forEach(t=>{
-    const btn=document.getElementById('pjtab-'+t); const cnt=document.getElementById('pjtab-content-'+t);
-    if(btn) btn.classList.toggle('active',t===tab);
-    if(cnt) cnt.classList.toggle('active',t===tab);
-  });
-  if(tab==='info'){ renderProjetDetail(); }
-  else if(tab==='activites') renderProjetActivitesFull(currentProjetId);
-  else if(tab==='courriels') renderEmailTab('proj', currentProjetId);
-  else if(tab==='historique') renderHistoriqueTab('proj', currentProjetId);
-  else if(tab==='soumission') renderSoumissionTab(currentProjetId);
-  else if(tab==='documents') renderProjectDocuments(currentProjetId);
-}
-
-function renderChantierOverview(ch){
-  const proj=getProjet(ch.projetId)||{};
-  const client=getClient(ch.clientId)||{};
-  const pri=PRIORITES[proj.priorite]||PRIORITES.normale;
-  const prog=ch.progression||0;
-  const st=CH_STATUTS.find(s=>s.id===ch.statut)||CH_STATUTS[0];
-
-  // Header info
-  document.getElementById('mch-info-header').innerHTML=`
-    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px">
-      <span class="status-badge" style="background:${st.color}22;color:${st.color}">${st.label}</span>
-      <span class="chip" style="background:${pri.color}22;color:${pri.color}">${pri.label}</span>
-      ${ch.adresse?`<span style="font-size:12px;color:var(--muted)">📍 ${escHtml(ch.adresse)}</span>`:''}
-    </div>`;
-  document.getElementById('mch-progress-block').innerHTML=`
-    <div style="text-align:right;min-width:160px">
-      <div style="font-size:28px;font-weight:900;color:${st.color}">${prog}%</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Progression</div>
-      <input type="range" min="0" max="100" value="${prog}" style="width:100%;accent-color:var(--gold)"
-        oninput="updateProgression(this.value)" onchange="saveProgression(this.value)">
-    </div>`;
-
-  const taches=ch.taches||[]; const done=taches.filter(t=>t.completee||t.statut==='done').length;
-  document.getElementById('mch-overview').innerHTML=`
-    <div class="form-grid" style="gap:12px;margin-bottom:20px">
-      <div class="info-block">
-        <div class="section-title" style="margin-bottom:10px">Projet lié</div>
-        ${infoRow('Nom',escHtml(proj.nom||'—'))}
-        ${infoRow('Client',escHtml(client.nom||'—'))}
-        ${client.telephone?infoRow('Tél.',`<a href="tel:${escHtml(client.telephone)}">${escHtml(client.telephone)}</a>`):''}
-        ${client.email?infoRow('Courriel',`<a href="mailto:${escHtml(client.email)}">${escHtml(client.email)}</a>`):''}
-        ${infoRow('Prix est.',fmtMoney(proj.prix))}
-      </div>
-      <div class="info-block">
-        <div class="section-title" style="margin-bottom:10px">Chantier</div>
-        ${infoRow('Adresse',`<input class="form-control" style="font-size:12px;padding:4px 8px" value="${escHtml(ch.adresse||'')}" onchange="updateChantierField('adresse',this.value)">`)}
-        ${infoRow('Début',`<input class="form-control" type="date" style="font-size:12px;padding:4px 8px" value="${ch.dateDebut||''}" onchange="updateChantierField('dateDebut',this.value)">`)}
-        ${infoRow('Fin',`<input class="form-control" type="date" style="font-size:12px;padding:4px 8px" value="${ch.dateFin||''}" onchange="updateChantierField('dateFin',this.value)">`)}
-        ${taches.length>0?infoRow('Tâches',`${done}/${taches.length} complétées`):''}
-      </div>
-    </div>
-    ${ch.notes?`<div class="info-block"><div class="section-title" style="margin-bottom:8px">Notes</div><div style="white-space:pre-wrap;font-size:13px;color:#ccc">${escHtml(ch.notes)}</div></div>`:''}
-    <div style="margin-top:14px">
-      <label class="form-label" style="display:block;margin-bottom:6px">Notes chantier</label>
-      <textarea class="form-control" rows="3" placeholder="Observations, remarques..." onchange="updateChantierField('notes',this.value)">${escHtml(ch.notes||'')}</textarea>
-    </div>`;
-}
-
-function updateProgression(v){
-  document.querySelector('#mch-progress-block div').textContent=v+'%';
-}
-function saveProgression(v){
-  updateChantierField('progression',parseInt(v));
-  renderChantiers();
-}
-function updateChantierField(field,value){
-  const chantiers=DB.get('chantiers');
-  const idx=chantiers.findIndex(c=>c.id===currentChantierId);
-  if(idx===-1) return;
-  chantiers[idx][field]=value;
-  DB.set('chantiers',chantiers);
-  syncChantierToSheets(chantiers[idx], true);
-}
-
-/* ─── Échéancier ─────────────────────────────────────────────────────────── */
-const ECH_PHASES=['Préparation','Fondation','Structure','Finition','Livraison'];
-function _echDiffDays(from,to){if(!from||!to)return null;return Math.round((new Date(to+'T12:00:00')-new Date(from+'T12:00:00'))/86400000);}
-function _getEchState(ch){
-  if(ch&&ch.echeancier){try{return typeof ch.echeancier==='string'?JSON.parse(ch.echeancier):JSON.parse(JSON.stringify(ch.echeancier));}catch(e){}}
-  return {phases:ECH_PHASES.map(name=>({name,start:'',end:'',pct:0})),jalons:[{label:'',date:''},{label:'',date:''},{label:'',date:''}]};
-}
-function renderEcheancier(ch){
-  if(!_pipeEchState) _pipeEchState=_getEchState(ch);
-  const s=_pipeEchState;
-  const totalPct=Math.round(s.phases.reduce((sum,p)=>sum+(p.pct||0),0)/s.phases.length);
-  const t=todayStr();
-  const diffEnd=_echDiffDays(t,ch.dateFin);
-  const retard=ch.dateFin&&ch.statut!=='termine'&&diffEnd!==null&&diffEnd<=3;
-  let html='<div style="padding:4px 0 8px">';
-  if(retard){
-    const msg=diffEnd<0?`Retard de ${Math.abs(diffEnd)} jour${Math.abs(diffEnd)>1?'s':''}`:diffEnd===0?`Livraison aujourd'hui`:`Livraison dans ${diffEnd} jour${diffEnd>1?'s':''}`;
-    html+=`<div style="background:#c0392b;color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;margin-bottom:12px">⚠️ ${msg}</div>`;
-  }
-  html+=`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:700;letter-spacing:.06em">PROGRESSION GLOBALE</div>
-  <div style="background:rgba(255,255,255,.1);border-radius:6px;height:16px;overflow:hidden;margin-bottom:4px"><div id="ech-global-bar" style="height:100%;width:${totalPct}%;background:var(--gold);border-radius:6px;transition:width .3s"></div></div>
-  <div style="text-align:right;font-size:13px;color:var(--gold);font-weight:700;margin-bottom:16px" id="ech-global-pct">${totalPct}%</div>`;
-  html+=`<div style="font-size:11px;color:var(--muted);margin-bottom:10px;font-weight:700;letter-spacing:.06em">PHASES</div>`;
-  s.phases.forEach((ph,i)=>{
-    const pct=ph.pct||0;
-    html+=`<div style="background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px">
-      <div style="font-weight:700;font-size:14px;margin-bottom:10px">${ph.name}</div>
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <div style="flex:1"><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Début</div>
-          <input type="date" value="${ph.start||''}" onchange="echPhaseChange(${i},'start',this.value)" class="form-control" style="font-size:13px;padding:5px 8px"></div>
-        <div style="flex:1"><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Fin prévue</div>
-          <input type="date" value="${ph.end||''}" onchange="echPhaseChange(${i},'end',this.value)" class="form-control" style="font-size:13px;padding:5px 8px"></div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <input type="range" min="0" max="100" value="${pct}" oninput="echPctLive(${i},this.value)" onchange="echPhaseChange(${i},'pct',+this.value)" style="flex:1;accent-color:var(--gold)">
-        <span id="ech-ph-pct-${i}" style="color:var(--gold);font-weight:700;font-size:13px;min-width:36px;text-align:right">${pct}%</span>
-      </div>
-      <div style="background:rgba(255,255,255,.1);border-radius:4px;height:6px;overflow:hidden;margin-top:6px">
-        <div id="ech-ph-bar-${i}" style="height:100%;width:${pct}%;background:var(--gold);border-radius:4px;transition:width .2s"></div>
-      </div>
-    </div>`;
-  });
-  html+=`<div style="font-size:11px;color:var(--muted);margin:16px 0 10px;font-weight:700;letter-spacing:.06em">JALONS CLÉS</div>`;
-  s.jalons.forEach((jl,i)=>{
-    html+=`<div style="display:flex;gap:8px;margin-bottom:8px">
-      <input type="text" placeholder="Jalon (ex: Inspection)" value="${(jl.label||'').replace(/"/g,'&quot;')}" oninput="echJalonChange(${i},'label',this.value)" class="form-control" style="flex:2;font-size:13px">
-      <input type="date" value="${jl.date||''}" onchange="echJalonChange(${i},'date',this.value)" class="form-control" style="flex:1;font-size:13px">
-    </div>`;
-  });
-  html+=`<button onclick="saveEcheancier()" class="btn btn-gold" style="width:100%;margin-top:12px;font-size:14px;padding:12px">💾 Enregistrer l'échéancier</button></div>`;
-  document.getElementById('mch-echeancier').innerHTML=html;
-}
-function echPhaseChange(idx,field,val){
-  if(!_pipeEchState) return;
-  _pipeEchState.phases[idx][field]=field==='pct'?+val:val;
-  const el=document.getElementById(`ech-ph-pct-${idx}`);
-  const bar=document.getElementById(`ech-ph-bar-${idx}`);
-  if(el) el.textContent=_pipeEchState.phases[idx].pct+'%';
-  if(bar) bar.style.width=_pipeEchState.phases[idx].pct+'%';
-  echUpdateGlobalBar();
-}
-function echPctLive(idx,val){
-  if(!_pipeEchState) return;
-  _pipeEchState.phases[idx].pct=+val;
-  const el=document.getElementById(`ech-ph-pct-${idx}`);
-  const bar=document.getElementById(`ech-ph-bar-${idx}`);
-  if(el) el.textContent=val+'%';
-  if(bar) bar.style.width=val+'%';
-  echUpdateGlobalBar();
-}
-function echJalonChange(idx,field,val){if(_pipeEchState) _pipeEchState.jalons[idx][field]=val;}
-function echUpdateGlobalBar(){
-  if(!_pipeEchState) return;
-  const total=Math.round(_pipeEchState.phases.reduce((s,p)=>s+(p.pct||0),0)/_pipeEchState.phases.length);
-  const bar=document.getElementById('ech-global-bar');
-  const pct=document.getElementById('ech-global-pct');
-  if(bar) bar.style.width=total+'%';
-  if(pct) pct.textContent=total+'%';
-}
-function saveEcheancier(){
-  if(!currentChantierId||!_pipeEchState) return;
-  const chantiers=DB.get('chantiers');
-  const idx=chantiers.findIndex(c=>c.id===currentChantierId);
-  if(idx<0) return;
-  chantiers[idx].echeancier=_pipeEchState;
-  DB.set('chantiers',chantiers);
-  syncChantierToSheets(chantiers[idx],true);
-  showToast('Échéancier sauvegardé ✓');
-}
-
-/* ─── Tâches ─────────────────────────────────────────────────────────────── */
-/* ══════════════════════════════════════════════════════════════════
-   TÂCHES CHANTIER v2 — Catégories + tâches par défaut
-══════════════════════════════════════════════════════════════════ */
-const TACHE_CATEGORIES=[
-  {id:'preparation',titre:'Préparation avant chantier',icon:'📦',def:['Commander matériaux','Vérifier délais fournisseurs','Planifier horaires équipe','Envoyer informations au client','Préparer accès chantier']},
-  {id:'ouverture',  titre:'Ouverture chantier',         icon:'📂',def:['Ajouter plans/devis','Ajouter soumission finale','Ajouter échéancier','Ajouter équipe assignée']},
-  {id:'predepart',  titre:'Pré-départ équipe',          icon:'🚗',def:['Vérifier matériaux reçus','Envoyer adresse chantier','Envoyer heure arrivée']},
-  {id:'debut',      titre:'Début chantier',             icon:'🏗',def:['Photos avant travaux','Protection des lieux','Installation chantier','Début travaux']},
-  {id:'suivi',      titre:'Suivi quotidien',            icon:'📊',def:['Vérifier avancement','Photos progression','Noter extras','Noter problèmes','Commander matériaux manquants','Communication client']},
-  {id:'fin',        titre:'Fin des travaux',            icon:'✅',def:['Inspection finale','Corrections','Nettoyage','Photos finales','Signature client']},
-  {id:'fermeture',  titre:'Fermeture chantier',         icon:'🔒',def:['Envoyer facture finale','Vérifier paiements','Archiver photos','Archiver documents','Calcul rentabilité','Demander avis Google','Prévoir suivi garantie']}
-];
-
-let _tacheCatOpen   = new Set();
-let _addingTacheIn  = null;
-let _tacheShowHist  = false;
-
-function getCurrentUserTache(){
-  return localStorage.getItem('hchat_user')||localStorage.getItem('ph_current_user')||'';
-}
-
-function ensureDefaultTaches(ch){
-  const t=ch.taches||[];
-  if(t.some(x=>x.categorie)) return; // already v2
-  const newT=[];
-  TACHE_CATEGORIES.forEach(cat=>cat.def.forEach(titre=>newT.push({
-    id:uid(),categorie:cat.id,titre,assigneA:'',dateEcheance:'',
-    completee:false,dateCompletion:'',completePar:'',commentaire:''
-  })));
-  // migrate old tasks
-  t.forEach(x=>{ if(!x.categorie) newT.push({
-    id:x.id||uid(),categorie:'preparation',titre:x.titre||'',assigneA:x.assigneA||'',
-    dateEcheance:x.dateEcheance||'',completee:x.statut==='done',
-    dateCompletion:'',completePar:'',commentaire:''
-  });});
-  ch.taches=newT;
-  const ch2=DB.get('chantiers'); const i=ch2.findIndex(c=>c.id===ch.id);
-  if(i!==-1){ch2[i].taches=newT; DB.set('chantiers',ch2);}
-}
-
-function renderTaches(ch){
-  ensureDefaultTaches(ch);
-  const taches=ch.taches||[];
-  const total=taches.length;
-  const done=taches.filter(t=>t.completee).length;
-  const pct=total===0?0:Math.round(done/total*100);
-  const today=todayStr();
-
-  let html=`<div class="tache-global">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <span style="font-size:15px;font-weight:800;color:var(--gold2)">${pct}%</span>
-        <span style="font-size:12px;color:var(--muted);margin-left:7px">${done}/${total} tâches complétées</span>
-      </div>
-      <button class="btn btn-outline btn-sm" onclick="_tacheShowHist=!_tacheShowHist;renderTaches(getChantier('${ch.id}'))">
-        📜 Historique
-      </button>
-    </div>
-    <div class="tache-global-track"><div class="tache-global-fill" style="width:${pct}%"></div></div>
-  </div>`;
-
-  TACHE_CATEGORIES.forEach(cat=>{
-    const ct=taches.filter(t=>t.categorie===cat.id);
-    const cd=ct.filter(t=>t.completee).length;
-    const cp=ct.length===0?0:Math.round(cd/ct.length*100);
-    const open=_tacheCatOpen.has(cat.id);
-    html+=`<div class="tache-cat">
-      <div class="tache-cat-hdr" onclick="toggleTacheCat('${cat.id}')">
-        <span class="tache-cat-icon">${cat.icon}</span>
-        <span class="tache-cat-title">${cat.titre}</span>
-        <div class="tache-minibar"><div class="tache-minibar-fill" style="width:${cp}%"></div></div>
-        <span class="tache-cat-count">${cd}/${ct.length}</span>
-        <span class="tache-cat-arr ${open?'open':''}">▶</span>
-      </div>
-      <div class="tache-cat-body ${open?'open':''}">`;
-
-    ct.forEach(t=>{
-      const overdue=!t.completee&&t.dateEcheance&&t.dateEcheance<today;
-      html+=`<div class="tache-row ${t.completee?'tdone':''}">
-        <div class="tache-chk ${t.completee?'tdone':''}" onclick="toggleTacheComp('${ch.id}','${t.id}')">${t.completee?'✓':''}</div>
-        <div class="tache-main">
-          <div class="tache-titre ${t.completee?'tdone':''}">${escHtml(t.titre)}</div>
-          <div class="tache-meta">
-            <select class="tache-sel" onchange="updateTacheField('${ch.id}','${t.id}','assigneA',this.value)">
-              <option value="" ${!t.assigneA?'selected':''}>👤 Assigné</option>
-              <option value="Maxime"  ${t.assigneA==='Maxime'?'selected':''}>Maxime</option>
-              <option value="Daphnée"  ${t.assigneA==='Daphnée'?'selected':''}>Daphnée</option>
-              <option value="Anabelle" ${t.assigneA==='Anabelle'?'selected':''}>Anabelle</option>
-            </select>
-            <input type="date" class="tache-inp" value="${t.dateEcheance||''}"
-              onchange="updateTacheField('${ch.id}','${t.id}','dateEcheance',this.value)">
-            ${overdue?'<span class="tache-badge-retard">⚠ Retard</span>':''}
-          </div>
-          <input type="text" class="tache-comment" placeholder="Commentaire..."
-            value="${escHtml(t.commentaire||'')}"
-            onchange="updateTacheField('${ch.id}','${t.id}','commentaire',this.value)">
-          ${t.completee&&t.dateCompletion?`<div class="tache-done-info">✓ ${fmtDate(t.dateCompletion)}${t.completePar?' · '+escHtml(t.completePar):''}</div>`:''}
-        </div>
-        <button class="tache-del" onclick="deleteTacheChantier('${ch.id}','${t.id}')" title="Supprimer">🗑</button>
-      </div>`;
-    });
-
-    if(_addingTacheIn===cat.id){
-      html+=`<div class="tache-add-form">
-        <input id="new-tache-inp" class="form-control" style="font-size:12px;flex:1" placeholder="Titre de la tâche..."
-          onkeydown="if(event.key==='Enter')confirmAddTache('${ch.id}','${cat.id}');if(event.key==='Escape'){_addingTacheIn=null;renderTaches(getChantier('${ch.id}'))}">
-        <button class="btn btn-gold btn-sm" onclick="confirmAddTache('${ch.id}','${cat.id}')">Ajouter</button>
-        <button class="btn btn-outline btn-sm" onclick="_addingTacheIn=null;renderTaches(getChantier('${ch.id}'))">✕</button>
-      </div>`;
-    } else {
-      html+=`<button class="tache-add-btn" onclick="_addingTacheIn='${cat.id}';_tacheCatOpen.add('${cat.id}');renderTaches(getChantier('${ch.id}'));setTimeout(()=>{const i=document.getElementById('new-tache-inp');if(i)i.focus()},40)">
-        ＋ Ajouter une tâche</button>`;
-    }
-    html+=`</div></div>`;
-  });
-
-  // ── Autres tâches (non catégorisées) ──────────────────────────────────────
-  {
-    const ct=taches.filter(t=>t.categorie==='autres');
-    const cd=ct.filter(t=>t.completee).length;
-    const open=_tacheCatOpen.has('autres');
-    html+=`<div class="tache-cat" style="border-color:rgba(148,163,184,.25)">
-      <div class="tache-cat-hdr" onclick="toggleTacheCat('autres')">
-        <span class="tache-cat-icon">📝</span>
-        <span class="tache-cat-title">Autres tâches</span>
-        <div class="tache-minibar"><div class="tache-minibar-fill" style="width:${ct.length?Math.round(cd/ct.length*100):0}%"></div></div>
-        <span class="tache-cat-count">${cd}/${ct.length}</span>
-        <span class="tache-cat-arr ${open?'open':''}">▶</span>
-      </div>
-      <div class="tache-cat-body ${open?'open':''}">`;
-
-    ct.forEach(t=>{
-      const overdue=!t.completee&&t.dateEcheance&&t.dateEcheance<today;
-      html+=`<div class="tache-row ${t.completee?'tdone':''}">
-        <div class="tache-chk ${t.completee?'tdone':''}" onclick="toggleTacheComp('${ch.id}','${t.id}')">${t.completee?'✓':''}</div>
-        <div class="tache-main">
-          <div class="tache-titre ${t.completee?'tdone':''}">${escHtml(t.titre)}</div>
-          <div class="tache-meta">
-            <select class="tache-sel" onchange="updateTacheField('${ch.id}','${t.id}','assigneA',this.value)">
-              <option value="" ${!t.assigneA?'selected':''}>👤 Assigné</option>
-              <option value="Maxime"   ${t.assigneA==='Maxime'?'selected':''}>Maxime</option>
-              <option value="Daphnée"  ${t.assigneA==='Daphnée'?'selected':''}>Daphnée</option>
-              <option value="Anabelle" ${t.assigneA==='Anabelle'?'selected':''}>Anabelle</option>
-            </select>
-            <input type="date" class="tache-inp" value="${t.dateEcheance||''}"
-              onchange="updateTacheField('${ch.id}','${t.id}','dateEcheance',this.value)">
-            ${overdue?'<span class="tache-badge-retard">⚠ Retard</span>':''}
-          </div>
-          <input type="text" class="tache-comment" placeholder="Commentaire..."
-            value="${escHtml(t.commentaire||'')}"
-            onchange="updateTacheField('${ch.id}','${t.id}','commentaire',this.value)">
-          ${t.completee&&t.dateCompletion?`<div class="tache-done-info">✓ ${fmtDate(t.dateCompletion)}${t.completePar?' · '+escHtml(t.completePar):''}</div>`:''}
-        </div>
-        <button class="tache-del" onclick="deleteTacheChantier('${ch.id}','${t.id}')" title="Supprimer">🗑</button>
-      </div>`;
-    });
-
-    if(_addingTacheIn==='autres'){
-      html+=`<div class="tache-add-form">
-        <input id="new-tache-inp" class="form-control" style="font-size:12px;flex:1" placeholder="Titre de la tâche..."
-          onkeydown="if(event.key==='Enter')confirmAddTache('${ch.id}','autres');if(event.key==='Escape'){_addingTacheIn=null;renderTaches(getChantier('${ch.id}'))}">
-        <button class="btn btn-gold btn-sm" onclick="confirmAddTache('${ch.id}','autres')">Ajouter</button>
-        <button class="btn btn-outline btn-sm" onclick="_addingTacheIn=null;renderTaches(getChantier('${ch.id}'))">✕</button>
-      </div>`;
-    } else {
-      html+=`<button class="tache-add-btn" onclick="_addingTacheIn='autres';_tacheCatOpen.add('autres');renderTaches(getChantier('${ch.id}'));setTimeout(()=>{const i=document.getElementById('new-tache-inp');if(i)i.focus()},40)">
-        ＋ Ajouter une tâche</button>`;
-    }
-    html+=`</div></div>`;
-  }
-
-  // Historique
-  if(_tacheShowHist){
-    const hist=taches.filter(t=>t.completee).sort((a,b)=>(b.dateCompletion||'').localeCompare(a.dateCompletion||''));
-    html+=`<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
-      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">📜 Historique</div>
-      ${hist.length===0?'<div class="empty-state" style="padding:16px"><div class="empty-text">Aucune tâche complétée</div></div>':
-        hist.map(t=>{
-          const cat=TACHE_CATEGORIES.find(c=>c.id===t.categorie)||{titre:'',icon:'✅'};
-          return `<div style="display:flex;gap:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:5px">
-            <span>${cat.icon}</span>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:12px;font-weight:600;text-decoration:line-through;color:var(--muted)">${escHtml(t.titre)}</div>
-              <div style="font-size:10px;color:var(--muted2)">${cat.titre}</div>
-            </div>
-            <div style="text-align:right;flex-shrink:0">
-              <div style="font-size:11px;font-weight:700;color:var(--green)">✓ ${t.dateCompletion?fmtDate(t.dateCompletion):'—'}</div>
-              ${t.completePar?`<div style="font-size:10px;color:var(--muted)">${escHtml(t.completePar)}</div>`:''}
-            </div>
-          </div>`;
-        }).join('')}
-    </div>`;
-  }
-
-  document.getElementById('mch-taches').innerHTML=html;
-}
-
-function toggleTacheCat(catId){
-  if(_tacheCatOpen.has(catId)) _tacheCatOpen.delete(catId);
-  else _tacheCatOpen.add(catId);
-  const ch=getChantier(currentChantierId); if(ch) renderTaches(ch);
-}
-
-function toggleTacheComp(chantierId, tacheId){
-  const chantiers=DB.get('chantiers');
-  const idx=chantiers.findIndex(c=>c.id===chantierId); if(idx===-1) return;
-  const t=chantiers[idx].taches.find(t=>t.id===tacheId); if(!t) return;
-  t.completee=!t.completee;
-  if(t.completee){ t.dateCompletion=todayStr(); t.completePar=getCurrentUserTache(); }
-  else { t.dateCompletion=''; t.completePar=''; }
-  updateProgression_calc(chantiers[idx]);
-  DB.set('chantiers',chantiers);
-  syncTacheRow(chantierId,t);
-  syncChantierToSheets(chantiers[idx],true);
-  renderTaches(chantiers[idx]);
-  renderChantiers();
-}
-
-function confirmAddTache(chantierId, catId){
-  const inp=document.getElementById('new-tache-inp');
-  const titre=(inp?inp.value:'').trim(); if(!titre) return;
-  const chantiers=DB.get('chantiers');
-  const idx=chantiers.findIndex(c=>c.id===chantierId); if(idx===-1) return;
-  const t={id:uid(),categorie:catId,titre,assigneA:'',dateEcheance:'',
-    completee:false,dateCompletion:'',completePar:'',commentaire:''};
-  chantiers[idx].taches.push(t);
-  DB.set('chantiers',chantiers);
-  syncTacheRow(chantierId,t);
-  _addingTacheIn=null;
-  renderTaches(chantiers[idx]);
-}
-
-function deleteTacheChantier(chantierId, tacheId){
-  if(!confirm('Supprimer cette tâche ?')) return;
-  const chantiers=DB.get('chantiers');
-  const idx=chantiers.findIndex(c=>c.id===chantierId); if(idx===-1) return;
-  chantiers[idx].taches=chantiers[idx].taches.filter(t=>t.id!==tacheId);
-  updateProgression_calc(chantiers[idx]);
-  DB.set('chantiers',chantiers);
-  scriptPost({action:'deleteRow',sheet:'TachesChantier',id:tacheId});
-  renderTaches(chantiers[idx]);
-  renderChantiers();
-}
-
-function updateTacheField(chantierId, tacheId, field, value){
-  const chantiers=DB.get('chantiers');
-  const idx=chantiers.findIndex(c=>c.id===chantierId); if(idx===-1) return;
-  const t=chantiers[idx].taches.find(t=>t.id===tacheId); if(!t) return;
-  t[field]=value;
-  DB.set('chantiers',chantiers);
-  syncTacheRow(chantierId,t);
-}
-
-const _syncedTaches=new Set(JSON.parse(localStorage.getItem('ph_synced_taches')||'[]'));
-function syncTacheRow(chantierId,t){
-  const data={ID:t.id,chantierID:chantierId,categorie:t.categorie,tache:t.titre,
-    assigneA:t.assigneA||'',dateEcheance:t.dateEcheance||'',
-    completee:t.completee?'oui':'non',dateCompletion:t.dateCompletion||'',
-    completePar:t.completePar||'',commentaire:t.commentaire||''};
-  if(_syncedTaches.has(t.id)){
-    scriptPost({action:'updateRow',sheet:'TachesChantier',id:t.id,data}).catch(()=>{});
-  } else {
-    scriptPost({action:'addRow',sheet:'TachesChantier',data})
-      .then(()=>{_syncedTaches.add(t.id);localStorage.setItem('ph_synced_taches',JSON.stringify([..._syncedTaches]));})
-      .catch(()=>{});
-  }
-}
-
-function updateProgression_calc(ch){
-  const t=ch.taches||[];
-  if(!t.length){ch.progression=0;return;}
-  ch.progression=Math.round(t.filter(x=>x.completee||x.statut==='done').length/t.length*100);
-}
-
-/* ─── Activités chantier ─────────────────────────────────────────────────── */
-function renderChantierActivites(chantierId){
-  const all=DB.get('activites').filter(a=>a.chantierId===chantierId);
-  const pending=all.filter(a=>!a.done).sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const done=all.filter(a=>a.done).sort((a,b)=>new Date(b.dateDone||b.date)-new Date(a.dateDone||a.date));
-  const historyHtml = done.length ? `<div class="acti-history-sep">Historique (${done.length})</div>${done.map(a=>renderActiItem(a,'ch')).join('')}` : '';
-  document.getElementById('mch-activites').innerHTML=`
-    <div style="margin-bottom:14px">
-      ${pending.length===0&&done.length===0?'<div class="empty-state"><div class="empty-ico">📋</div><div class="empty-text">Aucune activité</div></div>':''}
-      ${pending.map(a=>renderActiItem(a,'ch')).join('')}
-      ${historyHtml}
-    </div>
-    <div class="acti-add-form">
-      <div class="acti-add-title">+ Ajouter une activité</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-        <select class="form-control" id="acti-type-ch">${ACTI_TYPES.map(t=>`<option value="${t.id}">${t.ico} ${t.label}</option>`).join('')}</select>
-        <input class="form-control" type="date" id="acti-date-ch" value="${todayStr()}">
-      </div>
-      <textarea class="form-control" id="acti-desc-ch" rows="2" placeholder="Description..." style="margin-bottom:8px"></textarea>
-      <button class="btn btn-gold btn-sm" style="width:100%" onclick="addActivite('ch','${chantierId}')">Ajouter</button>
-    </div>`;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -2984,7 +2149,6 @@ function selectClient(id){
 function renderClientDetail(id){
   const c=getClient(id); if(!c){ document.getElementById('client-detail').innerHTML=''; return; }
   const projets=DB.get('projets').filter(p=>p.clientId===id);
-  const chantiers=DB.get('chantiers');
   document.getElementById('client-detail').innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
       <div>
@@ -3009,7 +2173,6 @@ function renderClientDetail(id){
       projets.map(p=>{
         const col=COLUMNS.find(c=>c.id===p.statut)||{};
         const pri=PRIORITES[p.priorite]||PRIORITES.normale;
-        const ch=chantiers.find(c=>c.projetId===p.id);
         return `<div class="proj-card" style="border-left-color:${pri.color};margin-bottom:8px" onclick="openProjetDetail('${p.id}')">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
             <div>
@@ -3018,7 +2181,6 @@ function renderClientDetail(id){
             </div>
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
               <span class="status-badge" style="background:${col.color?col.color+'22':'#333'};color:${col.color||'#ccc'}">${col.label||p.statut}</span>
-              ${ch?`<span style="font-size:11px;color:var(--teal)">🏗 Chantier ${ch.progression||0}%</span>`:''}
             </div>
           </div>
         </div>`;
@@ -3152,39 +2314,7 @@ async function syncProjetToSheets(p, isUpdate=false){
     if(i>=0){arr[i]._sheetsynced=true; DB.set('projets',arr);}
   }
 }
-async function syncChantierToSheets(ch, isUpdate=false){
-  const proj=DB.get('projets').find(p=>p.id===ch.projetId)||{};
-  const data={
-    ID_Chantier:ch.id, Projet_ID:ch.projetId||'',
-    Nom_Chantier:ch.name||ch.nom||proj.nom||'', Client_ID:ch.clientId||'',
-    Adresse:ch.adresse||'', Statut:ch.statut||'',
-    'Date_Début':ch.dateDebut||'', 'Date_Fin_Prévue':ch.dateFin||'',
-    Budget:ch.budget||'', Notes:ch.notes||'', 'Type_Équipe_Associée':ch.typeEquipe||''
-  };
-  if(isUpdate){
-    await scriptPost({action:'updateRow',sheet:'Chantiers',id:ch.id,data});
-  } else {
-    // Ne pas marquer _sheetsynced:true ici — c'est autoSyncFromSheet qui le fait
-    // une fois que la ligne est confirmée visible dans le Sheet. Évite la race condition
-    // où le Sheet n'a pas encore propagé la nouvelle ligne lors du prochain auto-sync.
-    await scriptPost({action:'addRow',sheet:'Chantiers',data});
-  }
-}
-async function addMarketingContentEntry(ch, proj) {
-  const clients=DB.get('clients');
-  const client=clients.find(c=>c.id===proj.client)||{};
-  const typeLabel=TYPES_LABEL[proj.type]||proj.type||'';
-  const ville=(ch.address||proj.ville||'').split(',')[0].trim();
-  const dateFin=new Date().toLocaleDateString('sv-SE',{timeZone:'America/Toronto'});
-  await scriptPost({action:'addRow',sheet:'Marketing_Contenu',data:{
-    Projet_ID:proj.id||'',
-    Client:client.nom||proj.client||'',
-    Type_Travaux:typeLabel,
-    Ville:ville,
-    Date_Fin_Chantier:dateFin,
-    Statut_Contenu:'En attente de contenu'
-  }});
-}
+
 async function syncCourrielToSheets(c){
   const data={
     'ID_Courriel':c.id, 'Projet_ID':c.projetId||'', 'Client_ID':'',
@@ -3263,38 +2393,6 @@ async function syncSheets(){
       if(!sheetPIds.has(normId(p.id))) await syncProjetToSheets(p, false);
     }
 
-    // ── CHANTIERS (upsert: update si présent, add si absent) ──
-    const rch=await fetch(url+'?action=getData&sheet=Chantiers',{redirect:'follow'});
-    const dch=await rch.json();
-    const rowsCh=Array.isArray(dch.data)?dch.data:[];
-    const sheetChIds=new Set(rowsCh.map(r=>normId(r.ID_Chantier||r.id)).filter(Boolean));
-    if(rowsCh.length){
-      const localChantiers2=DB.get('chantiers');
-      const sheetCh=rowsCh.map(row=>{
-        const sid=normId(row.ID_Chantier||row.id);
-        const loc=localChantiers2.find(c=>normId(c.id)===sid)||{};
-        const pipeProjetId=sid.startsWith('pipe-')?sid.slice(5):'';
-        return {
-          id:sid, name:row.Nom_Chantier||row.nom||'', nom:row.Nom_Chantier||row.nom||'',
-          projetId:normId(row.Projet_ID||row.projetId)||loc.projetId||pipeProjetId||'',
-          clientId:row.Client_ID||row.clientId||'',
-          adresse:row.Adresse||row.adresse||'', statut:row.Statut||row.statut||'',
-          dateDebut:row['Date_Début']||row.dateDebut||'', dateFin:row['Date_Fin_Prévue']||row.dateFin||'',
-          budget:row.Budget||row.budget||'', notes:row.Notes||row.notes||'',
-          typeEquipe:row['Type_Équipe_Associée']||row.typeEquipe||'',
-          progression:loc.progression||0, taches:loc.taches||[],
-          etapes:loc.etapes||[], dateCreation:loc.dateCreation||'',
-          _sheetsynced:true,
-        };
-      }).filter(c=>c.id);
-      const localOnlyCh=localChantiers2.filter(c=>!sheetChIds.has(normId(c.id)));
-      DB.set('chantiers',[...sheetCh,...localOnlyCh]);
-    }
-    for(const ch of DB.get('chantiers')){
-      const inSheet=sheetChIds.has(normId(ch.id));
-      await syncChantierToSheets(ch, inSheet);
-    }
-
     // ── ACTIVITÉS ──
     try{
       const ra=await fetch(url+'?action=getData&sheet=Activités',{redirect:'follow'});
@@ -3343,7 +2441,6 @@ async function syncSheets(){
 
     showToast('✓ Sync terminée');
     if(currentView==='pipeline') renderPipeline();
-    else if(currentView==='chantiers') renderChantiers();
     else if(currentView==='clients') renderClientList();
   }catch(e){ showToast('⚠ Erreur sync: '+e.message); }
 }
@@ -3359,15 +2456,10 @@ function logHistory(projetId, type, details){
 }
 
 function renderHistoriqueTab(ctx, refId){
-  let hist;
-  if(ctx==='proj') hist = DB.get('historique').filter(h=>h.projetId===refId);
-  else {
-    const ch = getChantier(refId)||{};
-    hist = DB.get('historique').filter(h=>h.projetId===(ch.projetId||refId)||h.chantierId===refId);
-  }
+  const hist = DB.get('historique').filter(h=>h.projetId===refId);
   const typeLabel = {statut:'Statut', activite:'Activité', courriel:'Courriel', note:'Note', creation:'Création'};
   const typeColor = {statut:'var(--gold)', activite:'var(--blue)', courriel:'var(--teal)', note:'var(--muted)', creation:'var(--green)'};
-  const el = ctx==='proj' ? document.getElementById('mpj-historique') : document.getElementById('mch-historique');
+  const el = document.getElementById('mpj-historique');
   if(!el) return;
   if(hist.length===0){ el.innerHTML='<div class="empty-state"><div class="empty-ico">📜</div><div class="empty-text">Aucun historique</div></div>'; return; }
   el.innerHTML = `<div style="padding:4px 0">${hist.map(h=>`
@@ -3582,45 +2674,19 @@ function renderRefStats(){
   return top.map(([id,n])=>{ const c=getClient(id); return `<div class="stats-bar-row"><div class="stats-bar-label">${c?escHtml(c.nom):'Client supprimé'}</div><div class="stats-bar-track"><div class="stats-bar-fill" style="width:${n*20}%;background:var(--purple)"></div></div><div class="stats-bar-val">${n} réf.</div></div>`; }).join('');
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   SAISONNALITÉ (vue chantiers)
-═══════════════════════════════════════════════════════════════════════════ */
-function renderSaisonView(){
-  const projets = DB.get('projets');
-  return `<div class="season-grid" style="margin-bottom:16px">
-    ${SAISONS.map(s=>{
-      const ps = projets.filter(p=>{
-        const m=new Date(p.dateCreation||Date.now()).getMonth()+1;
-        return s.mois.includes(m);
-      });
-      return `<div class="season-col" style="border-top:3px solid ${s.color}">
-        <div class="season-header"><span>${s.label}</span><span style="color:${s.color}">${ps.length} projet${ps.length!==1?'s':''}</span></div>
-        ${ps.slice(0,5).map(p=>{
-          const col=COLUMNS.find(c=>c.id===p.statut)||{color:'#555',label:p.statut};
-          return `<div class="season-card" onclick="openProjetDetail('${p.id}')" style="cursor:pointer">
-            <div class="season-card-name">${escHtml(p.nom)}</div>
-            <div class="season-card-meta"><span style="color:${col.color}">${col.label}</span> · ${fmtMoney(p.prix)}</div>
-          </div>`;
-        }).join('')}
-        ${ps.length>5?`<div style="font-size:10px;color:var(--muted);padding:4px 0">+${ps.length-5} autres...</div>`:''}
-      </div>`;
-    }).join('')}
-  </div>`;
-}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    SYSTÈME COURRIELS
 ═══════════════════════════════════════════════════════════════════════════ */
-function fillTemplateVars(text, projetId, chantierId){
+function fillTemplateVars(text, projetId){
   const p = getProjet(projetId)||{};
   const c = getClient(p.clientId)||{};
-  const ch = chantierId ? getChantier(chantierId)||{} : {};
   return text
     .replace(/\{\{nom_client\}\}/g, c.nom||'Client')
     .replace(/\{\{nom_projet\}\}/g, p.nom||'votre projet')
     .replace(/\{\{date_rdv\}\}/g, p.dateProchainRDV?fmtDate(p.dateProchainRDV):'à confirmer')
     .replace(/\{\{prix\}\}/g, fmtMoney(p.prix))
-    .replace(/\{\{adresse\}\}/g, c.adresse||(ch.adresse||'à confirmer'))
+    .replace(/\{\{adresse\}\}/g, c.adresse||'à confirmer')
     .replace(/\{\{lien_soumission\}\}/g, p.soumissionUrl||'(voir pièce jointe)')
     .replace(/\{\{lien_google_review\}\}/g, DB.getStr('googleReviewUrl')||'https://g.page/r/VOTRE-ID-GOOGLE/review');
 }
@@ -3628,11 +2694,10 @@ function fillTemplateVars(text, projetId, chantierId){
 let _lastTemplateId = '';
 
 function openEmailCompose(ctx, refId){
-  const projetId = ctx==='proj' ? refId : (getChantier(refId)||{}).projetId||'';
-  const chantierId = ctx==='ch' ? refId : '';
+  const projetId = refId;
   _lastTemplateId = '';
   document.getElementById('em-proj-id').value = projetId;
-  document.getElementById('em-ch-id').value = chantierId;
+  document.getElementById('em-ch-id').value = '';
   document.getElementById('em-preview-section').classList.add('hidden');
 
   const p = getProjet(projetId)||{};
@@ -3644,7 +2709,7 @@ function openEmailCompose(ctx, refId){
   document.getElementById('email-modal-subtitle').textContent = p.nom||'';
 
   document.getElementById('em-templates-list').innerHTML = EMAIL_TEMPLATES.map(t=>`
-    <button class="template-btn" onclick="applyTemplate('${t.id}','${projetId}','${chantierId}')">
+    <button class="template-btn" onclick="applyTemplate('${t.id}','${projetId}')">
       ${t.label}
     </button>`).join('');
 
@@ -3653,9 +2718,8 @@ function openEmailCompose(ctx, refId){
 
 function openEmailReply(courrielId){
   const e = (DB.get('courriels')||[]).find(x=>x.id===courrielId); if(!e) return;
-  const ctx = e.chantierId ? 'ch' : 'proj';
-  const refId = e.chantierId || e.projetId;
-  openEmailCompose(ctx, refId);
+  const refId = e.projetId;
+  openEmailCompose('proj', refId);
   setTimeout(()=>{
     document.getElementById('em-to').value = e.to||'';
     document.getElementById('em-subject').value = e.subject||'';
@@ -3666,11 +2730,11 @@ function openEmailReply(courrielId){
   }, 80);
 }
 
-function applyTemplate(templateId, projetId, chantierId){
+function applyTemplate(templateId, projetId){
   const tpl = EMAIL_TEMPLATES.find(t=>t.id===templateId); if(!tpl) return;
   _lastTemplateId = templateId;
-  document.getElementById('em-subject').value = fillTemplateVars(tpl.subject, projetId, chantierId);
-  document.getElementById('em-body').value = fillTemplateVars(tpl.body, projetId, chantierId);
+  document.getElementById('em-subject').value = fillTemplateVars(tpl.subject, projetId);
+  document.getElementById('em-body').value = fillTemplateVars(tpl.body, projetId);
   showEmailPreview();
 }
 
@@ -3720,18 +2784,13 @@ async function sendEmail(){
   closeModal('modal-email');
   showToast(status==='sent'?'✓ Courriel envoyé via Gmail':status==='error'?'⚠ Erreur envoi — courriel sauvegardé localement':'✓ Courriel sauvegardé (pas de connexion Gmail)');
   if(currentProjTab==='courriels') renderEmailTab('proj',projetId);
-  if(activeTab==='courriels') renderEmailTab('ch',chantierId);
 }
 
 function renderEmailTab(ctx, refId){
-  let courriels;
-  if(ctx==='proj') courriels = DB.get('courriels').filter(e=>e.projetId===refId);
-  else courriels = DB.get('courriels').filter(e=>e.chantierId===refId);
-  const el = ctx==='proj' ? document.getElementById('mpj-courriels') : document.getElementById('mch-courriels');
+  const courriels = DB.get('courriels').filter(e=>e.projetId===refId);
+  const el = document.getElementById('mpj-courriels');
   if(!el) return;
-  const sendBtn = ctx==='proj'
-    ? `<button class="btn btn-gold btn-sm" style="margin-bottom:12px" onclick="openEmailCompose('proj','${refId}')">📧 Nouveau courriel</button>`
-    : `<button class="btn btn-gold btn-sm" style="margin-bottom:12px" onclick="openEmailCompose('ch','${refId}')">📧 Nouveau courriel</button>`;
+  const sendBtn = `<button class="btn btn-gold btn-sm" style="margin-bottom:12px" onclick="openEmailCompose('proj','${refId}')">📧 Nouveau courriel</button>`;
   if(courriels.length===0){
     el.innerHTML=sendBtn+'<div class="empty-state"><div class="empty-ico">📧</div><div class="empty-text">Aucun courriel envoyé</div></div>'; return;
   }
@@ -3799,11 +2858,9 @@ function clearDemoData(){
   if(localStorage.getItem('ph_demo_cleared')) return;
   const demoC=new Set(['c1','c2','c3']);
   const demoP=new Set(['p1','p2','p3','p4','p5','p6']);
-  const demoCh=new Set(['ch1']);
   DB.set('clients',  DB.get('clients').filter(x=>!demoC.has(x.id)));
   DB.set('projets',  DB.get('projets').filter(x=>!demoP.has(x.id)));
-  DB.set('chantiers',DB.get('chantiers').filter(x=>!demoCh.has(x.id)));
-  DB.set('activites',DB.get('activites').filter(x=>!demoC.has(x.clientId)&&!demoP.has(x.projetId)&&!demoCh.has(x.chantierId)));
+  DB.set('activites',DB.get('activites').filter(x=>!demoC.has(x.clientId)&&!demoP.has(x.projetId)));
   localStorage.setItem('ph_demo_cleared','1');
 }
 
@@ -3896,7 +2953,6 @@ function renderAllCourriels(){
       ${filtered.map(e=>{
         const p  = getProjet(e.projetId)||{};
         const cl = getClient(p.clientId)||{};
-        const ch = e.chantierId ? getChantier(e.chantierId) : null;
         const tplLabel = e.templateId ? (EMAIL_TEMPLATES.find(t=>t.id===e.templateId)||{}).label||'' : '';
         const sTag = e.status==='sent'
           ? '<span style="background:rgba(34,197,94,.15);color:var(--green);padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700">✓ Envoyé</span>'
@@ -3912,7 +2968,6 @@ function renderAllCourriels(){
                 ${sTag}
                 ${tplLabel?`<span style="font-size:11px;color:var(--gold2)">${tplLabel}</span>`:''}
                 ${p.nom?`<span style="font-size:11px">📁 ${escHtml(p.nom)}${cl.nom?' · '+escHtml(cl.nom):''}</span>`:''}
-                ${ch?`<span style="font-size:11px">🏗 Chantier</span>`:''}
               </div>
             </div>
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
@@ -4726,11 +3781,6 @@ function updateNavBadges(){
   const actifs  = projets.filter(p=>!['gagne','perdu'].includes(p.statut)).length;
   setBadge('badge-pipeline', actifs);
 
-  // Chantiers : chantiers actifs (hors terminé)
-  const chantiers = DB.get('chantiers');
-  const chantiersActifs = chantiers.filter(c=>c.statut!=='termine').length;
-  setBadge('badge-chantiers', chantiersActifs);
-
   // Courriels : courriels non envoyés (local ou erreur)
   const courriels = DB.get('courriels');
   const nonEnvoyes = courriels.filter(c=>c.status==='local'||c.status==='error').length;
@@ -4756,15 +3806,17 @@ async function autoSyncFromSheet(){
     try{
       const r=await fetch(url+'?action=getData&sheet='+encodeURIComponent(sheet),{redirect:'follow'});
       const d=await r.json();
+      if(d.status==='error') console.warn('[Heureka] GAS erreur pour onglet "'+sheet+'":', d.message||d);
       return Array.isArray(d.data)?d.data:[];
-    }catch(e){ return []; }
+    }catch(e){
+      console.warn('[Heureka] Fetch échoué pour onglet "'+sheet+'":', e.message);
+      return [];
+    }
   };
-
   // Tous les fetches en parallèle
-  const [rowsC, rowsP, rowsCh, rowsA, rowsCou, rowsDocs, rowsTaches, rowsMsgs] = await Promise.all([
+  const [rowsC, rowsP, rowsA, rowsCou, rowsDocs, rowsTaches, rowsMsgs] = await Promise.all([
     fetchSheet('Clients'),
     fetchSheet('Projets'),
-    fetchSheet('Chantiers'),
     fetchSheet('Activités'),
     fetchSheet('Courriels'),
     fetchSheet('Documents'),
@@ -4815,59 +3867,11 @@ async function autoSyncFromSheet(){
     const sheetIds=new Set(sheetProjets.map(p=>p.id));
     const localOnly=localProjets.filter(p=>!sheetIds.has(normId(p.id)));
     const toAdd=localOnly.filter(p=>p._sheetsynced===false);
-    DB.set('projets',[...sheetProjets,...toAdd]);
+    // Re-lire localStorage au moment de l'écriture : même race TOCTOU que pour les chantiers.
+    const nowProjetIds=new Set([...sheetProjets,...toAdd].map(p=>normId(p.id)));
+    const projetsAddedDuringFetch=DB.get('projets').filter(p=>!nowProjetIds.has(normId(p.id)));
+    DB.set('projets',[...sheetProjets,...toAdd,...projetsAddedDuringFetch]);
     if(currentView==='pipeline') renderPipeline();
-  }
-
-  // Chantiers — stratégie de fusion : les chantiers locaux ne sont JAMAIS supprimés
-  // par la sync. La fiche de travail (Sheet) met à jour le contenu mais ne peut
-  // pas effacer une entrée locale. Ça évite la suppression causée par le délai
-  // de propagation des écritures dans Google Sheets.
-  {
-    const localChantiers=DB.get('chantiers');
-    if(rowsCh.length){
-      const sheetCh=rowsCh.map(row=>{
-        const sid=normId(row.ID_Chantier||row.id);
-        const loc=localChantiers.find(c=>normId(c.id)===sid)||{};
-        const pipeProjetId=sid.startsWith('pipe-')?sid.slice(5):'';
-        return {
-          id:sid,
-          name:row.Nom_Chantier||row.nom||loc.name||'',
-          nom:row.Nom_Chantier||row.nom||loc.nom||'',
-          projetId:normId(row.Projet_ID||row.projetId)||loc.projetId||pipeProjetId||'',
-          clientId:row.Client_ID||row.clientId||loc.clientId||'',
-          adresse:row.Adresse||row.adresse||loc.adresse||'',
-          statut:row.Statut||row.statut||loc.statut||'',
-          dateDebut:row['Date_Début']||row.dateDebut||loc.dateDebut||'',
-          dateFin:row['Date_Fin_Prévue']||row.dateFin||loc.dateFin||'',
-          notes:row.Notes||row.notes||loc.notes||'',
-          driveId:row.Drive_ID||loc.driveId||'', driveUrl:row.Drive_URL||loc.driveUrl||'',
-          progression:loc.progression||0, taches:loc.taches||[],
-          etapes:loc.etapes||[], dateCreation:loc.dateCreation||'',
-          _sheetsynced:true
-        };
-      }).filter(c=>c.id);
-      const sheetMap=Object.fromEntries(sheetCh.map(c=>[c.id,c]));
-      // Mettre à jour les chantiers locaux avec les données du sheet, SANS en supprimer aucun
-      const merged=localChantiers.map(c=>{
-        const sv=sheetMap[normId(c.id)];
-        if(!sv) return c; // Pas encore dans le sheet : garder la version locale
-        return sv;        // Version Sheet a priorité sur le contenu
-      });
-      // Ajouter les chantiers présents dans le sheet mais pas en local (ajoutés depuis un autre appareil)
-      const localIds=new Set(localChantiers.map(c=>normId(c.id)));
-      const newFromSheet=sheetCh.filter(s=>!localIds.has(s.id));
-      DB.set('chantiers',[...merged,...newFromSheet]);
-    }
-    if(currentView==='chantiers') renderChantiers();
-    // Push chantiers non-syncés — tourne toujours, même si le sheet est vide
-    for(const ch of DB.get('chantiers').filter(c=>c._sheetsynced===false)){
-      const sid=normId(ch.id);
-      if(!_inFlightPushIds.has(sid)){
-        _inFlightPushIds.add(sid);
-        syncChantierToSheets(ch, false).catch(()=>{}).finally(()=>_inFlightPushIds.delete(sid));
-      }
-    }
   }
 
   // Activités — re-render systématique après mise à jour
@@ -4886,7 +3890,6 @@ async function autoSyncFromSheet(){
     const localOnly=DB.get('activites').filter(a=>!sheetIds.has(a.id));
     DB.set('activites',[...sheetActs,...localOnly]);
     if(currentView==='pipeline') renderPipeline();
-    else if(currentView==='chantiers') renderChantiers();
     updateNavBadges();
   }
 
@@ -4962,137 +3965,6 @@ function getFileIcon(mime){
 
 let _docRenderToken = 0;
 
-const CH_DOC_SUBFOLDER = {
-  'Photo chantier':        'Photos Chantier',
-  "Plan d'exécution":      'Plans & Devis',
-  'Rapport journalier':    'Rapports',
-  'Contrat sous-traitant': 'Contrats & Permis',
-  'Permis':                'Contrats & Permis',
-  'Facture':               'Factures & Paiements',
-  'Autre':                 '',
-};
-
-function renderChantierDocuments(chantierId){
-  const ch=getChantier(chantierId); if(!ch) return;
-  const el=document.getElementById('mch-documents'); if(!el) return;
-  el.innerHTML=`
-    <div style="padding:16px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div class="section-title" style="margin:0">Documents du chantier</div>
-        <button class="btn btn-sm" style="background:#D4AF3722;border:1px solid #D4AF3744;color:#D4AF37"
-          onclick="toggleChDocUploadForm('${chantierId}')">📎 Déposer</button>
-      </div>
-      <div id="ch-doc-upload-form-${chantierId}" style="display:none;background:#0d1628;border:1px solid #1e3a5f;border-radius:8px;padding:12px;margin-bottom:12px">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-          <select id="ch-doc-cat-${chantierId}" style="background:#0a1220;border:1px solid #1e3a5f;border-radius:6px;color:#ccc;padding:8px;font-size:13px">
-            <option value="">Catégorie...</option>
-            <option>Photo chantier</option>
-            <option>Plan d'exécution</option>
-            <option>Rapport journalier</option>
-            <option>Contrat sous-traitant</option>
-            <option>Permis</option>
-            <option>Facture</option>
-            <option>Autre</option>
-          </select>
-          <input type="file" id="ch-doc-file-${chantierId}"
-            accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp"
-            style="background:#0a1220;border:1px solid #1e3a5f;border-radius:6px;color:#ccc;padding:7px;font-size:12px">
-        </div>
-        <button class="btn btn-sm" style="width:100%;background:#D4AF37;color:#000;font-weight:700"
-          onclick="submitChantierDocUpload('${chantierId}')">📤 Uploader</button>
-      </div>
-      <div id="ch-doc-list-${chantierId}"></div>
-    </div>`;
-  loadChantierDocs(chantierId);
-}
-
-function toggleChDocUploadForm(chantierId){
-  const f=document.getElementById('ch-doc-upload-form-'+chantierId);
-  if(f) f.style.display=f.style.display==='none'?'block':'none';
-}
-
-function loadChantierDocs(chantierId){
-  const listEl=document.getElementById('ch-doc-list-'+chantierId);
-  if(!listEl) return;
-  const docs=(DB.get('documents')||[]).filter(d=>d.chantierId===chantierId);
-  if(!docs.length){
-    listEl.innerHTML='<div style="color:var(--muted2);font-size:12px;text-align:center;padding:24px">Aucun document</div>';
-    return;
-  }
-  listEl.innerHTML=docs.map(doc=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0d1628;border:1px solid #1e3a5f30;border-radius:6px;margin-bottom:4px">
-      <span style="font-size:20px;flex-shrink:0">${getFileIcon(doc.mimeType)}</span>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(doc.nomFichier||'')}</div>
-        <div style="font-size:11px;color:var(--muted2)">${escHtml(doc.categorie||'')} · ${fmtDate(doc.dateUpload||'')}</div>
-      </div>
-      <a href="${escHtml(doc.fileUrl||'#')}" target="_blank" class="btn btn-sm btn-outline"
-        style="padding:4px 10px;font-size:11px;white-space:nowrap">Ouvrir</a>
-      <button class="btn btn-sm" style="padding:4px 8px;font-size:11px;background:#2a0a0a;color:#ef4444;border:1px solid #ef444440;white-space:nowrap;flex-shrink:0"
-        onclick="deleteChantierDocument('${escHtml(doc.id)}','${escHtml(doc.fileId||'')}','${chantierId}')">✕</button>
-    </div>`).join('');
-}
-
-async function submitChantierDocUpload(chantierId){
-  const catEl=document.getElementById('ch-doc-cat-'+chantierId);
-  const fileEl=document.getElementById('ch-doc-file-'+chantierId);
-  if(!catEl||!fileEl||!fileEl.files[0]){showToast('⚠ Sélectionne une catégorie et un fichier');return;}
-  const cat=catEl.value; if(!cat){showToast('⚠ Choisis une catégorie');return;}
-  const file=fileEl.files[0];
-  const ch=getChantier(chantierId); if(!ch) return;
-  let p=(DB.get('projets')||[]).find(pp=>pp.id===ch.projetId);
-  if(!p){showToast('⚠ Projet introuvable');return;}
-  let driveId=p.dossierDriveId||p.driveId||'';
-  if(!driveId){
-    showToast('📁 Création du dossier Drive...');
-    await createSoumissionFolderForProjet(p);
-    p=(DB.get('projets')||[]).find(pp=>pp.id===ch.projetId)||p;
-    driveId=p.dossierDriveId||p.driveId||'';
-    if(!driveId){showToast('⚠ Impossible de créer le dossier Drive');return;}
-  }
-  showToast('📤 Upload en cours...');
-  const subfolder=CH_DOC_SUBFOLDER[cat]!==undefined?CH_DOC_SUBFOLDER[cat]:'';
-  const reader=new FileReader();
-  reader.onload=async function(ev){
-    const b64=ev.target.result.split(',')[1];
-    const res=await scriptPost({action:'uploadFile',driveId,subfolder,fileName:file.name,mimeType:file.type,content:b64});
-    if(res&&res.status==='ok'){
-      const addRes=await scriptPost({action:'addRow',sheet:'Documents',data:{
-        Projet_ID:ch.projetId, Chantier_ID:chantierId,
-        Nom_Fichier:file.name, 'Catégorie':cat,
-        Sous_Dossier:subfolder, File_ID:res.fileId,
-        File_URL:res.fileUrl, MIME_Type:file.type,
-        Date_Upload:new Date().toISOString().split('T')[0],
-      }});
-      const newDoc={
-        id:(addRes&&addRes.id)||uid(), projetId:ch.projetId, chantierId,
-        nomFichier:file.name, categorie:cat, sousDossier:subfolder,
-        fileId:res.fileId, fileUrl:res.fileUrl, mimeType:file.type,
-        dateUpload:new Date().toISOString().split('T')[0]
-      };
-      const docs=DB.get('documents')||[]; docs.push(newDoc); DB.set('documents',docs);
-      showToast('✅ Document uploadé');
-      catEl.value=''; fileEl.value='';
-      document.getElementById('ch-doc-upload-form-'+chantierId).style.display='none';
-      loadChantierDocs(chantierId);
-    } else {
-      showToast('⚠ Erreur upload: '+(res&&res.message||'inconnu'));
-    }
-  };
-  reader.readAsDataURL(file);
-}
-
-async function deleteChantierDocument(docId, fileId, chantierId){
-  if(!confirm('Supprimer ce document du Drive et du Sheet ?')) return;
-  const res=await scriptPost({action:'deleteDocument',docId,fileId});
-  if(res&&res.status==='ok'){
-    DB.set('documents',(DB.get('documents')||[]).filter(d=>d.id!==docId));
-    showToast('Document supprimé');
-    loadChantierDocs(chantierId);
-  } else {
-    showToast('⚠ Erreur suppression');
-  }
-}
 
 function renderProjectDocuments(projetId, containerId){
   const el=document.getElementById(containerId||'mpj-documents');
@@ -5258,10 +4130,7 @@ function refreshDashAlerts(){
     const d=daysSince(getLastContactDate(p.id));
     if(d>=21){ const c=getClient(p.clientId); alerts.push({cls:d>=30?'dal-red':'dal-orange',txt:`📞 Sans contact depuis <strong>${d}j</strong> : ${escHtml(p.nom)}${c?' ('+escHtml(c.nom)+')':''}`}); }
   });
-  // Chantiers en retard
-  DB.get('chantiers').filter(ch=>ch.statut!=='termine'&&ch.dateFin&&ch.dateFin<today).forEach(ch=>{
-    alerts.push({cls:'dal-orange',txt:`🏗 Chantier en retard : <strong>${escHtml(ch.nom||ch.name||'')}</strong> (fin prévue ${fmtDate(ch.dateFin)})`});
-  });
+
   // Soumissions sans réponse
   JSON.parse(localStorage.getItem('rev-soumissions-list')||'[]').forEach(s=>{
     if(s.statut&&s.statut!=='en_attente') return;
@@ -5450,11 +4319,10 @@ function renderWeeklyRecap(){
   const soums=JSON.parse(localStorage.getItem('rev-soumissions-list')||'[]');
   const wSoums=soums.filter(s=>s.date&&s.date.split('T')[0]>=mon&&s.date.split('T')[0]<=sun);
   const wGag=DB.get('projets').filter(p=>p.statut==='gagne'&&p.dateMiseAJour&&p.dateMiseAJour.split('T')[0]>=mon&&p.dateMiseAJour.split('T')[0]<=sun);
-  const wCh=DB.get('chantiers').filter(ch=>ch.statut==='termine'&&ch.dateFin>=mon&&ch.dateFin<=sun);
   el.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
     <div>
       <div class="section-title" style="margin-bottom:10px">Stats</div>
-      ${[['Tâches terminées',`${done.length} / ${created.length+done.length}`],['Tâches reportées',rep.length],['Soumissions envoyées',wSoums.length],['Projets gagnés',wGag.length],['Chantiers complétés',wCh.length]].map(([l,v])=>`<div class="rc-row"><span>${l}</span><span class="rc-val">${v}</span></div>`).join('')}
+      ${[['Tâches terminées',`${done.length} / ${created.length+done.length}`],['Tâches reportées',rep.length],['Soumissions envoyées',wSoums.length],['Projets gagnés',wGag.length]].map(([l,v])=>`<div class="rc-row"><span>${l}</span><span class="rc-val">${v}</span></div>`).join('')}
     </div>
     <div>
       <div class="section-title" style="margin-bottom:10px">Tâches reportées (${rep.length})</div>
