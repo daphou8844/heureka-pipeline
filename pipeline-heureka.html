@@ -3161,12 +3161,13 @@ async function syncChantierToSheets(ch, isUpdate=false){
     'Date_Début':ch.dateDebut||'', 'Date_Fin_Prévue':ch.dateFin||'',
     Budget:ch.budget||'', Notes:ch.notes||'', 'Type_Équipe_Associée':ch.typeEquipe||''
   };
-  const res=isUpdate
-    ? await scriptPost({action:'updateRow',sheet:'Chantiers',id:ch.id,data})
-    : await scriptPost({action:'addRow',sheet:'Chantiers',data});
-  if(res && res.id && !isUpdate){
-    const arr=DB.get('chantiers'); const i=arr.findIndex(x=>x.id===ch.id);
-    if(i>=0){arr[i]._sheetsynced=true; DB.set('chantiers',arr);}
+  if(isUpdate){
+    await scriptPost({action:'updateRow',sheet:'Chantiers',id:ch.id,data});
+  } else {
+    // Ne pas marquer _sheetsynced:true ici — c'est autoSyncFromSheet qui le fait
+    // une fois que la ligne est confirmée visible dans le Sheet. Évite la race condition
+    // où le Sheet n'a pas encore propagé la nouvelle ligne lors du prochain auto-sync.
+    await scriptPost({action:'addRow',sheet:'Chantiers',data});
   }
 }
 async function addMarketingContentEntry(ch, proj) {
@@ -4818,7 +4819,10 @@ async function autoSyncFromSheet(){
     if(currentView==='pipeline') renderPipeline();
   }
 
-  // Chantiers
+  // Chantiers — stratégie de fusion : les chantiers locaux ne sont JAMAIS supprimés
+  // par la sync. La fiche de travail (Sheet) met à jour le contenu mais ne peut
+  // pas effacer une entrée locale. Ça évite la suppression causée par le délai
+  // de propagation des écritures dans Google Sheets.
   {
     const localChantiers=DB.get('chantiers');
     if(rowsCh.length){
@@ -4828,33 +4832,34 @@ async function autoSyncFromSheet(){
         const pipeProjetId=sid.startsWith('pipe-')?sid.slice(5):'';
         return {
           id:sid,
-          name:row.Nom_Chantier||row.nom||'', nom:row.Nom_Chantier||row.nom||'',
+          name:row.Nom_Chantier||row.nom||loc.name||'',
+          nom:row.Nom_Chantier||row.nom||loc.nom||'',
           projetId:normId(row.Projet_ID||row.projetId)||loc.projetId||pipeProjetId||'',
-          clientId:row.Client_ID||row.clientId||'',
-          adresse:row.Adresse||row.adresse||'',
-          statut:row.Statut||row.statut||'',
-          dateDebut:row['Date_Début']||row.dateDebut||'',
-          dateFin:row['Date_Fin_Prévue']||row.dateFin||'',
-          notes:row.Notes||row.notes||'',
+          clientId:row.Client_ID||row.clientId||loc.clientId||'',
+          adresse:row.Adresse||row.adresse||loc.adresse||'',
+          statut:row.Statut||row.statut||loc.statut||'',
+          dateDebut:row['Date_Début']||row.dateDebut||loc.dateDebut||'',
+          dateFin:row['Date_Fin_Prévue']||row.dateFin||loc.dateFin||'',
+          notes:row.Notes||row.notes||loc.notes||'',
           driveId:row.Drive_ID||loc.driveId||'', driveUrl:row.Drive_URL||loc.driveUrl||'',
           progression:loc.progression||0, taches:loc.taches||[],
           etapes:loc.etapes||[], dateCreation:loc.dateCreation||'',
           _sheetsynced:true
         };
       }).filter(c=>c.id);
-      const sheetIds=new Set(sheetCh.map(c=>c.id));
-      const localOnly=localChantiers.filter(c=>!sheetIds.has(normId(c.id)));
-      const toKeep=localOnly.filter(c=>{
-        if(c._sheetsynced===false) return true;
-        // Grace period: keep recently created items (< 3 min) even if sheet propagation is lagging
-        const age=c.dateCreation ? (Date.now()-new Date(c.dateCreation).getTime()) : Infinity;
-        return age < 180000;
+      const sheetMap=Object.fromEntries(sheetCh.map(c=>[c.id,c]));
+      // Mettre à jour les chantiers locaux avec les données du sheet, SANS en supprimer aucun
+      const merged=localChantiers.map(c=>{
+        const sv=sheetMap[normId(c.id)];
+        if(!sv) return c; // Pas encore dans le sheet : garder la version locale
+        return sv;        // Version Sheet a priorité sur le contenu
       });
-      DB.set('chantiers',[...sheetCh,...toKeep]);
-      if(currentView==='chantiers') renderChantiers();
-    } else {
-      if(currentView==='chantiers') renderChantiers();
+      // Ajouter les chantiers présents dans le sheet mais pas en local (ajoutés depuis un autre appareil)
+      const localIds=new Set(localChantiers.map(c=>normId(c.id)));
+      const newFromSheet=sheetCh.filter(s=>!localIds.has(s.id));
+      DB.set('chantiers',[...merged,...newFromSheet]);
     }
+    if(currentView==='chantiers') renderChantiers();
     // Push chantiers non-syncés — tourne toujours, même si le sheet est vide
     for(const ch of DB.get('chantiers').filter(c=>c._sheetsynced===false)){
       const sid=normId(ch.id);
