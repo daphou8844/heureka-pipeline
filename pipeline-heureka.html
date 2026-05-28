@@ -341,6 +341,32 @@ textarea.form-control{resize:vertical;min-height:72px}
 .act-mini-sel:focus,.act-mini-inp:focus{border-color:var(--gold)}
 .act-mini-submit{width:100%;padding:6px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;font-size:11px;font-weight:700;border:none;border-radius:6px;cursor:pointer;margin-top:4px;font-family:inherit}
 .act-mini-submit:hover{opacity:.9}
+
+/* ─── Chantiers View ─────────────────────────────────────────────────────── */
+#view-chantiers{height:100%;display:flex;flex-direction:column}
+.ch-col-body{overflow-y:auto;border-radius:10px;border:2px dashed transparent;min-height:80px;transition:var(--tr);padding:6px;max-height:calc(100vh - 270px)}
+.ch-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:9px;cursor:pointer;transition:var(--tr);border-left:4px solid transparent}
+.ch-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.5)}
+.ch-card-client{font-size:12px;color:var(--muted);margin-bottom:3px}
+.ch-card-nom{font-size:14px;font-weight:700;color:#fff;margin-bottom:8px}
+.ch-card-meta{display:flex;flex-wrap:wrap;gap:5px}
+.ch-card-tag{background:var(--bg3);color:var(--muted);padding:2px 7px;border-radius:4px;font-size:11px}
+.ch-progress{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
+.ch-progress-fill{height:100%;border-radius:2px;transition:width .3s}
+.ch-task-phase{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted2);padding:10px 0 5px;display:flex;align-items:center;gap:6px}
+.ch-task-phase::after{content:'';flex:1;height:1px;background:var(--border)}
+.ch-task-item{display:flex;align-items:center;gap:9px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;margin-bottom:5px;transition:border-color .15s}
+.ch-task-item:hover{border-color:rgba(212,175,55,.2)}
+.ch-task-check{width:18px;height:18px;border-radius:4px;border:2px solid var(--border2);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:var(--tr);line-height:1;font-size:11px;color:#000}
+.ch-task-check.done{background:var(--green);border-color:var(--green)}
+.ch-task-text{flex:1;font-size:13px;color:#fff;line-height:1.4}
+.ch-task-text.done{text-decoration:line-through;color:var(--muted)}
+.ch-task-del{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:4px;opacity:0;transition:opacity .15s;line-height:1}
+.ch-task-item:hover .ch-task-del{opacity:1}
+.ch-task-del:hover{color:var(--red)}
+.ch-etape-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;margin-bottom:5px;font-size:12px}
+.ch-etape-label{flex:1;color:#ccc;font-weight:500}
+.ch-etape-date{font-size:11px;color:var(--muted)}
 </style>
 <style>
 #lock-screen{position:fixed;inset:0;z-index:99999;background:#0a0a0a;display:flex;align-items:center;justify-content:center}
@@ -480,6 +506,12 @@ textarea.form-control{resize:vertical;min-height:72px}
         <span class="nav-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg></span>
         Soumissions
         <span class="nav-badge" id="badge-soumissions" style="display:none"></span>
+      </div>
+
+      <div class="nav-item" onclick="showView('chantiers')" id="nav-chantiers">
+        <span class="nav-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
+        Chantiers
+        <span class="nav-badge" id="badge-chantiers" style="display:none"></span>
       </div>
 
       <!-- CONTACTS -->
@@ -659,6 +691,19 @@ textarea.form-control{resize:vertical;min-height:72px}
         <div class="pipeline-totals" id="pipeline-totals"></div>
       </div>
 
+
+      <!-- VIEW: CHANTIERS -->
+      <div id="view-chantiers" class="hidden" style="height:100%;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-shrink:0">
+          <div class="pipeline-filters">
+            <button class="filter-btn active" id="ch-filter-actif" onclick="toggleChantierArchives(false)">Actifs</button>
+            <button class="filter-btn" id="ch-filter-arch" onclick="toggleChantierArchives(true)">Terminés <span id="ch-arch-count" style="margin-left:4px"></span></button>
+          </div>
+          <div style="font-size:12px;color:var(--muted)" id="ch-sub"></div>
+        </div>
+        <div id="chantiers-kanban" style="flex:1;overflow-x:auto;overflow-y:hidden;display:flex;gap:16px;align-items:flex-start;padding-bottom:8px"></div>
+        <div id="chantiers-archives-list" style="display:none;margin-top:4px;flex:1;overflow-y:auto"></div>
+      </div>
 
       <!-- VIEW: CLIENTS -->
       <div id="view-clients" class="hidden">
@@ -1182,6 +1227,94 @@ textarea.form-control{resize:vertical;min-height:72px}
   </div>
 </div>
 
+<!-- ═══════════════════ MODAL: DÉTAIL CHANTIER ═══════════════════════════════ -->
+<div class="modal-overlay hidden" id="modal-chantier">
+  <div class="modal modal-full" style="max-width:1000px">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="mch-title"></div>
+        <div class="modal-subtitle" id="mch-subtitle"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-outline btn-sm" onclick="openEditChantier()">✏ Modifier</button>
+        <button class="modal-close" onclick="closeModal('modal-chantier')">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" style="height:calc(92vh - 120px);display:flex;flex-direction:column">
+      <div class="chantier-tabs" style="flex-shrink:0">
+        <button class="tab-btn active" onclick="switchChantierTab('info')"        id="chtab-info">📋 Info</button>
+        <button class="tab-btn"        onclick="switchChantierTab('taches')"      id="chtab-taches">✅ Tâches</button>
+        <button class="tab-btn"        onclick="switchChantierTab('echeancier')"  id="chtab-echeancier">📅 Échéancier</button>
+        <button class="tab-btn"        onclick="switchChantierTab('documents')"   id="chtab-documents">📎 Documents</button>
+        <button class="tab-btn"        onclick="switchChantierTab('historique')"  id="chtab-historique">📜 Historique</button>
+      </div>
+      <div id="chtab-content-info"        class="tab-content active" style="flex:1;overflow-y:auto"></div>
+      <div id="chtab-content-taches"      class="tab-content"        style="flex:1;overflow-y:auto"></div>
+      <div id="chtab-content-echeancier"  class="tab-content"        style="flex:1;overflow-y:auto"></div>
+      <div id="chtab-content-documents"   class="tab-content"        style="flex:1;overflow-y:auto"></div>
+      <div id="chtab-content-historique"  class="tab-content"        style="flex:1;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MODAL: ÉDITION CHANTIER ══════════════════════════════ -->
+<div class="modal-overlay hidden" id="modal-edit-chantier">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">Modifier le chantier</div>
+      <button class="modal-close" onclick="closeModal('modal-edit-chantier')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ech-id">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">Nom du chantier</label>
+          <input class="form-control" id="ech-nom">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Statut</label>
+          <select class="form-control" id="ech-statut">
+            <option value="a_planifier">À planifier</option>
+            <option value="en_preparation">En préparation</option>
+            <option value="en_cours">En cours</option>
+            <option value="en_pause">En pause</option>
+            <option value="termine">Terminé</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Progression (%)</label>
+          <input class="form-control" id="ech-progression" type="number" min="0" max="100" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date de début</label>
+          <input class="form-control" id="ech-date-debut" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date fin prévue</label>
+          <input class="form-control" id="ech-date-fin" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Budget ($)</label>
+          <input class="form-control" id="ech-budget" type="number" placeholder="0">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Adresse chantier</label>
+          <input class="form-control" id="ech-adresse" placeholder="Adresse du chantier">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Notes</label>
+          <textarea class="form-control" id="ech-notes" rows="3"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="archiveChantier()">📦 Terminer / Archiver</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-edit-chantier')">Annuler</button>
+      <button class="btn btn-gold" onclick="saveEditChantier()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════════ SCRIPTS ══════════════════════════════════════════════ -->
 <script src="config.js"></script>
 <script>
@@ -1349,6 +1482,37 @@ const ACTI_TYPES = [
   { id:'autre',             label:'Autre',            ico:'💬', color:'#6B7280' },
 ];
 
+const CH_STATUTS = [
+  { id:'a_planifier',    label:'À planifier',    color:'#6B7280' },
+  { id:'en_preparation', label:'En préparation', color:'#3B82F6' },
+  { id:'en_cours',       label:'En cours',       color:'#22C55E' },
+  { id:'en_pause',       label:'En pause',       color:'#F59E0B' },
+];
+
+const TACHE_TEMPLATES = [
+  { phase:'Préparation avant chantier', taches:[
+    'Commander matériaux','Vérifier délais fournisseurs',
+    'Planifier horaires équipe','Envoyer informations au client','Préparer accès chantier'
+  ]},
+  { phase:'Ouverture chantier', taches:[
+    'Ajouter plans/devis','Ajouter soumission finale',
+    'Ajouter échéancier','Ajouter équipe assignée'
+  ]},
+  { phase:'Pré-départ équipe', taches:[
+    'Vérifier matériaux reçus','Envoyer adresse chantier','Envoyer heure arrivée'
+  ]},
+  { phase:'Début chantier', taches:[
+    'Photos avant travaux','Protection des lieux','Installation chantier','Début travaux'
+  ]},
+  { phase:'Suivi quotidien', taches:[
+    'Vérifier avancement','Photos progression','Noter extras',
+    'Noter problèmes','Commander matériaux manquants','Communication client'
+  ]},
+  { phase:'Fin des travaux', taches:[
+    'Inspection finale','Corrections','Nettoyage','Photos finales'
+  ]},
+];
+
 /* ═══════════════════════════════════════════════════════════════════════════
    DB (localStorage)
 ═══════════════════════════════════════════════════════════════════════════ */
@@ -1368,6 +1532,9 @@ let showPerdu = false;
 let selectedClientId = null;
 let currentProjetId = null;
 let dragProjetId = null;
+let currentChantierId = null;
+let currentChantierTab = 'taches';
+let showChantierArchives = false;
 
 /* ═══════════════════════════════════════════════════════════════════════════
    UTILS
@@ -1411,7 +1578,7 @@ function openModal(id){ document.getElementById(id).classList.remove('hidden'); 
 function showView(view){
   currentView = view;
   updateNavBadges();
-  ['dashboard','pipeline','clients','config','stats','courriels','soumissions'].forEach(v=>{
+  ['dashboard','pipeline','clients','config','stats','courriels','soumissions','chantiers'].forEach(v=>{
     document.getElementById('view-'+v).classList.toggle('hidden', v!==view);
     const n=document.getElementById('nav-'+v);
     if(n) n.classList.toggle('active', v===view);
@@ -1420,6 +1587,7 @@ function showView(view){
     dashboard:'Dashboard', pipeline:'Pipeline', clients:'Clients',
     config:'Configuration', stats:'Statistiques',
     courriels:'Courriels envoyés', soumissions:'Soumissions Revêtement',
+    chantiers:'Chantiers',
   };
   document.getElementById('topbar-title').textContent = titles[view]||'';
   const acts = document.getElementById('topbar-actions');
@@ -1432,6 +1600,9 @@ function showView(view){
   } else if(view==='stats'){     renderStats();
   } else if(view==='courriels'){ renderAllCourriels();
   } else if(view==='soumissions'){ renderAllSoumissions();
+  } else if(view==='chantiers'){
+    acts.innerHTML=`<button class="btn btn-gold" onclick="syncChantierManuel()">↻ Sync Chantiers</button>`;
+    renderChantiers();
   } else { initConfig(); }
   document.getElementById('topbar-sub').textContent='';
 }
@@ -1730,6 +1901,7 @@ function moveProjet(projetId, newStatut){
   if(newStatut==='gagne' && projets[idx].dossierDriveId) moveDossierForProjet(projets[idx], 'gagne');
   if(newStatut==='perdu' && projets[idx].dossierDriveId) moveDossierForProjet(projets[idx], 'perdu');
   if(newStatut==='gagne') offerPostProjetSuivi(projets[idx]);
+  if(newStatut==='gagne') autoCreateChantierFromProjet(projets[idx]);
   logHistory(projetId,'statut',`${old} → ${newStatut}`);
   suggestEmailOnStatut(projets[idx], old);
   DB.set('projets',projets);
@@ -2101,6 +2273,7 @@ function saveEditProjet(){
   p.dateMiseAJour = new Date().toISOString();
   if(p.statut!==oldStatut){ logHistory(p.id,'statut',`${oldStatut} → ${p.statut}`); suggestEmailOnStatut(p, oldStatut); }
   if(p.statut==='gagne' && oldStatut!=='gagne') offerPostProjetSuivi(p);
+  if(p.statut==='gagne' && oldStatut!=='gagne') autoCreateChantierFromProjet(p);
   DB.set('projets',projets);
   closeModal('modal-edit-projet');
   renderProjetDetail();
@@ -2439,9 +2612,56 @@ async function syncSheets(){
       }
     }catch(e){}
 
+    // ── CHANTIERS ──
+    try{
+      const rch=await fetch(url+'?action=getData&sheet=Chantiers',{redirect:'follow'});
+      const dch=await rch.json();
+      const rowsCh=Array.isArray(dch.data)?dch.data:[];
+      const sheetChIds=new Set(rowsCh.map(r=>normId(r.ID_Chantier)).filter(Boolean));
+      if(rowsCh.length){
+        const sheetChan=rowsCh.map(row=>({
+          id:normId(row.ID_Chantier||''), projetId:normId(row.Projet_ID||''),
+          clientId:normId(row.Client_ID||''), nom:row.Nom||'',
+          adresse:row.Adresse||'', statut:row.Statut||'a_planifier',
+          dateDebut:row.Date_Début||'', dateFinPrevue:row.Date_Fin_Prévue||'',
+          budget:row.Budget||'', notes:row.Notes||'',
+          archive:row['Archivé']||'non', progression:row.Progression||'0',
+          dateCreation:row.Date_Créé||''
+        })).filter(c=>c.id);
+        const localOnlyCh=DB.get('chantiers').filter(c=>!sheetChIds.has(normId(c.id)));
+        DB.set('chantiers',[...sheetChan,...localOnlyCh]);
+      }
+      for(const ch of DB.get('chantiers')){
+        if(!sheetChIds.has(normId(ch.id))) await syncChantierToSheets(ch, false);
+      }
+    }catch(e){}
+
+    // ── TÂCHES CHANTIER ──
+    try{
+      const rtc=await fetch(url+'?action=getData&sheet=TachesChantier',{redirect:'follow'});
+      const dtc=await rtc.json();
+      const rowsTC=Array.isArray(dtc.data)?dtc.data:[];
+      const sheetTCIds=new Set(rowsTC.map(r=>normId(r.ID_Tache)).filter(Boolean));
+      if(rowsTC.length){
+        const sheetTC=rowsTC.map(row=>({
+          id:normId(row.ID_Tache||''), chantierId:normId(row.Chantier_ID||''),
+          projetId:normId(row.Projet_ID||''), phase:row.Phase||'',
+          texte:row.Texte||'', complete:row['Complétée']||'non',
+          personnalisee:row['Personnalisée']||'non',
+          dateCreation:row.Date_Créé||'', dateComplete:row.Date_Complétée||''
+        })).filter(t=>t.id);
+        const localOnlyTC=(DB.get('taches_chantier')||[]).filter(t=>!sheetTCIds.has(normId(t.id)));
+        DB.set('taches_chantier',[...sheetTC,...localOnlyTC]);
+      }
+      for(const t of (DB.get('taches_chantier')||[])){
+        if(!sheetTCIds.has(normId(t.id))) await syncTacheChantierToSheets(t, false);
+      }
+    }catch(e){}
+
     showToast('✓ Sync terminée');
     if(currentView==='pipeline') renderPipeline();
     else if(currentView==='clients') renderClientList();
+    else if(currentView==='chantiers') renderChantiers();
   }catch(e){ showToast('⚠ Erreur sync: '+e.message); }
 }
 
@@ -3786,6 +4006,10 @@ function updateNavBadges(){
   const nonEnvoyes = courriels.filter(c=>c.status==='local'||c.status==='error').length;
   setBadge('badge-courriels', nonEnvoyes);
 
+  // Chantiers : en cours
+  const chantiersActifs = (DB.get('chantiers')||[]).filter(c=>c.archive!=='oui'&&c.statut!=='termine').length;
+  setBadge('badge-chantiers', chantiersActifs);
+
   // Soumissions : en attente depuis +7 jours
   const allS = JSON.parse(localStorage.getItem('rev-soumissions-list')||'[]');
   const soumAlerte = allS.filter(s=>{
@@ -3793,6 +4017,429 @@ function updateNavBadges(){
     return s.date && daysSince(s.date.split('T')[0]) >= 7;
   }).length;
   setBadge('badge-soumissions', soumAlerte);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CHANTIERS
+═══════════════════════════════════════════════════════════════════════════ */
+function getChantier(id){ return (DB.get('chantiers')||[]).find(c=>c.id===id)||null; }
+
+function toggleChantierArchives(show){
+  showChantierArchives=show;
+  document.getElementById('ch-filter-actif')?.classList.toggle('active',!show);
+  document.getElementById('ch-filter-arch')?.classList.toggle('active',show);
+  renderChantiers();
+}
+
+function renderChantiers(){
+  const all=DB.get('chantiers')||[];
+  const actifs=all.filter(c=>c.archive!=='oui'&&c.statut!=='termine');
+  const termines=all.filter(c=>c.archive==='oui'||c.statut==='termine');
+  const archCount=document.getElementById('ch-arch-count');
+  if(archCount) archCount.textContent=termines.length?`(${termines.length})`:'';
+  const sub=document.getElementById('ch-sub');
+  if(sub) sub.textContent=`${actifs.length} chantier${actifs.length!==1?'s':''} actifs`;
+  const kanbanEl=document.getElementById('chantiers-kanban');
+  const archivesEl=document.getElementById('chantiers-archives-list');
+  if(!kanbanEl) return;
+  if(showChantierArchives){
+    kanbanEl.style.display='none';
+    if(archivesEl){ archivesEl.style.display='block'; archivesEl.innerHTML=renderChantierArchivesList(termines); }
+  } else {
+    kanbanEl.style.display='flex';
+    if(archivesEl) archivesEl.style.display='none';
+    kanbanEl.innerHTML=CH_STATUTS.map(col=>{
+      const cards=actifs.filter(c=>c.statut===col.id);
+      return `<div class="kanban-col">
+        <div class="col-header">
+          <div class="col-title"><div class="col-dot" style="background:${col.color}"></div>${escHtml(col.label)}</div>
+          <span class="col-count" style="background:${col.color}22;color:${col.color}">${cards.length}</span>
+        </div>
+        <div class="ch-col-body">
+          ${cards.length===0?'<div class="col-empty">Aucun chantier</div>':''}
+          ${cards.map(ch=>renderChantierCard(ch)).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  }
+  updateNavBadges();
+}
+
+function renderChantierArchivesList(termines){
+  if(!termines.length) return '<div class="empty-state"><div class="empty-ico">📦</div><div class="empty-text">Aucun chantier terminé</div></div>';
+  return `<div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Chantiers terminés (${termines.length})</div>`+
+    termines.map(ch=>{
+      const p=getProjet(ch.projetId)||{};
+      const cl=getClient(p.clientId)||{};
+      return `<div class="ch-card" style="border-left-color:#8B5CF6;opacity:.75" onclick="openChantierModal('${ch.id}')">
+        <div class="ch-card-client">${escHtml(cl.nom||'—')}</div>
+        <div class="ch-card-nom">${escHtml(ch.nom||p.nom||'—')}</div>
+        <div class="ch-card-meta">
+          <span class="ch-card-tag">Terminé</span>
+          ${ch.dateDebut?`<span class="ch-card-tag">📅 ${fmtDate(ch.dateDebut)}</span>`:''}
+          ${ch.dateFinPrevue?`<span class="ch-card-tag">→ ${fmtDate(ch.dateFinPrevue)}</span>`:''}
+        </div>
+      </div>`;
+    }).join('');
+}
+
+function renderChantierCard(ch){
+  const p=getProjet(ch.projetId)||{};
+  const cl=getClient(p.clientId)||{};
+  const col=CH_STATUTS.find(s=>s.id===ch.statut)||CH_STATUTS[0];
+  const taches=(DB.get('taches_chantier')||[]).filter(t=>t.chantierId===ch.id);
+  const done=taches.filter(t=>t.complete==='oui').length;
+  const total=taches.length;
+  return `<div class="ch-card" style="border-left-color:${col.color}" onclick="openChantierModal('${ch.id}')">
+    <div class="ch-card-client">${escHtml(cl.nom||'—')}</div>
+    <div class="ch-card-nom">${escHtml(ch.nom||p.nom||'—')}</div>
+    <div class="ch-card-meta">
+      ${ch.adresse?`<span class="ch-card-tag">📍 ${escHtml(ch.adresse.substring(0,30))}</span>`:''}
+      ${ch.dateDebut?`<span class="ch-card-tag">📅 ${fmtDate(ch.dateDebut)}</span>`:''}
+      ${ch.budget?`<span class="ch-card-tag">${fmtMoney(ch.budget)}</span>`:''}
+    </div>
+    ${total>0?`<div style="display:flex;align-items:center;gap:6px;margin-top:8px">
+      <div class="ch-progress" style="flex:1"><div class="ch-progress-fill" style="width:${Math.round(done/total*100)}%;background:${col.color}"></div></div>
+      <span style="font-size:10px;color:var(--muted);flex-shrink:0">${done}/${total}</span>
+    </div>`:''}
+  </div>`;
+}
+
+function openChantierModal(id){
+  currentChantierId=id;
+  switchChantierTab('taches');
+  openModal('modal-chantier');
+  renderChantierModalHeader();
+}
+
+function switchChantierTab(tab){
+  currentChantierTab=tab;
+  ['info','taches','echeancier','documents','historique'].forEach(t=>{
+    document.getElementById('chtab-'+t)?.classList.toggle('active',t===tab);
+    document.getElementById('chtab-content-'+t)?.classList.toggle('active',t===tab);
+  });
+  if(tab==='taches')      renderChantierTaches();
+  else if(tab==='info')   renderChantierInfo();
+  else if(tab==='echeancier') renderChantierEcheancier();
+  else if(tab==='documents'){
+    const ch=getChantier(currentChantierId);
+    if(ch) renderProjectDocuments(ch.projetId,'chtab-content-documents');
+  }
+  else if(tab==='historique') renderChantierHistorique();
+}
+
+function renderChantierModalHeader(){
+  const ch=getChantier(currentChantierId); if(!ch) return;
+  const p=getProjet(ch.projetId)||{};
+  const cl=getClient(p.clientId)||{};
+  const col=CH_STATUTS.find(s=>s.id===ch.statut)||{label:ch.statut};
+  document.getElementById('mch-title').textContent=ch.nom||p.nom||'Chantier';
+  document.getElementById('mch-subtitle').textContent=(cl.nom||'—')+' · '+col.label;
+}
+
+function renderChantierInfo(){
+  const el=document.getElementById('chtab-content-info'); if(!el) return;
+  const ch=getChantier(currentChantierId); if(!ch) return;
+  const p=getProjet(ch.projetId)||{};
+  const cl=getClient(p.clientId)||{};
+  const col=CH_STATUTS.find(s=>s.id===ch.statut)||CH_STATUTS[0];
+  const taches=(DB.get('taches_chantier')||[]).filter(t=>t.chantierId===ch.id);
+  const prog=taches.length?Math.round(taches.filter(t=>t.complete==='oui').length/taches.length*100):Number(ch.progression)||0;
+  el.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:4px 0">
+    <div>
+      <div class="section-title">Informations projet</div>
+      <div class="info-block">
+        ${infoRow('Client',cl.nom?`<strong>${escHtml(cl.nom)}</strong>${cl.telephone?` · <a href="tel:${escHtml(cl.telephone)}">${escHtml(cl.telephone)}</a>`:''}${cl.email?` · <a href="mailto:${escHtml(cl.email)}">${escHtml(cl.email)}</a>`:''}`:'—')}
+        ${infoRow('Projet',escHtml(p.nom||'—'))}
+        ${infoRow('Type',TYPES_LABEL[p.typeProjet]||'—')}
+        ${infoRow('Prix estimé',fmtMoney(p.prix))}
+        ${p.soumissionUrl?infoRow('Soumission',`<a href="${escHtml(p.soumissionUrl)}" target="_blank" style="color:var(--gold)">Ouvrir</a>`):''}
+        ${p.notes?infoRow('Notes projet',`<span style="color:#bbb;font-size:12px;white-space:pre-wrap">${escHtml(p.notes)}</span>`):''}
+      </div>
+    </div>
+    <div>
+      <div class="section-title">Détails chantier</div>
+      <div class="info-block">
+        ${infoRow('Statut',`<span class="status-badge" style="background:${col.color}22;color:${col.color}">${col.label}</span>`)}
+        ${infoRow('Adresse',escHtml(ch.adresse||cl.adresse||'—'))}
+        ${infoRow('Date début',ch.dateDebut?`<span style="color:var(--teal)">${fmtDate(ch.dateDebut)}</span>`:'—')}
+        ${infoRow('Date fin prévue',ch.dateFinPrevue?`<span style="color:var(--orange)">${fmtDate(ch.dateFinPrevue)}</span>`:'—')}
+        ${infoRow('Budget',ch.budget?fmtMoney(ch.budget):'—')}
+        ${infoRow('Progression',`<div style="display:flex;align-items:center;gap:8px;flex:1"><div class="ch-progress" style="flex:1"><div class="ch-progress-fill" style="width:${prog}%;background:${col.color}"></div></div><span style="font-size:12px;font-weight:700;color:${col.color}">${prog}%</span></div>`)}
+        ${ch.notes?infoRow('Notes',`<span style="color:#bbb;font-size:12px;white-space:pre-wrap">${escHtml(ch.notes)}</span>`):''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderChantierTaches(){
+  const el=document.getElementById('chtab-content-taches'); if(!el) return;
+  const ch=getChantier(currentChantierId); if(!ch) return;
+  const taches=(DB.get('taches_chantier')||[]).filter(t=>t.chantierId===ch.id);
+  const done=taches.filter(t=>t.complete==='oui').length;
+  const total=taches.length;
+  const byPhase={};
+  taches.forEach(t=>{ const ph=t.phase||'Autres'; if(!byPhase[ph]) byPhase[ph]=[]; byPhase[ph].push(t); });
+  const phaseOrder=[...TACHE_TEMPLATES.map(tp=>tp.phase),'Personnalisé','Autres'];
+  const phases=[...new Set([...phaseOrder,...Object.keys(byPhase)])].filter(ph=>byPhase[ph]);
+  let html='<div style="padding:4px 0">';
+  if(total>0){
+    const pct=Math.round(done/total*100);
+    html+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">
+      <div class="ch-progress" style="flex:1"><div class="ch-progress-fill" style="width:${pct}%;background:var(--green)"></div></div>
+      <span style="font-size:13px;font-weight:700;color:var(--green);flex-shrink:0">${done}/${total} tâches — ${pct}%</span>
+    </div>`;
+  }
+  phases.forEach(ph=>{
+    const pts=byPhase[ph]||[];
+    html+=`<div class="ch-task-phase">${escHtml(ph)}</div>`;
+    html+=pts.map(t=>`<div class="ch-task-item" id="cht-${t.id}">
+      <div class="ch-task-check ${t.complete==='oui'?'done':''}" onclick="toggleChantierTache('${t.id}','${ch.id}')">${t.complete==='oui'?'✓':''}</div>
+      <span class="ch-task-text ${t.complete==='oui'?'done':''}">${escHtml(t.texte)}</span>
+      ${t.personnalisee==='oui'?`<button class="ch-task-del" onclick="deleteChantierTache('${t.id}','${ch.id}')" title="Supprimer">✕</button>`:''}
+    </div>`).join('');
+  });
+  html+=`<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+    <div style="font-size:11px;font-weight:700;color:var(--gold2);margin-bottom:8px">+ Tâche personnalisée</div>
+    <div style="display:grid;grid-template-columns:1fr 170px auto;gap:8px">
+      <input class="form-control" id="cht-new-texte" placeholder="Description..." style="font-size:12px">
+      <select class="form-control" id="cht-new-phase" style="font-size:12px">
+        ${TACHE_TEMPLATES.map(tp=>`<option value="${escHtml(tp.phase)}">${escHtml(tp.phase)}</option>`).join('')}
+        <option value="Personnalisé">Personnalisé</option>
+      </select>
+      <button class="btn btn-gold btn-sm" onclick="addChantierTachePerso('${ch.id}')">Ajouter</button>
+    </div>
+  </div></div>`;
+  el.innerHTML=html;
+}
+
+function toggleChantierTache(tacheId,chantierId){
+  const arr=DB.get('taches_chantier')||[];
+  const idx=arr.findIndex(t=>t.id===tacheId); if(idx===-1) return;
+  arr[idx].complete=arr[idx].complete==='oui'?'non':'oui';
+  arr[idx].dateComplete=arr[idx].complete==='oui'?todayStr():'';
+  DB.set('taches_chantier',arr);
+  syncTacheChantierToSheets(arr[idx],true);
+  const taches=arr.filter(t=>t.chantierId===chantierId);
+  const pct=taches.length?Math.round(taches.filter(t=>t.complete==='oui').length/taches.length*100):0;
+  const chantiers=DB.get('chantiers')||[];
+  const ci=chantiers.findIndex(c=>c.id===chantierId);
+  if(ci!==-1){chantiers[ci].progression=String(pct);DB.set('chantiers',chantiers);}
+  renderChantierTaches();
+  if(currentView==='chantiers') renderChantiers();
+}
+
+function addChantierTachePerso(chantierId){
+  const texte=(document.getElementById('cht-new-texte')?.value||'').trim();
+  if(!texte){showToast('Entrez une description');return;}
+  const phase=document.getElementById('cht-new-phase')?.value||'Personnalisé';
+  const ch=getChantier(chantierId); if(!ch) return;
+  const t={id:uid(),chantierId,projetId:ch.projetId||'',phase,texte,complete:'non',personnalisee:'oui',dateCreation:new Date().toISOString(),dateComplete:''};
+  const arr=DB.get('taches_chantier')||[]; arr.push(t); DB.set('taches_chantier',arr);
+  syncTacheChantierToSheets(t);
+  const inp=document.getElementById('cht-new-texte'); if(inp) inp.value='';
+  renderChantierTaches();
+  showToast('Tâche ajoutée ✓');
+}
+
+function deleteChantierTache(tacheId,chantierId){
+  DB.set('taches_chantier',(DB.get('taches_chantier')||[]).filter(t=>t.id!==tacheId));
+  scriptPost({action:'deleteRow',sheet:'TachesChantier',id:tacheId});
+  renderChantierTaches();
+  if(currentView==='chantiers') renderChantiers();
+}
+
+function renderChantierEcheancier(){
+  const el=document.getElementById('chtab-content-echeancier'); if(!el) return;
+  const ch=getChantier(currentChantierId); if(!ch) return;
+  const etapes=JSON.parse(localStorage.getItem('ph_etapes_'+ch.id)||'[]');
+  el.innerHTML=`<div style="padding:4px 0">
+    <div class="info-block" style="margin-bottom:16px">
+      ${infoRow('Date début',ch.dateDebut?`<span style="color:var(--teal)">${fmtDate(ch.dateDebut)}</span>`:'<span style="color:var(--muted)">Non définie</span>')}
+      ${infoRow('Date fin prévue',ch.dateFinPrevue?`<span style="color:var(--orange)">${fmtDate(ch.dateFinPrevue)}</span>`:'<span style="color:var(--muted)">Non définie</span>')}
+      ${ch.dateDebut&&ch.dateFinPrevue?infoRow('Durée',(()=>{const d=Math.ceil((new Date(ch.dateFinPrevue)-new Date(ch.dateDebut))/86400000);return d+'  jour'+(d!==1?'s':'');})()):''}
+    </div>
+    <div class="section-title">Étapes / jalons</div>
+    <div id="ch-etapes-list">
+      ${!etapes.length?'<div style="color:var(--muted);font-size:12px;padding:10px 0">Aucune étape définie — ajoutez vos jalons.</div>':
+        etapes.map((e,i)=>`<div class="ch-etape-item">
+          <div class="ch-etape-label">${escHtml(e.nom||'—')}</div>
+          <div class="ch-etape-date">${e.date?fmtDate(e.date):''}</div>
+          <button class="btn btn-sm btn-danger" style="padding:3px 8px;font-size:11px" onclick="deleteChantierEtape(${i})">✕</button>
+        </div>`).join('')}
+    </div>
+    <div style="margin-top:12px;display:grid;grid-template-columns:1fr 150px auto;gap:8px">
+      <input class="form-control" id="ch-etape-nom" placeholder="Nom de l'étape..." style="font-size:12px">
+      <input class="form-control" id="ch-etape-date" type="date" style="font-size:12px">
+      <button class="btn btn-gold btn-sm" onclick="addChantierEtape()">Ajouter</button>
+    </div>
+  </div>`;
+}
+
+function addChantierEtape(){
+  const nom=(document.getElementById('ch-etape-nom')?.value||'').trim();
+  if(!nom){showToast('Nom requis');return;}
+  const date=document.getElementById('ch-etape-date')?.value||'';
+  const key='ph_etapes_'+currentChantierId;
+  const etapes=JSON.parse(localStorage.getItem(key)||'[]');
+  etapes.push({nom,date});
+  localStorage.setItem(key,JSON.stringify(etapes));
+  renderChantierEcheancier();
+}
+
+function deleteChantierEtape(idx){
+  const key='ph_etapes_'+currentChantierId;
+  const etapes=JSON.parse(localStorage.getItem(key)||'[]');
+  etapes.splice(idx,1);
+  localStorage.setItem(key,JSON.stringify(etapes));
+  renderChantierEcheancier();
+}
+
+function renderChantierHistorique(){
+  const el=document.getElementById('chtab-content-historique'); if(!el) return;
+  const ch=getChantier(currentChantierId); if(!ch) return;
+  const hist=(DB.get('historique')||[]).filter(h=>h.projetId===ch.projetId).slice(0,60);
+  if(!hist.length){el.innerHTML='<div class="empty-state"><div class="empty-ico">📜</div><div class="empty-text">Aucun historique</div></div>';return;}
+  const typeColor={statut:'var(--gold)',activite:'var(--blue)',courriel:'var(--teal)',note:'var(--muted)',creation:'var(--green)',chantier:'#8B5CF6'};
+  el.innerHTML=`<div style="padding:4px 0">${hist.map(h=>`<div class="hist-item">
+    <div class="hist-dot" style="border-color:${typeColor[h.type]||'var(--gold)'}"></div>
+    <div class="hist-time">${fmtDateHeure?fmtDateHeure(h.ts):fmtDate((h.ts||'').split('T')[0])}</div>
+    <div class="hist-text"><span class="hist-type" style="color:${typeColor[h.type]||'var(--gold)'}">${escHtml(h.type||'—')}</span> — ${escHtml(h.details||'')}</div>
+  </div>`).join('')}</div>`;
+}
+
+function openEditChantier(){
+  const ch=getChantier(currentChantierId); if(!ch) return;
+  document.getElementById('ech-id').value=ch.id;
+  document.getElementById('ech-nom').value=ch.nom||'';
+  document.getElementById('ech-statut').value=ch.statut||'a_planifier';
+  document.getElementById('ech-progression').value=ch.progression||'0';
+  document.getElementById('ech-date-debut').value=ch.dateDebut||'';
+  document.getElementById('ech-date-fin').value=ch.dateFinPrevue||'';
+  document.getElementById('ech-budget').value=ch.budget||'';
+  document.getElementById('ech-adresse').value=ch.adresse||'';
+  document.getElementById('ech-notes').value=ch.notes||'';
+  openModal('modal-edit-chantier');
+}
+
+function saveEditChantier(){
+  const id=document.getElementById('ech-id').value;
+  const chantiers=DB.get('chantiers')||[];
+  const idx=chantiers.findIndex(c=>c.id===id); if(idx===-1) return;
+  const oldStatut=chantiers[idx].statut;
+  Object.assign(chantiers[idx],{
+    nom:document.getElementById('ech-nom').value.trim()||chantiers[idx].nom,
+    statut:document.getElementById('ech-statut').value,
+    progression:document.getElementById('ech-progression').value||'0',
+    dateDebut:document.getElementById('ech-date-debut').value,
+    dateFinPrevue:document.getElementById('ech-date-fin').value,
+    budget:document.getElementById('ech-budget').value,
+    adresse:document.getElementById('ech-adresse').value.trim(),
+    notes:document.getElementById('ech-notes').value.trim(),
+    dateMiseAJour:new Date().toISOString()
+  });
+  if(chantiers[idx].statut==='termine') chantiers[idx].archive='oui';
+  DB.set('chantiers',chantiers);
+  if(chantiers[idx].statut!==oldStatut)
+    logHistory(chantiers[idx].projetId,'chantier',`Statut chantier ${oldStatut} → ${chantiers[idx].statut}`);
+  closeModal('modal-edit-chantier');
+  renderChantierModalHeader();
+  if(currentChantierTab==='info') renderChantierInfo();
+  if(currentView==='chantiers') renderChantiers();
+  syncChantierToSheets(chantiers[idx],true);
+  showToast('Chantier mis à jour ✓');
+}
+
+function archiveChantier(){
+  if(!confirm('Marquer ce chantier comme terminé ?')) return;
+  const id=document.getElementById('ech-id').value;
+  const chantiers=DB.get('chantiers')||[];
+  const idx=chantiers.findIndex(c=>c.id===id); if(idx===-1) return;
+  chantiers[idx].statut='termine';
+  chantiers[idx].archive='oui';
+  DB.set('chantiers',chantiers);
+  syncChantierToSheets(chantiers[idx],true);
+  closeModal('modal-edit-chantier');
+  closeModal('modal-chantier');
+  if(currentView==='chantiers') renderChantiers();
+  showToast('Chantier terminé et archivé ✓');
+}
+
+function autoCreateChantierFromProjet(projet){
+  if(!projet||projet.statut!=='gagne') return;
+  const existing=(DB.get('chantiers')||[]).find(c=>normId(c.projetId)===normId(projet.id));
+  if(existing) return;
+  const cl=getClient(projet.clientId)||{};
+  const ch={
+    id:uid(), projetId:projet.id, clientId:projet.clientId||'',
+    nom:projet.nom||'', adresse:cl.adresse||'',
+    statut:'a_planifier', dateDebut:'', dateFinPrevue:'',
+    budget:projet.prix||'', notes:projet.notes||'',
+    archive:'non', progression:'0',
+    dateCreation:new Date().toISOString(), _sheetsynced:false
+  };
+  const chantiers=DB.get('chantiers')||[];
+  chantiers.push(ch);
+  DB.set('chantiers',chantiers);
+  createChantierTachesFromTemplate(ch);
+  syncChantierToSheets(ch);
+  logHistory(projet.id,'chantier','Chantier créé : '+ch.nom);
+  showToast('✅ Chantier créé : '+ch.nom);
+  if(currentView==='chantiers') renderChantiers();
+  updateNavBadges();
+}
+
+function createChantierTachesFromTemplate(ch){
+  const arr=DB.get('taches_chantier')||[];
+  TACHE_TEMPLATES.forEach(tp=>{
+    tp.taches.forEach(texte=>{
+      const t={id:uid(),chantierId:ch.id,projetId:ch.projetId||'',phase:tp.phase,texte,
+        complete:'non',personnalisee:'non',dateCreation:new Date().toISOString(),dateComplete:''};
+      arr.push(t);
+      syncTacheChantierToSheets(t);
+    });
+  });
+  DB.set('taches_chantier',arr);
+}
+
+function syncChantierManuel(){
+  const gagne=(DB.get('projets')||[]).filter(p=>p.statut==='gagne');
+  const existing=DB.get('chantiers')||[];
+  const sans=gagne.filter(p=>!existing.find(c=>normId(c.projetId)===normId(p.id)));
+  sans.forEach(p=>autoCreateChantierFromProjet(p));
+  if(!sans.length) showToast('Tous les projets gagnés ont déjà un chantier.');
+  renderChantiers();
+}
+
+async function syncChantierToSheets(ch,isUpdate=false){
+  const data={
+    ID_Chantier:ch.id, Projet_ID:ch.projetId||'', Client_ID:ch.clientId||'',
+    Nom:ch.nom||'', Adresse:ch.adresse||'', Statut:ch.statut||'',
+    'Date_Début':ch.dateDebut||'', 'Date_Fin_Prévue':ch.dateFinPrevue||'',
+    Budget:ch.budget||'', Notes:ch.notes||'',
+    'Archivé':ch.archive||'non', Progression:ch.progression||'0',
+    'Date_Créé':ch.dateCreation?(ch.dateCreation.split('T')[0]):''
+  };
+  const res=isUpdate
+    ?await scriptPost({action:'updateRow',sheet:'Chantiers',id:ch.id,data})
+    :await scriptPost({action:'addRow',sheet:'Chantiers',data});
+  if(res&&!isUpdate){
+    const arr=DB.get('chantiers')||[];
+    const i=arr.findIndex(c=>c.id===ch.id);
+    if(i>=0){arr[i]._sheetsynced=true;DB.set('chantiers',arr);}
+  }
+}
+
+async function syncTacheChantierToSheets(t,isUpdate=false){
+  const data={
+    ID_Tache:t.id, Chantier_ID:t.chantierId||'', Projet_ID:t.projetId||'',
+    Phase:t.phase||'', Texte:t.texte||'',
+    'Complétée':t.complete||'non', 'Personnalisée':t.personnalisee||'non',
+    'Date_Créé':t.dateCreation?(t.dateCreation.split('T')[0]):'',
+    'Date_Complétée':t.dateComplete||''
+  };
+  if(isUpdate) await scriptPost({action:'updateRow',sheet:'TachesChantier',id:t.id,data});
+  else await scriptPost({action:'addRow',sheet:'TachesChantier',data});
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -3814,7 +4461,7 @@ async function autoSyncFromSheet(){
     }
   };
   // Tous les fetches en parallèle
-  const [rowsC, rowsP, rowsA, rowsCou, rowsDocs, rowsTaches, rowsMsgs] = await Promise.all([
+  const [rowsC, rowsP, rowsA, rowsCou, rowsDocs, rowsTaches, rowsMsgs, rowsChan, rowsTachChan] = await Promise.all([
     fetchSheet('Clients'),
     fetchSheet('Projets'),
     fetchSheet('Activités'),
@@ -3822,6 +4469,8 @@ async function autoSyncFromSheet(){
     fetchSheet('Documents'),
     fetchSheet('Taches'),
     fetchSheet('Messages'),
+    fetchSheet('Chantiers'),
+    fetchSheet('TachesChantier'),
   ]);
 
   // Clients
@@ -3939,6 +4588,46 @@ async function autoSyncFromSheet(){
     _chatMsgs=rowsMsgs.slice(-60);
     localStorage.setItem('ph_chat_local',JSON.stringify(_chatMsgs));
     updateChatBadge();
+  }
+
+  // Chantiers
+  if(rowsChan&&rowsChan.length){
+    const sheetChan=rowsChan.map(row=>({
+      id:normId(row.ID_Chantier||''), projetId:normId(row.Projet_ID||''),
+      clientId:normId(row.Client_ID||''), nom:row.Nom||'',
+      adresse:row.Adresse||'', statut:row.Statut||'a_planifier',
+      dateDebut:row.Date_Début||'', dateFinPrevue:row.Date_Fin_Prévue||'',
+      budget:row.Budget||'', notes:row.Notes||'',
+      archive:row['Archivé']||'non', progression:row.Progression||'0',
+      dateCreation:row.Date_Créé||'', _sheetsynced:true
+    })).filter(c=>c.id);
+    const sheetIds=new Set(sheetChan.map(c=>c.id));
+    const localOnly=DB.get('chantiers').filter(c=>!sheetIds.has(normId(c.id)));
+    const toAdd=localOnly.filter(c=>c._sheetsynced===false);
+    const nowChanIds=new Set([...sheetChan,...toAdd].map(c=>normId(c.id)));
+    const addedDuring=DB.get('chantiers').filter(c=>!nowChanIds.has(normId(c.id)));
+    DB.set('chantiers',[...sheetChan,...toAdd,...addedDuring]);
+    if(currentView==='chantiers') renderChantiers();
+    updateNavBadges();
+  }
+
+  // TachesChantier
+  if(rowsTachChan&&rowsTachChan.length){
+    const sheetTC=rowsTachChan.map(row=>({
+      id:normId(row.ID_Tache||''), chantierId:normId(row.Chantier_ID||''),
+      projetId:normId(row.Projet_ID||''), phase:row.Phase||'',
+      texte:row.Texte||'', complete:row['Complétée']||'non',
+      personnalisee:row['Personnalisée']||'non',
+      dateCreation:row.Date_Créé||'', dateComplete:row.Date_Complétée||'',
+      _sheetsynced:true
+    })).filter(t=>t.id);
+    const sheetIds=new Set(sheetTC.map(t=>t.id));
+    const localOnly=(DB.get('taches_chantier')||[]).filter(t=>!sheetIds.has(normId(t.id)));
+    const toAdd=localOnly.filter(t=>t._sheetsynced===false);
+    const nowTCIds=new Set([...sheetTC,...toAdd].map(t=>normId(t.id)));
+    const addedDuring=(DB.get('taches_chantier')||[]).filter(t=>!nowTCIds.has(normId(t.id)));
+    DB.set('taches_chantier',[...sheetTC,...toAdd,...addedDuring]);
+    if(currentView==='chantiers') renderChantiers();
   }
 }
 /* ═══════════════════════════════════════════════════════════════════════════

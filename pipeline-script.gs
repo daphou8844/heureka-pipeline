@@ -16,11 +16,13 @@
  * ║                                                                             ║
  * ║  MISE À JOUR : Déployer → Gérer → ✏ Nouvelle version                      ║
  * ╠══════════════════════════════════════════════════════════════════════════════╣
- * ║  ACTIONS GET   : ping · getClients · getProjets                             ║
+ * ║  ACTIONS GET   : ping · getClients · getProjets · getChantiers              ║
  * ║                  getActivites · getCourriels · getHistorique                ║
- * ║  ACTIONS POST  : createClient · createProjet                               ║
+ * ║                  getTachesChantier                                          ║
+ * ║  ACTIONS POST  : createClient · createProjet · createChantier              ║
  * ║                  createActivite · logHistorique · sendEmail                 ║
- * ║                  updateProjetStatut                                         ║
+ * ║                  updateProjetStatut · updateChantierStatut                  ║
+ * ║                  upsertTacheChantier                                        ║
  * ╚══════════════════════════════════════════════════════════════════════════════╝
  */
 
@@ -44,6 +46,14 @@ var HEADERS = {
     'ID_Projet', 'Client_ID', 'Nom_Projet', 'Statut', 'Priorité', 'Type_Projet',
     'Source_Référence', 'Prix_Estimé', 'Coût_Matériaux', 'Coût_MO',
     'Lien_Soumission', 'Notes', 'Date_Créé', 'Date_RDV', 'Chantier_ID'
+  ],
+  Chantiers: [
+    'ID_Chantier', 'Projet_ID', 'Client_ID', 'Nom', 'Adresse', 'Statut',
+    'Date_Début', 'Date_Fin_Prévue', 'Budget', 'Notes', 'Archivé', 'Progression', 'Date_Créé'
+  ],
+  TachesChantier: [
+    'ID_Tache', 'Chantier_ID', 'Projet_ID', 'Phase', 'Texte',
+    'Complétée', 'Personnalisée', 'Date_Créé', 'Date_Complétée'
   ],
   Activites: [
     'ID_Activité', 'Projet_ID', 'Client_ID', 'Type', 'Date', 'Description',
@@ -159,6 +169,12 @@ function doGet(e) {
       case 'getProjets':
         result = { projets: getAllRows_('Projets') };
         break;
+      case 'getChantiers':
+        result = { chantiers: getAllRows_('Chantiers') };
+        break;
+      case 'getTachesChantier':
+        result = { taches: getAllRows_('TachesChantier') };
+        break;
       case 'getActivites':
         result = { activites: getAllRows_('Activites') };
         break;
@@ -170,9 +186,11 @@ function doGet(e) {
         break;
       case 'getAll':
         result = {
-          clients:    getAllRows_('Clients'),
-          projets:    getAllRows_('Projets'),
-          activites:  getAllRows_('Activites'),
+          clients:         getAllRows_('Clients'),
+          projets:         getAllRows_('Projets'),
+          chantiers:       getAllRows_('Chantiers'),
+          taches_chantier: getAllRows_('TachesChantier'),
+          activites:       getAllRows_('Activites'),
           courriels:  getAllRows_('Courriels'),
           historique: getAllRows_('Historique')
         };
@@ -206,8 +224,14 @@ function doPost(e) {
       case 'createProjet':
         result = upsert_('Projets', body, projetFields_);
         break;
+      case 'createChantier':
+        result = upsert_('Chantiers', body, chantierFields_);
+        break;
       case 'createActivite':
         result = upsert_('Activites', body, activiteFields_);
+        break;
+      case 'upsertTacheChantier':
+        result = upsert_('TachesChantier', body, tacheChantierFields_);
         break;
 
       // ── Mises à jour rapides de statut ────────────────────────────────────────
@@ -215,6 +239,11 @@ function doPost(e) {
         result = updateField_('Projets', body.id, 'statut', body.statut);
         appendHistorique_(body.projetId || body.id, '', 'statut',
           'Statut projet → ' + body.statut);
+        break;
+      case 'updateChantierStatut':
+        result = updateField_('Chantiers', body.id, 'Statut', body.statut);
+        appendHistorique_(body.projetId || '', body.id, 'statut',
+          'Statut chantier → ' + body.statut);
         break;
       // ── Historique ────────────────────────────────────────────────────────────
       case 'logHistorique':
@@ -460,6 +489,40 @@ function projetFields_(b) {
   };
 }
 
+function chantierFields_(b) {
+  var now = new Date().toISOString();
+  return {
+    id:           b.id            || generateId_(),
+    projetId:     b.projetId      || '',
+    clientId:     b.clientId      || '',
+    nom:          b.nom           || '',
+    adresse:      b.adresse       || '',
+    statut:       b.statut        || 'a_planifier',
+    dateDebut:    b.dateDebut     || '',
+    dateFinPrevue:b.dateFinPrevue || '',
+    budget:       b.budget        || '',
+    notes:        b.notes         || '',
+    archive:      b.archive       || 'non',
+    progression:  b.progression   != null ? String(b.progression) : '0',
+    dateCreation: b.dateCreation  || now
+  };
+}
+
+function tacheChantierFields_(b) {
+  var now = new Date().toISOString();
+  return {
+    id:           b.id             || generateId_(),
+    chantierId:   b.chantierId     || '',
+    projetId:     b.projetId       || '',
+    phase:        b.phase          || '',
+    texte:        b.texte          || '',
+    complete:     b.complete       || 'non',
+    personnalisee:b.personnalisee  || 'non',
+    dateCreation: b.dateCreation   || now,
+    dateComplete: b.dateComplete   || ''
+  };
+}
+
 function activiteFields_(b) {
   var now = new Date().toISOString();
   return {
@@ -655,7 +718,7 @@ function initAllSheets() {
   SS.setSpreadsheetTimeZone(TIMEZONE);
 
   // Ordre des onglets
-  var order = ['Clients', 'Projets', 'Activites', 'Courriels', 'Historique', 'Taches', 'Notes', 'Messages'];
+  var order = ['Clients', 'Projets', 'Chantiers', 'TachesChantier', 'Activites', 'Courriels', 'Historique', 'Taches', 'Notes', 'Messages'];
   for (var k = 0; k < order.length; k++) {
     var s = SS.getSheetByName(order[k]);
     if (s) SS.setActiveSheet(s);
