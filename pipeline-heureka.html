@@ -1535,6 +1535,7 @@ let dragProjetId = null;
 let currentChantierId = null;
 let currentChantierTab = 'taches';
 let showChantierArchives = false;
+let currentProjTab = 'info';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    UTILS
@@ -2036,6 +2037,21 @@ function saveNewProjet(){
 /* ═══════════════════════════════════════════════════════════════════════════
    MODAL: DÉTAIL PROJET
 ═══════════════════════════════════════════════════════════════════════════ */
+function switchProjTab(tab){
+  currentProjTab = tab;
+  ['info','activites','courriels','historique','soumission','documents'].forEach(t=>{
+    const btn=document.getElementById('pjtab-'+t); const cnt=document.getElementById('pjtab-content-'+t);
+    if(btn) btn.classList.toggle('active',t===tab);
+    if(cnt) cnt.classList.toggle('active',t===tab);
+  });
+  if(tab==='info') renderProjetDetail();
+  else if(tab==='activites') renderProjetActivitesFull(currentProjetId);
+  else if(tab==='courriels') renderEmailTab('proj', currentProjetId);
+  else if(tab==='historique') renderHistoriqueTab('proj', currentProjetId);
+  else if(tab==='soumission') renderSoumissionTab(currentProjetId);
+  else if(tab==='documents') renderProjectDocuments(currentProjetId);
+}
+
 function openProjetDetail(id){
   currentProjetId = id;
   const mpjDoc = document.getElementById('mpj-documents');
