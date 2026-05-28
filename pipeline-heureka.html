@@ -4966,7 +4966,12 @@ function deleteTask(id){
 
 function openNewTaskModal(){
   const sel=document.getElementById('nt-projet');
-  if(sel){ const ps=DB.get('projets').filter(p=>!['perdu','gagne'].includes(p.statut)); sel.innerHTML=`<option value="">— Aucun —</option>`+ps.map(p=>`<option value="${p.id}">${escHtml(p.nom)}</option>`).join(''); }
+  if(sel){
+    const chantiers=DB.get('chantiers')||[];
+    const actifIds=new Set(chantiers.filter(c=>c.statut!=='termine'&&c.archive!=='oui').map(c=>c.projetId).filter(Boolean));
+    const ps=DB.get('projets').filter(p=>p.statut!=='perdu'&&actifIds.has(p.id));
+    sel.innerHTML=`<option value="">— Aucun —</option>`+ps.map(p=>`<option value="${p.id}">${escHtml(p.nom)}</option>`).join('');
+  }
   const ta=document.getElementById('nt-texte'); if(ta) ta.value='';
   openModal('modal-new-task');
 }
