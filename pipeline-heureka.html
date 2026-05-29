@@ -4390,7 +4390,7 @@ async function syncAdminJobFromChantier(ch){
   await scriptPost({
     action:'saveJob',
     job:{
-      id:projet.id||ch.id,
+      id:ch.id,
       name:projet.nom||ch.nom||'',
       client:cl.nom||'',
       address:cl.adresse||ch.adresse||'',
