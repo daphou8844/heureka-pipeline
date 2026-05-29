@@ -4384,15 +4384,22 @@ function archiveChantier(){
 }
 
 async function syncAdminJobFromChantier(ch){
-  const cl=getClient(ch.clientId)||{};
+  const projet=getProjet(ch.projetId)||{};
+  const cl=getClient(projet.clientId||ch.clientId)||{};
   const statutMap={a_planifier:'planifié',en_preparation:'planifié',en_cours:'actif',en_pause:'en pause',termine:'terminé'};
   await scriptPost({
     action:'saveJob',
     job:{
-      id:ch.id, name:ch.nom||'', client:cl.nom||'',
-      address:ch.adresse||'', status:statutMap[ch.statut]||'actif',
-      start:ch.dateDebut||'', end:ch.dateFinPrevue||'',
-      budget:ch.budget||0, foreman:'', notes:ch.notes||''
+      id:projet.id||ch.id,
+      name:projet.nom||ch.nom||'',
+      client:cl.nom||'',
+      address:cl.adresse||ch.adresse||'',
+      status:statutMap[ch.statut]||'planifié',
+      start:ch.dateDebut||'',
+      end:ch.dateFinPrevue||'',
+      budget:projet.prix||ch.budget||0,
+      foreman:'',
+      notes:projet.notes||ch.notes||''
     }
   });
 }
