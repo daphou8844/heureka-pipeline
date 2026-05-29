@@ -4363,6 +4363,7 @@ function saveEditChantier(){
   if(currentChantierTab==='info') renderChantierInfo();
   if(currentView==='chantiers') renderChantiers();
   syncChantierToSheets(chantiers[idx],true);
+  syncAdminJobFromChantier(chantiers[idx]);
   showToast('Chantier mis à jour ✓');
 }
 
@@ -4375,10 +4376,25 @@ function archiveChantier(){
   chantiers[idx].archive='oui';
   DB.set('chantiers',chantiers);
   syncChantierToSheets(chantiers[idx],true);
+  syncAdminJobFromChantier(chantiers[idx]);
   closeModal('modal-edit-chantier');
   closeModal('modal-chantier');
   if(currentView==='chantiers') renderChantiers();
   showToast('Chantier terminé et archivé ✓');
+}
+
+async function syncAdminJobFromChantier(ch){
+  const cl=getClient(ch.clientId)||{};
+  const statutMap={a_planifier:'planifié',en_preparation:'planifié',en_cours:'actif',en_pause:'en pause',termine:'terminé'};
+  await scriptPost({
+    action:'saveJob',
+    job:{
+      id:ch.id, name:ch.nom||'', client:cl.nom||'',
+      address:ch.adresse||'', status:statutMap[ch.statut]||'actif',
+      start:ch.dateDebut||'', end:ch.dateFinPrevue||'',
+      budget:ch.budget||0, foreman:'', notes:ch.notes||''
+    }
+  });
 }
 
 function autoCreateChantierFromProjet(projet){
@@ -4399,6 +4415,7 @@ function autoCreateChantierFromProjet(projet){
   DB.set('chantiers',chantiers);
   createChantierTachesFromTemplate(ch);
   syncChantierToSheets(ch);
+  syncAdminJobFromChantier(ch);
   logHistory(projet.id,'chantier','Chantier créé : '+ch.nom);
   showToast('✅ Chantier créé : '+ch.nom);
   if(currentView==='chantiers') renderChantiers();
