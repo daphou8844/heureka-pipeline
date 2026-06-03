@@ -748,8 +748,8 @@ textarea.form-control{resize:vertical;min-height:72px}
             </div>
             <div class="form-group">
               <label class="form-label">URL du Apps Script (/exec)</label>
-              <input class="form-control" id="cfg-url" placeholder="https://script.google.com/macros/s/.../exec" oninput="saveCfgUrl()">
-              <div class="config-url-saved hidden" id="cfg-url-saved">✓ URL sauvegardée</div>
+              <input class="form-control" id="cfg-url" readonly style="cursor:default;opacity:.7;color:var(--muted)" value="">
+              <div style="font-size:11px;color:var(--muted);margin-top:4px">🔒 Défini dans config.js — non modifiable ici</div>
             </div>
           </div>
           <div class="config-section">
@@ -1831,7 +1831,7 @@ function addActivityFromPanel(projetId){
   syncActiviteToSheets(newAct);
   const projets = DB.get('projets');
   const pi = projets.findIndex(p=>p.id===projetId);
-  if(pi!==-1){ projets[pi].dateDernierContact=todayStr(); DB.set('projets',projets); }
+  if(pi!==-1){ projets[pi].dateDernierContact=date; DB.set('projets',projets); }
   closeActivityPanel();
   renderPipeline();
   showToast('Activité ajoutée.');
@@ -2203,7 +2203,7 @@ function saveFollowUp(){
   const activites = DB.get('activites'); activites.push(a); DB.set('activites', activites);
   if(projetId){
     const projets=DB.get('projets'); const idx=projets.findIndex(p=>p.id===projetId);
-    if(idx!==-1){ projets[idx].dateDernierContact=todayStr(); DB.set('projets',projets); }
+    if(idx!==-1){ projets[idx].dateDernierContact=date; DB.set('projets',projets); }
   }
   closeModal('modal-followup');
   renderProjetActivities(projetId||currentProjetId); if(currentView==='pipeline') renderPipeline();
@@ -2444,7 +2444,7 @@ function initConfig(){
   DB.setStr('appsScriptUrl', HEUREKA_CONFIG.APPS_SCRIPT_URL);
   const el=document.getElementById('cfg-url');
   if(el) el.value=HEUREKA_CONFIG.APPS_SCRIPT_URL;
-  document.getElementById('cfg-url-saved').classList.remove('hidden');
+  // cfg-url-saved supprimé — champ maintenant readonly
   const el2=document.getElementById('cfg-sheet-id');
   if(el2) el2.value=HEUREKA_CONFIG.SPREADSHEET_ID;
   const gr=document.getElementById('cfg-google-review');
@@ -2782,14 +2782,14 @@ function renderInactivityAlerts(){
   const alerts = projets.filter(p=>{
     if(p.statut==='perdu'||p.statut==='gagne') return false;
     const seuil = INACTIVITY_THRESHOLDS[p.statut]||7;
-    return daysSince(p.dateDernierContact) >= seuil;
-  }).sort((a,b)=>daysSince(b.dateDernierContact)-daysSince(a.dateDernierContact));
+    return daysSince(getLastContactDate(p.id)) >= seuil;
+  }).sort((a,b)=>daysSince(getLastContactDate(b.id))-daysSince(getLastContactDate(a.id)));
   const el = document.getElementById('pipeline-alerts');
   if(!el) return;
   if(alerts.length===0){ el.innerHTML=''; return; }
   el.innerHTML = `<div class="inactivity-alert">
     <strong>⚠ ${alerts.length} projet${alerts.length>1?'s':''} sans suivi :</strong>
-    ${alerts.slice(0,3).map(p=>`<span onclick="openProjetDetail('${p.id}')" style="cursor:pointer;text-decoration:underline">${escHtml(p.nom)} (${daysSince(p.dateDernierContact)}j)</span>`).join(' · ')}
+    ${alerts.slice(0,3).map(p=>`<span onclick="openProjetDetail('${p.id}')" style="cursor:pointer;text-decoration:underline">${escHtml(p.nom)} (${daysSince(getLastContactDate(p.id))}j)</span>`).join(' · ')}
     ${alerts.length>3?`<span style="color:var(--muted)">+${alerts.length-3} autres</span>`:''}
   </div>`;
 }
