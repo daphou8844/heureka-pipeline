@@ -1542,7 +1542,15 @@ let currentProjTab = 'info';
 ═══════════════════════════════════════════════════════════════════════════ */
 function uid(){ return crypto.randomUUID(); }
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-function daysSince(d){ if(!d) return 999; return Math.floor((Date.now()-new Date(d).getTime())/86400000); }
+function normDate(d){
+  if(!d) return '';
+  const s=d.split('T')[0];
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(m) return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
+  return s;
+}
+function daysSince(d){ if(!d) return 999; const n=normDate(d); return Math.floor((Date.now()-new Date(n).getTime())/86400000); }
 function getLastContactDate(projetId){
   const pid=String(projetId).trim();
   const dates=[];
@@ -1556,11 +1564,11 @@ function getNextActivityDate(projetId){
   if(!pending.length)return null;
   return pending.map(a=>a.date.split('T')[0]).sort()[0];
 }
-function fmtDate(d){ if(!d||d===''||d==='undefined'||d==='null') return '—'; try{ const p=d.split('T')[0].split('-'); if(p.length<3||!p[0]||!p[1]||!p[2]) return '—'; return p[2]+'/'+p[1]+'/'+p[0]; }catch(e){ return '—'; } }
+function fmtDate(d){ if(!d||d===''||d==='undefined'||d==='null') return '—'; try{ const p=normDate(d).split('-'); if(p.length<3||!p[0]||!p[1]||!p[2]) return '—'; return p[2]+'/'+p[1]+'/'+p[0]; }catch(e){ return '—'; } }
 function fmtMoney(n){ if(!n||n===0||n==='') return '—'; return '$'+Number(n).toLocaleString('fr-CA'); }
 function actiStatus(dateStr){
   if(!dateStr) return 'future';
-  const d=dateStr.split('T')[0], t=todayStr();
+  const d=normDate(dateStr), t=todayStr();
   if(d<t) return 'late'; if(d===t) return 'today'; return 'future';
 }
 function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -2593,7 +2601,7 @@ async function syncSheets(){
           id:normId(row['ID_Activité']||row['ID_Activite']||row.ID_Activit||''),
           projetId:row.Projet_ID||'',
           type:row.Type||'',
-          date:(row.Date||'').split('T')[0],
+          date:normDate(row.Date||''),
           description:row.Description||'', desc:row.Description||'',
           done:row['Complétée']==='Oui'||row['Completee']==='Oui'||row.Completee==='Oui',
           chantierId:'', dateDone:'',
